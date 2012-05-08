@@ -1,0 +1,860 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"get",
+				"getAll"
+			],
+			[
+				"style",
+				"stylesheets"
+			],
+			[
+				"getHash",
+				"getHashableDomain"
+			],
+			[
+				"res",
+				"repl.writer(obj, showHidden, depth, colors);"
+			],
+			[
+				"f",
+				"f	Anonymous Function"
+			],
+			[
+				"with",
+				"within"
+			],
+			[
+				"texta",
+				"textarea"
+			],
+			[
+				"tex",
+				"text-align"
+			],
+			[
+				"la",
+				"label"
+			],
+			[
+				"field",
+				"fieldset"
+			],
+			[
+				"cen",
+				"center"
+			],
+			[
+				"label",
+				"label"
+			],
+			[
+				"fieldset",
+				"fieldset"
+			],
+			[
+				"dd",
+				"dd"
+			],
+			[
+				"commercia",
+				"commercially"
+			],
+			[
+				"po",
+				"portal"
+			],
+			[
+				"admi",
+				"administration"
+			],
+			[
+				"repor",
+				"reporting"
+			],
+			[
+				"analy",
+				"analytics"
+			],
+			[
+				"per",
+				"perform"
+			],
+			[
+				"testing",
+				"testing"
+			],
+			[
+				"perform",
+				"perform"
+			],
+			[
+				"ana",
+				"analytics"
+			],
+			[
+				"perfo",
+				"perform"
+			],
+			[
+				"anal",
+				"analytics"
+			],
+			[
+				"in-b",
+				"in-built"
+			],
+			[
+				"ul",
+				"ultimate"
+			],
+			[
+				"Analy",
+				"Analytics"
+			],
+			[
+				"sit",
+				"sites"
+			],
+			[
+				"Um",
+				"Umbraco"
+			],
+			[
+				"underst",
+				"understands"
+			],
+			[
+				"background-c",
+				"background-color"
+			],
+			[
+				"back",
+				"background	background-attachment: scroll/fixed"
+			],
+			[
+				"text-al",
+				"text-align"
+			],
+			[
+				"Anal",
+				"analytics"
+			],
+			[
+				"dl",
+				"dl"
+			],
+			[
+				"text-sha",
+				"text-shadow"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 104.0,
+		"selected_items":
+		[
+			[
+				"wrap",
+				"Word Wrap: Toggle"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"xml",
+				"Set Syntax: XML"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"javasc",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"c#",
+				"Set Syntax: C#"
+			],
+			[
+				"java",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"html",
+				"Set Syntax: HTML"
+			],
+			[
+				"javas",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"jade",
+				"Set Syntax: Jade"
+			],
+			[
+				"fetch",
+				"Fetch"
+			],
+			[
+				"npm ",
+				"Nodejs::NPM::Install"
+			],
+			[
+				"dis",
+				"Package Control: Discover Packages"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"com",
+				"Git: Commit"
+			],
+			[
+				"add",
+				"Git: Add..."
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"quick",
+				"Git: Quick Commit"
+			],
+			[
+				"git sta",
+				"Git: Status"
+			],
+			[
+				"npm inst",
+				"Nodejs::NPM::Install"
+			],
+			[
+				"npm",
+				"Nodejs::NPM::Install"
+			],
+			[
+				"open",
+				"View: Toggle Open Files in Side Bar"
+			],
+			[
+				"pull",
+				"Git: Pull"
+			],
+			[
+				"wr",
+				"Word Wrap: Toggle"
+			],
+			[
+				"stat",
+				"Git: Status"
+			],
+			[
+				"add..",
+				"Git: Add..."
+			],
+			[
+				"status",
+				"Git: Status"
+			],
+			[
+				"disc",
+				"Package Control: Discover Packages"
+			]
+		],
+		"width": 512.0
+	},
+	"console":
+	{
+		"height": 171.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/_Projects/github/db.js/tests/public/specs/server-add.js",
+		"/D/_Projects/github/db.js/tests/public/specs/open-db.js",
+		"/D/_Projects/github/db.js/tests/app.js",
+		"/D/_Projects/github/db.js/tests/views/layout.jade",
+		"/D/_Projects/github/db.js/tests/views/index.jade",
+		"/D/_Projects/github/db.js/tests/package.json",
+		"/D/_Projects/github/db.js/src/db.js",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/LK_SLK_VOY_PIN_POINTS_20120418/LK_SLK_VOY_PIN_POINTS_20120418.dat",
+		"/D/_Projects/bitbucket.org/funnelweb-release/src/FunnelWeb.Web/Views/Shared/_Public.cshtml",
+		"/D/_Projects/Readify/javascript-dev-day/src/exercises/tests/package.json",
+		"/D/_Projects/Readify/javascript-dev-day/src/exercises/tests/scope.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/exercises/tests/conditionals.js",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/TFN.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/PersonalLoan-ACC.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/DERPS.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/Mortgage-ACC.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/Investing.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/Super-For-Life.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/PRICING.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/CREDIT-CARD-ACC.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/PPM.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/TermDeposit-ACC.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/Unclear-fund.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/PPS.txt",
+		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/TB0201-ACC.txt",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/public/js/jquery-1.7.2.js",
+		"/D/_Projects/github/wdyk/lib/routing.js",
+		"/D/_Projects/github/wdyk/web.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/node_modules/express/lib/express.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/public/js/site.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/public/css/site.css",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/board.jade",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/routes/index.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/_header.jade",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/_nav.jade",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/package.json",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/layout.jade",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/index.jade",
+		"/D/_Projects/bitbucket.org/statsit.publicweb/web.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/model/index.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/model/storage.json",
+		"/D/_Projects/Readify/javascript-dev-day/slides/views/layout.jade",
+		"/D/_Projects/github/cv/web.js",
+		"/D/_Projects/github/pinboard-bridge/web.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/public/css/bootstrap.css",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/views/add.jade",
+		"/C/Users/Aaron/Downloads/package/package.json",
+		"/C/Users/Aaron/Downloads/package.json",
+		"/C/Users/Aaron/Downloads/jade",
+		"/C/Users/Aaron/Downloads/jade.js",
+		"/C/Users/Aaron/AppData/Roaming/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/C/Users/Aaron/AppData/Roaming/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/D/_Projects/Readify/javascript-dev-day/src/scrum-board-node/node_modules/jade/lib/compiler.js",
+		"/D/_Projects/umb-temp/umbraco/umbraco/presentation/config/umbracoSettings.config",
+		"/D/_Projects/umb-temp/umbraco/umbraco/presentation/config/tinyMceConfig.config",
+		"/C/Users/Aaron/.hgrc",
+		"/D/_Projects/github/wdyk/views/index.jade",
+		"/D/_Projects/Readify/javascript-dev-day/slides/app.js",
+		"/D/_Projects/Readify/javascript-dev-day/src/hello-node/package.json",
+		"/D/_Projects/Readify/javascript-dev-day/src/hello-node/app.js",
+		"/D/_Projects/Readify/javascript-dev-day/slides/routes/index.js",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/stylesheets/3d-cube.css",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/javascripts/site.js",
+		"/D/Dropbox/readify/Presentations/readify-tech-talk/views/_node.jade",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/views/layout.jade",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/package.json",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/views/index.jade",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/javascripts/deck.hash.js",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/javascripts/modernizr.custom.js",
+		"/D/Dropbox/readify/Presentations/readify-tech-talk/views/index.jade",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/stylesheets/horizontal-slide.css",
+		"/D/_Projects/github/wdyk/views/_c9.jade",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/app.js",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/routes/index.js",
+		"/D/_Projects/Readify/javascript-dev-day/01-intro/slides/public/stylesheets/style.css",
+		"/D/_Projects/github/wdyk/views/layout.jade",
+		"/D/_Projects/Readify/javascript-dev-day/.gitignore",
+		"/D/_Projects/tmp/node_modules/express/package.json",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/FunnelWeb.Web.csproj",
+		"/D/_Projects/bitbucket.org/aspnetmvc3packager/src/Microsoft.AspNetMvc3.nuspec",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/build.bat",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/build/build.proj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/build/ci.proj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.sln",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/.hgignore",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/build/lib/MSBuild.Mercurial.tasks",
+		"/D/Dropbox/Tools/License.txt",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Extensions.CommentNotification/FunnelWeb.Extensions.CommentNotification.csproj",
+		"/D/_Projects/github/DownmarkerWPF/src/MarkPad/MarkPad.csproj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb/FunnelWeb.csproj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Tests/FunnelWeb.Tests.csproj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Tools/FunnelWeb.Tools.csproj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Wcf/FunnelWeb.Wcf.csproj",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/tmp.txt",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Tools/App.xaml.cs",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Tools/MainWindow.xaml.cs",
+		"/D/_Projects/github/DownmarkerWPF/build.bat",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/.nuget/NuGet.targets",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/build/lib/MSBuild.Community.Tasks.Targets",
+		"/D/_Projects/github/DownmarkerWPF/MarkPad.sln",
+		"/D/_Projects/Readify/amp/js/lib/more-expando.js",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/.hg/hgrc",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Shared/_Public.cshtml",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Shared/PageTemplates/Default.cshtml",
+		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Wiki/Page.cshtml",
+		"/C/Ruby193/devkit/config.yml",
+		"/D/_Projects/github/jquery/src/core.js",
+		"/D/_Projects/github/Pinboard/Pinboard.suo",
+		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj",
+		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj.user",
+		"/D/_Projects/github/Pinboard/Pinboard.v11.suo",
+		"/D/_Projects/github/tbd/tests.js",
+		"/D/_Projects/github/tbd/index.js",
+		"/D/_Projects/github/cv/package.json",
+		"/C/Users/Az/Dropbox/Talks/2011 - Teched NZ - JavaScript Pitfalls/css/main.css",
+		"/D/_Projects/github/cv/views/layout.jade",
+		"/C/Users/Az/Dropbox/Talks/2011 - Teched NZ - JavaScript Pitfalls/js/slideshow.js",
+		"/C/_Projects/tmp/sniffer.js",
+		"/D/_Projects/github/cv/public/js/ga.js",
+		"/C/Users/Az/Desktop/lync.cer",
+		"/C/Users/Az/Desktop/Communicator-uccapi-0.uccapilog",
+		"/C/Users/Az/Tracing/Communicator-uccapi-0.uccapilog",
+		"/C/_Projects/github/DelivR/DelivR.Samples/DelivR.Samples.csproj",
+		"/C/_Projects/github/DelivR/DelivR.Samples.ScreenShare/DelivR.Samples.ScreenShare.csproj",
+		"/C/_Projects/github/DelivR/DelivR/DelivR.csproj",
+		"/C/_Projects/github/DelivR/.gitignore",
+		"/C/Users/Az/Downloads/download (2)",
+		"/C/Users/Az/Downloads/Download/ScreenCapture.cs"
+	],
+	"find":
+	{
+		"height": 32.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			"",
+			"*.js",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"define",
+			"\n});",
+			"js",
+			"use",
+			"server",
+			"webkit",
+			"'",
+			"mkd",
+			"5",
+			"insert",
+			"render",
+			"\"",
+			"file",
+			"$this",
+			"model",
+			"archive",
+			"data",
+			"getAll",
+			"emitter",
+			"render",
+			"Moder",
+			"1s",
+			"javascript",
+			"/js",
+			"/css/",
+			"/css",
+			"msbuild",
+			"</",
+			"hg",
+			"package",
+			"find :",
+			"find:",
+			"find",
+			"var ",
+			"data:image/png;base64",
+			"navigator",
+			"event",
+			"#main",
+			"routes",
+			"// ",
+			"io.sockets",
+			"io.",
+			"io",
+			"socket.io.js",
+			"StaticFileModule",
+			"css",
+			"pageCount",
+			"k\\[sa",
+			"k",
+			"k[",
+			"random",
+			"w\\(",
+			"W\\(",
+			"get =",
+			"Ic =",
+			"W\\(",
+			"W(",
+			"268435455",
+			"x44",
+			"Tc =",
+			"W ",
+			"session",
+			"SVGCircle",
+			"<cir",
+			"data",
+			"visits.overview",
+			"items",
+			"Sa,",
+			"Sa",
+			"\\d+",
+			"id ",
+			"id(",
+			"Fc",
+			"Fc(",
+			"W(",
+			"Fc",
+			"W(",
+			"window.",
+			"Date",
+			"dd",
+			"W",
+			"utma",
+			"start",
+			"white",
+			"res",
+			"StatsItInclude",
+			"StatsIt",
+			"proxy",
+			"StatsIt",
+			"4450",
+			"app",
+			"exec",
+			"child_process",
+			"\\d.",
+			"../",
+			"Plugins started",
+			"serverBefore",
+			"Plugins started for",
+			"Plugins started for serverBefore",
+			"loading",
+			"exec",
+			"loadPlugins",
+			"slice.call",
+			"folder",
+			".gz",
+			"conf",
+			"\"",
+			"replace",
+			"sort",
+			"htmlparser",
+			"ignored",
+			"instanceOf",
+			"logLevel",
+			"\\d+",
+			" class=\"MsoNormal\"",
+			"windows"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"",
+			"\"\"",
+			"\\\\\"",
+			"\\\"",
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 35.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 66.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"condi",
+				"src/exercises/tests/conditionals.js"
+			],
+			[
+				"jquery",
+				"src/scrum-board-node/public/js/jquery-1.7.2.js"
+			],
+			[
+				"header",
+				"src/scrum-board-node/views/_header.jade"
+			],
+			[
+				"layout",
+				"slides/views/layout.jade"
+			],
+			[
+				"sto",
+				"src/scrum-board-node/model/storage.json"
+			],
+			[
+				"boo",
+				"src/scrum-board-node/public/css/bootstrap.css"
+			],
+			[
+				"moder",
+				"01-intro/slides/public/javascripts/modernizr.custom.js"
+			],
+			[
+				"hash",
+				"01-intro/slides/public/javascripts/deck.hash.js"
+			],
+			[
+				"3d",
+				"01-intro/slides/public/stylesheets/3d-cube.css"
+			],
+			[
+				"",
+				"01-intro/slides/package.json"
+			],
+			[
+				"la",
+				"views/layout.jade"
+			],
+			[
+				"layo",
+				"views/layout.jade"
+			],
+			[
+				"w",
+				"web.js"
+			],
+			[
+				"pack",
+				"package.json"
+			],
+			[
+				"repo",
+				"Controllers/ReportsSurfaceController.cs"
+			],
+			[
+				"repos",
+				"Controllers/ReportsSurfaceController.cs"
+			],
+			[
+				"overv",
+				"Views/Editors/StatsEditor/Overview.cshtml"
+			],
+			[
+				"contentover",
+				"Views/Editors/StatsEditor/ContentOverview.cshtml"
+			],
+			[
+				"routes",
+				"Scripts/BackOffice/routes.js"
+			],
+			[
+				"conten",
+				"Scripts/BackOffice/content.js"
+			],
+			[
+				"ke",
+				"Scripts/BackOffice/kendo.all.js"
+			],
+			[
+				"route",
+				"Scripts/Testing/route-mocks.js"
+			],
+			[
+				"editor",
+				"Content/Css/editor.css"
+			],
+			[
+				"route-",
+				"Scripts/Testing/route-mocks.js"
+			],
+			[
+				".csh",
+				"Views/Editors/StatsEditor/Overview.cshtml"
+			],
+			[
+				".cshtml",
+				"Views/MacroPartials/StatsItInclude.cshtml"
+			],
+			[
+				"track",
+				"Models/TrackedPageViewModel.cs"
+			],
+			[
+				"am",
+				"Scripts/BackOffice/amplify.request.decoders.js"
+			],
+			[
+				"back",
+				"Scripts/BackOffice/backoffice.js"
+			],
+			[
+				"statsit.js",
+				"Scripts/statsIt.js"
+			],
+			[
+				"inde",
+				"index.html"
+			],
+			[
+				"we",
+				"web.js"
+			],
+			[
+				"package",
+				"package.json"
+			],
+			[
+				"exp",
+				"node_modules/express/bin/express"
+			],
+			[
+				"bye",
+				"views/bye.jade"
+			],
+			[
+				"web",
+				"web.js"
+			],
+			[
+				"plug",
+				"lib/plugin.coffee"
+			],
+			[
+				"plugin-",
+				"lib/plugin-loader.coffee"
+			],
+			[
+				"tar",
+				"lib/utils/tar.js"
+			],
+			[
+				"exec",
+				"lib/utils/exec.js"
+			],
+			[
+				"install",
+				"scripts/install.sh"
+			],
+			[
+				"docpad",
+				"node_modules/docpad/lib/docpad.coffee"
+			],
+			[
+				"atom",
+				"src/documents/atom.xml.eco"
+			],
+			[
+				"index",
+				"src/documents/index.html.ck"
+			],
+			[
+				"server.",
+				"server.coffee"
+			],
+			[
+				"site.css",
+				"src/files/styles/site.css"
+			],
+			[
+				"post.ck",
+				"src/layouts/post.html.ck"
+			],
+			[
+				"page",
+				"src/layouts/page.html.ck"
+			],
+			[
+				"post",
+				"src/layouts/post.html.ck"
+			],
+			[
+				"defa",
+				"src/layouts/default.html.ck"
+			],
+			[
+				"ana",
+				"out/scripts/analytics.js"
+			],
+			[
+				"new-",
+				"src/documents/blog/new-site.html.md"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 230.0,
+	"status_bar_visible": true
+}
