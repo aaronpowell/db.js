@@ -1,0 +1,8 @@
+extends layout
+
+append scripts
+    script(src='/specs/open-db.js')
+    script(src='/specs/server-add.js')
+    script
+        jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+        jasmine.getEnv().execute();
