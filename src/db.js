@@ -61,6 +61,15 @@
             closed = true;
             delete dbCache[ name ];
         };
+
+        this.get = function ( table , id , fn ) {
+            var transaction = db.transaction( table , IDBTransaction.READ_ONLY ),
+                store = transaction.objectStore( table );
+
+            store.get( id ).onsuccess = function ( e ) {
+                fn( e.target.result );
+            };
+        };
     };
     
     var Query = function ( table , db ) {
