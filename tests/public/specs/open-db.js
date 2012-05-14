@@ -29,11 +29,30 @@
         });
         
         afterEach( function () {
+            var done;
+
             runs( function () {
                 if ( this.server ) {
                     this.server.close();
                 }                
+                var req = indexedDB.deleteDatabase( dbName );
+                
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db' , arguments );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments );
+                };
             });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
         });
         
         it( 'should open a new instance successfully' , function () {
