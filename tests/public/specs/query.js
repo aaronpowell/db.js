@@ -111,5 +111,40 @@
                 return done;
             } , 1000 , 'timed out waiting for asserts' );
         });
+
+        it( 'should allow a get all operation' , function () {
+            var item1 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+            var item2 = {
+                firstName: 'John',
+                lastName: 'Smith'
+            };
+
+            var done = false;
+
+            runs( function () {
+                this.server.add( 'test' , [ item1 , item2 ] , function () {
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out adding record' );
+
+            runs( function () {
+                done = false;
+                this.server.query( 'test' ).execute( function ( results ) {
+                    expect( results ).toBeDefined();
+                    expect( results.length ).toEqual( 2 );
+                    expect( results[0].firstName ).toEqual( item1.firstName );
+                    expect( results[1].firstName ).toEqual( item2.firstName );
+
+                    done = true;
+                });
+            });
+        });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
