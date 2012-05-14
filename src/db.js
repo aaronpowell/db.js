@@ -2,7 +2,11 @@
     'use strict';
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
-        IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
+        IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction,
+        transactionModes = {
+            readonly: IDBTransaction.READ_ONLY || 'readonly',
+            readwrite: IDBTransaction.READ_WRITE || 'readwrite'
+        };
         
     var oldApi = !!IDBDatabase.prototype.setVersion;
 
@@ -17,7 +21,7 @@
             if ( closed ) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction( table , IDBTransaction.READ_WRITE );
+            var transaction = db.transaction( table , transactionModes.readwrite );
             var store = transaction.objectStore( table );
             
             if ( records.constructor !== Array ) {
@@ -25,22 +29,34 @@
             }
             
             records.forEach( function ( record ) {
-                store.add( record ).onsuccess = function ( e ) {
+                var req = store.add( record );
+                req.onsuccess = function ( e ) {
                     var target = e.target;
                     record[ target.source.keyPath ] = target.result;
+                };
+                req.onerror = function ( e ) {
+                    console.log( 'error adding record' , record , e );
                 };
             });
             
             transaction.oncomplete = function () {
                 done.call( that , records );
             };
+
+            transaction.onerror = function ( e ) {
+                console.log( 'transaction error when adding' , e , records );
+            };
+
+            transaction.onabort = function ( e ) {
+                console.log( 'add transaction aborted' , e , records );
+            }
         };
         
         this.remove = function ( table , key ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction( table , IDBTransaction.READ_WRITE );
+            var transaction = db.transaction( table , transactionModes.readwrite );
             var store = transaction( table );
             
             store.delete( key );
@@ -63,7 +79,7 @@
         };
 
         this.get = function ( table , id , fn ) {
-            var transaction = db.transaction( table , IDBTransaction.READ_ONLY ),
+            var transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
 
             store.get( id ).onsuccess = function ( e ) {
@@ -86,7 +102,7 @@
         
         this.execute = function ( done ) {
             var records = [],
-                transaction = db.transaction( table , IDBTransaction.READ_ONLY ),
+                transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
             
             store.openCursor().onsuccess = function ( e ) {
@@ -165,25 +181,25 @@
     var dbCache = {};
 
     window.db = {
-        open: function ( server , version , ready , schema ) {
+        open: function ( options ) {
             var request;
-            
-            if ( dbCache[ server ] ) {
+
+            if ( dbCache[ options.server ] ) {
                 open( {
                     target: {
-                        result: dbCache[ server ]
+                        result: dbCache[ options.server ]
                     }
-                } , server , version , ready , schema );
+                } , options.server , options.version , options.done , options.schema );
             } else {
-                request = indexedDB.open( server , version );
+                request = indexedDB.open( options.server , options.version );
                             
                 request.onsuccess = function ( e ) {
-                    open( e , server , version , ready , schema );
+                    open( e , options.server , options.version , options.done , options.schema );
                 };
             
                 request.onupgradeneeded = createSchema;
                 request.onerror = function () {
-                    console.log( 'failed to open db' , server , arguments );
+                    console.log( 'failed to open db' , options.server , arguments );
                 };
             }
         }

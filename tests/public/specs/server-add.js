@@ -2,12 +2,14 @@
     'use strict';
     
     describe( 'server.add' , function () {
-        var server,
-            dbName = 'my-test-db',
+        var dbName = 'server-add-tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
            
        beforeEach( function () {
             var done = false;
+            var spec = this;
+            
+            spec.server = undefined;
             
             runs( function () {
                 var req = indexedDB.deleteDatabase( dbName );
@@ -21,7 +23,7 @@
                 };
                 
                 req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
+                    console.log( 'db blocked' , arguments , spec );
                 };
             });
             
@@ -30,28 +32,34 @@
             }, 'timed out deleting the database', 1000);
             
             runs( function () {
-                db.open( dbName , 1 , function ( s ) {
-                    server = s;
-                } , { 
-                    test: {
-                        key: {
-                            keyPath: 'id',
-                            autoIncrement: true
+                db.open( {
+                    server: dbName ,
+                    version: 1 , 
+                    done: function ( s ) {
+                        spec.server = s;
+                    } ,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            }
                         }
                     }
                 });
             });
             
             waitsFor( function () { 
-                return !!server;
+                return !!spec.server;
             } , 'wait on db' , 500 );
         });
         
         afterEach( function () {
-            if ( server ) {
-                server.close();
-                server = undefined;
-            }
+            runs( function () {
+                if ( this.server ) {
+                    this.server.close();
+                }                
+            });
         });
            
         it( 'should insert a new item into the object store' , function () {
@@ -59,9 +67,12 @@
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
+            
+            var spec = this;
+            
             runs( function () {
-                server.add( 'test' , item, function ( record ) {
-                    item = record;
+                spec.server.add( 'test' , item, function ( records ) {
+                    item = records[0];
                 });
             });
             
@@ -85,8 +96,10 @@
                 lastName: 'Smith'
             };
             
+            var spec = this;
+            
             runs( function () {
-                server.add( 'test' , [ item1 , item2 ] , function ( items ) {
+                spec.server.add( 'test' , [ item1 , item2 ] , function ( items ) {
                     item1.id = items[ 0 ].id;
                     item2.id = items[ 1 ].id;
                 });

@@ -167,7 +167,7 @@
 			"file": "tests/views/index.jade",
 			"settings":
 			{
-				"buffer_size": 221,
+				"buffer_size": 255,
 				"line_ending": "Windows"
 			}
 		},
@@ -199,7 +199,31 @@
 			"file": "/C/Users/Aaron/Downloads/9781430244882/9781430244882_ch05_sourcecode/Chapter 5/MetroGrocer/MetroGrocer/js/default.js",
 			"settings":
 			{
-				"buffer_size": 1902,
+				"buffer_size": 0,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/server-add.js",
+			"settings":
+			{
+				"buffer_size": 3606,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/query.js",
+			"settings":
+			{
+				"buffer_size": 2576,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/db.js",
+			"settings":
+			{
+				"buffer_size": 6259,
 				"line_ending": "Windows"
 			}
 		}
@@ -207,7 +231,7 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 104.0,
+		"height": 35.0,
 		"selected_items":
 		[
 			[
@@ -331,7 +355,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 512.0
+		"width": 416.0
 	},
 	"console":
 	{
@@ -638,7 +662,7 @@
 	"groups":
 	[
 		{
-			"selected": 5,
+			"selected": 7,
 			"sheets":
 			[
 				{
@@ -674,15 +698,15 @@
 					"file": "tests/views/index.jade",
 					"settings":
 					{
-						"buffer_size": 221,
+						"buffer_size": 255,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								221,
-								221
+								110,
+								110
 							]
 						],
 						"settings":
@@ -781,15 +805,15 @@
 					"file": "/C/Users/Aaron/Downloads/9781430244882/9781430244882_ch05_sourcecode/Chapter 5/MetroGrocer/MetroGrocer/js/default.js",
 					"settings":
 					{
-						"buffer_size": 1902,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								636,
-								636
+								0,
+								0
 							]
 						],
 						"settings":
@@ -800,6 +824,90 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "tests/public/specs/server-add.js",
+					"settings":
+					{
+						"buffer_size": 3606,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3464,
+								3606
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 55.0,
+						"translation.y": 1296.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "tests/public/specs/query.js",
+					"settings":
+					{
+						"buffer_size": 2576,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1601,
+								1601
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 714.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "src/db.js",
+					"settings":
+					{
+						"buffer_size": 6259,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2401,
+								2401
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1251.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -848,6 +956,10 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"db.",
+				"src/db.js"
+			],
 			[
 				"condi",
 				"src/exercises/tests/conditionals.js"

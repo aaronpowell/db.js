@@ -1,13 +1,12 @@
 (function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
     'use strict';
     describe( 'db.open' , function () {
-        var server,
-            dbName = 'my-test-db',
+        var dbName = 'open-db-tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
         
         beforeEach( function () {
             var done = false;
-            
+
             runs( function () {
                 var req = indexedDB.deleteDatabase( dbName );
                 
@@ -31,54 +30,57 @@
         
         afterEach( function () {
             runs( function () {
-                if ( server ) {
-                    server.close();
-                    server = undefined;
-                }
+                if ( this.server ) {
+                    this.server.close();
+                }                
             });
         });
         
         it( 'should open a new instance successfully' , function () {
+            var spec = this;
             runs( function () {
-                db.open( dbName , 1 , function ( s ) {
-                    server = s;
-                } , { 
-                    test: {
-                        key: {
-                            keyPath: 'id',
-                            autoIncrement: true
-                        }
+                db.open( {
+                    server: dbName ,
+                    version: 1 , 
+                    done: function ( s ) {
+                        spec.server = s;
                     }
                 });
             });
             
             waitsFor( function () { 
-                return !!server;
+                return !!spec.server;
             } , 'wait on db' , 500 );
             
             runs( function () {
-               expect( server ).toBeDefined(); 
+               expect( spec.server ).toBeDefined(); 
             });
         });
         
         it( 'should use the provided schema' , function () {
             var done = false;
+            var spec = this;
 
             runs( function () {
-                db.open( dbName , 1 , function ( s ) {
-                        server = s;
-                    } , { 
-                    test: {
-                        key: {
-                            keyPath: 'id',
-                            autoIncrement: true
+                db.open( {
+                    server: dbName ,
+                    version: 1 , 
+                    done: function ( s ) {
+                        spec.server = s;
+                    } ,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            }
                         }
                     }
                 });
             });
             
             waitsFor( function () { 
-                return !!server;
+                return !!spec.server;
             } , 'wait on db' , 500 );
             
             runs( function () {
