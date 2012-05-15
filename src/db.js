@@ -219,7 +219,9 @@
                     open( e , options.server , options.version , options.done , options.schema );
                 };
             
-                request.onupgradeneeded = createSchema;
+                request.onupgradeneeded = function ( e ) {
+                    createSchema( e , options.schema , e.target.result );
+                };
                 request.onerror = function () {
                     console.log( 'failed to open db' , options.server , arguments );
                 };
