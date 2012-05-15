@@ -196,5 +196,53 @@
                 return done;
             } , 1000 , 'timed out running expects' );
         });
+
+        it( 'should query using a function filter' , function () {
+            var item1 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+            var item2 = {
+                firstName: 'John',
+                lastName: 'Smith'
+            };
+            var item3 = {
+                firstName: 'Aaron',
+                lastName: 'Smith'
+            };
+
+            var done = false;
+
+            runs( function () {
+                this.server.add( 'test' , [ item1 , item2 , item3 ] , function () {
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out adding record' );
+
+            runs( function () {
+                done = false;
+                this.server
+                    .query( 'test' )
+                    .filter( function ( x ) {
+                        return x.firstName === 'Aaron' && x.lastName === 'Powell'
+                    })
+                    .execute( function ( results ) {
+                        expect( results ).toBeDefined();
+                        expect( results.length ).toEqual( 1 );
+                        expect( results[0].firstName ).toEqual( item1.firstName );
+                        expect( results[0].firstName ).toEqual( item1.firstName );
+
+                        done = true;
+                    });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running expects' );
+        });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
