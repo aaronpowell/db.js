@@ -57,7 +57,7 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite );
-            var store = transaction( table );
+            var store = transaction.objectStore( table );
             
             store.delete( key );
         };
