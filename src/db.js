@@ -13,7 +13,7 @@
 	if ( !indexedDB ) {
 		throw 'IndexedDB required';
 	}
-    
+
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
@@ -86,6 +86,21 @@
                 fn( e.target.result );
             };
         };
+
+        for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
+            (function ( storeName ) {
+                that[ storeName ] = { };
+                for ( var i in that ) {
+
+                    that[ storeName ][ i ] = (function ( i ) {
+                        return function () {
+                            var args = [ storeName ].concat( [].slice.call( arguments , 0 ) );
+                            return that[ i ].apply( that , args );
+                        };
+                    })( i );
+                }
+            })( db.objectStoreNames[ i ] );
+        }
     };
     
     var Query = function ( table , db ) {
@@ -142,12 +157,18 @@
             schema = schema();
         }
         
-        for ( var table in schema ) {
-            if ( !Object.prototype.hasOwnProperty.call( schema , table ) ) {
+        for ( var tableName in schema ) {
+            var table = schema[ tableName ];
+            if ( !Object.prototype.hasOwnProperty.call( schema , tableName ) ) {
                 continue;
             }
             
-            db.createObjectStore( table , schema[ table ].key );
+            var store = db.createObjectStore( tableName , table.key );
+
+            for ( var indexKey in table.indexes ) {
+                var index = table.indexes[ indexKey ];
+                store.createIndex( indexKey , index.key || indexKey , index.options || { unique: false } );
+            }
         }
     };
     

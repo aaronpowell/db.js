@@ -214,7 +214,7 @@
             var done = false;
 
             runs( function () {
-                this.server.add( 'test' , [ item1 , item2 , item3 ] , function () {
+                this.server.test.add( [ item1 , item2 , item3 ] , function () {
                     done = true;
                 });
             });
