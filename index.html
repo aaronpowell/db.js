@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=640" />
+
+    <link rel="stylesheet" href="stylesheets/core.css" media="screen"/>
+    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+
+    <script type="text/javascript" src="javascripts/modernizr.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $('#main_content').headsmart()
+      })
+    </script>
+    <title>db.js by aaronpowell</title>
+  </head>
+
+  <body>
+    <a id="forkme_banner" href="https://github.com/aaronpowell/db.js">View on GitHub</a>
+    <div class="shell">
+
+      <header>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <h1>db.js</h1>
+            <h2>db.js is a wrapper for IndexedDB to make it easier to work against</h2>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+      </header>
+
+      <section id="downloads">
+        <span class="inner">
+          <a href="https://github.com/aaronpowell/db.js/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/aaronpowell/db.js/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+        </span>
+      </section>
+
+
+      <span class="banner-fix"></span>
+
+
+      <section id="main_content">
+        <h1>db.js</h1>
+
+<p>db.js is a wrapper for <a href="http://www.w3.org/TR/IndexedDB/">IndexedDB</a> to make it easier to work against, making it look more like a queryable API than the traditional IndexedDB API.</p>
+
+<h1>Usage</h1>
+
+<p>Add a reference to db.js in your application before you want to use IndexedDB:</p>
+
+<pre><code>&lt;script src='/scripts/db.js'&gt;&lt;/script&gt;
+</code></pre>
+
+<p>Once you have the script included you can then open connections to each different database within your application:</p>
+
+<pre><code>var server;
+db.open({
+         server: 'my-app',
+         version: 1,
+         done: function ( s ) {
+             server = s;
+         }, {
+             people: {
+                 key: { keyPath: 'id' , autoIncrement: true }
+             }
+         }
+    });
+</code></pre>
+
+<p>A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the <code>/tests/public/spec</code> folder for more examples.</p>
+
+<h2>Adding items</h2>
+
+<pre><code>server.people.add( {
+    firstName: 'Aaron',
+    lastName: 'Powell'
+} , function ( item ) {
+    //item stored
+});
+</code></pre>
+
+<h2>Removing</h2>
+
+<pre><code>server.people.remove( 1 , function ( item ) {
+    //item stored
+});
+</code></pre>
+
+<h2>Querying</h2>
+
+<pre><code>server.people.query( 'firstName' , 'Aaron' )
+        .execute( function ( results ) {
+            //do something with the results
+        });
+</code></pre>
+
+<h1>License</h1>
+
+<p>The MIT License</p>
+
+<p>Copyright (c) 2012 Aaron Powell</p>
+      </section>
+
+      <footer>
+        <span class="ribbon-outer">
+          <span class="ribbon-inner">
+            <p>this project by <a href="https://github.com/aaronpowell">aaronpowell</a> can be found on <a href="https://github.com/aaronpowell/db.js">GitHub</a></p>
+          </span>
+          <span class="left-tail"></span>
+          <span class="right-tail"></span>
+        </span>
+        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+        <span class="octocat"></span>
+      </footer>
+
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-20152461-5");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
