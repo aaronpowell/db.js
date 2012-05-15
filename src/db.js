@@ -3,11 +3,14 @@
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
         IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction,
+        IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
             readonly: IDBTransaction.READ_ONLY || 'readonly',
             readwrite: IDBTransaction.READ_WRITE || 'readwrite'
         };
         
+    var hasOwn = Object.prototype.hasOwnProperty;
+
     var oldApi = !!IDBDatabase.prototype.setVersion;
 
 	if ( !indexedDB ) {
@@ -87,11 +90,17 @@
             };
         };
 
+        this.index = function ( table , index ) {
+            return new IndexQuery( table , index , db );
+        };
+
         for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
             (function ( storeName ) {
                 that[ storeName ] = { };
                 for ( var i in that ) {
-
+                    if ( !hasOwn.call( that , i ) || i === 'close' ) {
+                        continue;
+                    }
                     that[ storeName ][ i ] = (function ( i ) {
                         return function () {
                             var args = [ storeName ].concat( [].slice.call( arguments , 0 ) );
@@ -101,6 +110,29 @@
                 }
             })( db.objectStoreNames[ i ] );
         }
+    };
+
+    var IndexQuery = function ( table , indexName , db ) {
+        this.only = function ( val , done ) {
+            var transaction = db.transaction( table ),
+                store = transaction.objectStore( table ),
+                index = store.index( indexName ),
+                singleKeyRange = IDBKeyRange.only( val ),
+                results = [];
+
+            index.openCursor( singleKeyRange ).onsuccess = function ( e ) {
+                var cursor = e.target.result;
+
+                if ( cursor ) {
+                    results.push( cursor.value );
+                    cursor.continue();
+                }
+            };
+
+            transaction.oncomplete = function () {
+                done( results );
+            };
+        };
     };
     
     var Query = function ( table , db ) {
@@ -159,7 +191,7 @@
         
         for ( var tableName in schema ) {
             var table = schema[ tableName ];
-            if ( !Object.prototype.hasOwnProperty.call( schema , tableName ) ) {
+            if ( !hasOwn.call( schema , tableName ) ) {
                 continue;
             }
             

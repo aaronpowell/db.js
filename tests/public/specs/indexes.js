@@ -19,7 +19,7 @@
                 };
                 
                 req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
+                    console.log( 'failed to delete db in beforeEach' , arguments );
                 };
                 
                 req.onblocked = function () {
@@ -36,14 +36,20 @@
             var done;
 
             runs( function () {
+                if ( this.server ) {
+                    this.server.close();
+                }
+
+                var spec = this;
+
                 var req = indexedDB.deleteDatabase( dbName );
-                
+
                 req.onsuccess = function () {
                     done = true;
                 };
                 
                 req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
+                    console.log( 'failed to delete db in afterEach' , arguments , spec );
                 };
                 
                 req.onblocked = function () {
@@ -97,9 +103,134 @@
                     expect( store.indexNames.length ).toEqual( 1 );
                     expect( store.indexNames[ 0 ] ).toEqual( 'firstName' );
 
-                    res.close();
+                    spec.server = res;
                     done = true;
                 };
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs' );
+        });
+    });
+
+    describe( 'index.query' , function () {
+        var dbName = 'tests',
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+           
+       beforeEach( function () {
+            var done = false;
+            var spec = this;
+            
+            spec.server = undefined;
+            
+            runs( function () {
+                var req = indexedDB.deleteDatabase( dbName );
+                
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db in beforeEach' , arguments );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments , spec );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+        });
+        
+        afterEach( function () {
+            var done;
+
+            runs( function () {
+                if ( this.server ) {
+                    this.server.close();
+                }
+
+                var spec = this;
+
+                var req = indexedDB.deleteDatabase( dbName );
+
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db in afterEach' , arguments , spec );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+        });
+        
+        it( 'should allow querying on indexes' , function () {
+            var spec = this;
+            runs( function () {
+                db.open( {
+                    server: dbName ,
+                    version: 1 , 
+                    done: function ( s ) {
+                        spec.server = s;
+                    } ,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            },
+                            indexes: {
+                                firstName: { }
+                            }
+                        }
+                    }
+                });
+            });
+
+            waitsFor( function () {
+                return !!spec.server;
+            } , 1000 , 'timed out opening the db' );
+
+            var done = false;
+            runs( function () {
+                var item1 = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell'
+                };
+                var item2 = {
+                    firstName: 'John',
+                    lastName: 'Smith'
+                };
+                var item3 = {
+                    firstName: 'Aaron',
+                    lastName: 'Smith'
+                };
+                spec.server.test.add( [ item1 , item2 , item3 ] , function () {
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out adding entries' );
+
+            runs( function () {
+                done = false;
+                spec.server.test.index( 'firstName' ).only( 'Aaron' , function ( results ) {
+                    expect( results.length ).toEqual( 2 );
+                    done = true;
+                });
             });
 
             waitsFor( function () {
