@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"ind",
+				"indexKey"
+			],
+			[
+				"rea",
+				"readwrite"
+			],
+			[
+				"tra",
+				"transactionModes"
+			],
+			[
+				"READ",
+				"READ_WRITE"
+			],
+			[
+				"REA",
+				"READ_WRITE"
+			],
+			[
 				"get",
 				"getAll"
 			],
@@ -156,10 +176,50 @@
 	"buffers":
 	[
 		{
-			"file": "tests/views/layout.jade",
+			"file": "tests/public/specs/server-add.js",
 			"settings":
 			{
-				"buffer_size": 303,
+				"buffer_size": 4636,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/server-remove.js",
+			"settings":
+			{
+				"buffer_size": 3858,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/indexes.js",
+			"settings":
+			{
+				"buffer_size": 7807,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/query.js",
+			"settings":
+			{
+				"buffer_size": 8029,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "tests/public/specs/open-db.js",
+			"settings":
+			{
+				"buffer_size": 4101,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/db.js",
+			"settings":
+			{
+				"buffer_size": 9060,
 				"line_ending": "Windows"
 			}
 		},
@@ -167,23 +227,7 @@
 			"file": "tests/views/index.jade",
 			"settings":
 			{
-				"buffer_size": 255,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "tests/app.js",
-			"settings":
-			{
-				"buffer_size": 850,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "tests/package.json",
-			"settings":
-			{
-				"buffer_size": 160,
+				"buffer_size": 333,
 				"line_ending": "Windows"
 			}
 		},
@@ -194,53 +238,57 @@
 				"buffer_size": 1006,
 				"line_ending": "Windows"
 			}
-		},
-		{
-			"file": "/C/Users/Aaron/Downloads/9781430244882/9781430244882_ch05_sourcecode/Chapter 5/MetroGrocer/MetroGrocer/js/default.js",
-			"settings":
-			{
-				"buffer_size": 0,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "tests/public/specs/server-add.js",
-			"settings":
-			{
-				"buffer_size": 3606,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "tests/public/specs/query.js",
-			"settings":
-			{
-				"buffer_size": 2576,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/db.js",
-			"settings":
-			{
-				"buffer_size": 6259,
-				"line_ending": "Windows"
-			}
 		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 35.0,
+		"height": 81.0,
 		"selected_items":
 		[
 			[
-				"wrap",
-				"Word Wrap: Toggle"
-			],
-			[
 				"insta",
 				"Package Control: Install Package"
+			],
+			[
+				"comm",
+				"Git: Commit"
+			],
+			[
+				"add",
+				"Git: Add..."
+			],
+			[
+				"git stat",
+				"Git: Status"
+			],
+			[
+				"quic",
+				"Git: Quick Commit"
+			],
+			[
+				"stat",
+				"Git: Status"
+			],
+			[
+				"sta",
+				"Git: Status"
+			],
+			[
+				"qu",
+				"Git: Quick Commit"
+			],
+			[
+				"pus",
+				"Git: Push"
+			],
+			[
+				"git sta",
+				"Git: Status"
+			],
+			[
+				"wrap",
+				"Word Wrap: Toggle"
 			],
 			[
 				"xml",
@@ -291,20 +339,8 @@
 				"Package Control: Discover Packages"
 			],
 			[
-				"comm",
-				"Git: Commit"
-			],
-			[
 				"com",
 				"Git: Commit"
-			],
-			[
-				"add",
-				"Git: Add..."
-			],
-			[
-				"git stat",
-				"Git: Status"
 			],
 			[
 				"push",
@@ -313,10 +349,6 @@
 			[
 				"quick",
 				"Git: Quick Commit"
-			],
-			[
-				"git sta",
-				"Git: Status"
 			],
 			[
 				"npm inst",
@@ -339,10 +371,6 @@
 				"Word Wrap: Toggle"
 			],
 			[
-				"stat",
-				"Git: Status"
-			],
-			[
 				"add..",
 				"Git: Add..."
 			],
@@ -355,7 +383,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 416.0
+		"width": 512.0
 	},
 	"console":
 	{
@@ -372,12 +400,21 @@
 	},
 	"file_history":
 	[
-		"/D/_Projects/github/db.js/tests/public/specs/server-add.js",
-		"/D/_Projects/github/db.js/tests/public/specs/open-db.js",
-		"/D/_Projects/github/db.js/tests/app.js",
+		"/D/_Projects/github/db.js/README.md",
+		"/D/_Projects/posts.json",
+		"/D/_Projects/github/jquery/src/core.js",
+		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/pages/itemDetail/itemDetail.html",
+		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/pages/groupedItems/groupedItems.html",
+		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/pages/groupDetail/groupDetail.html",
+		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/default.html",
+		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/js/default.js",
 		"/D/_Projects/github/db.js/tests/views/layout.jade",
 		"/D/_Projects/github/db.js/tests/views/index.jade",
+		"/D/_Projects/github/db.js/tests/app.js",
 		"/D/_Projects/github/db.js/tests/package.json",
+		"/C/Users/Aaron/Downloads/9781430244882/9781430244882_ch05_sourcecode/Chapter 5/MetroGrocer/MetroGrocer/js/default.js",
+		"/D/_Projects/github/db.js/tests/public/specs/server-add.js",
+		"/D/_Projects/github/db.js/tests/public/specs/open-db.js",
 		"/D/_Projects/github/db.js/src/db.js",
 		"/D/Dropbox/readify/Fiserv/Accounts/Batch Processing/Sample Files/LK_SLK_VOY_PIN_POINTS_20120418/LK_SLK_VOY_PIN_POINTS_20120418.dat",
 		"/D/_Projects/bitbucket.org/funnelweb-release/src/FunnelWeb.Web/Views/Shared/_Public.cshtml",
@@ -478,7 +515,6 @@
 		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Shared/PageTemplates/Default.cshtml",
 		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Wiki/Page.cshtml",
 		"/C/Ruby193/devkit/config.yml",
-		"/D/_Projects/github/jquery/src/core.js",
 		"/D/_Projects/github/Pinboard/Pinboard.suo",
 		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj",
 		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj.user",
@@ -491,15 +527,7 @@
 		"/C/Users/Az/Dropbox/Talks/2011 - Teched NZ - JavaScript Pitfalls/js/slideshow.js",
 		"/C/_Projects/tmp/sniffer.js",
 		"/D/_Projects/github/cv/public/js/ga.js",
-		"/C/Users/Az/Desktop/lync.cer",
-		"/C/Users/Az/Desktop/Communicator-uccapi-0.uccapilog",
-		"/C/Users/Az/Tracing/Communicator-uccapi-0.uccapilog",
-		"/C/_Projects/github/DelivR/DelivR.Samples/DelivR.Samples.csproj",
-		"/C/_Projects/github/DelivR/DelivR.Samples.ScreenShare/DelivR.Samples.ScreenShare.csproj",
-		"/C/_Projects/github/DelivR/DelivR/DelivR.csproj",
-		"/C/_Projects/github/DelivR/.gitignore",
-		"/C/Users/Az/Downloads/download (2)",
-		"/C/Users/Az/Downloads/Download/ScreenCapture.cs"
+		"/C/Users/Az/Desktop/lync.cer"
 	],
 	"find":
 	{
@@ -507,7 +535,7 @@
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 93.0,
 		"where_history":
 		[
 			"",
@@ -520,6 +548,15 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"hasOwnProperty",
+			"storeName",
+			"db",
+			"rdashAlpha",
+			"click",
+			"scope",
+			"closing db",
+			"READ_",
+			"READ",
 			"performInitialSetup",
 			"header",
 			"send",
@@ -638,8 +675,7 @@
 			"instanceOf",
 			"logLevel",
 			"\\d+",
-			" class=\"MsoNormal\"",
-			"windows"
+			" class=\"MsoNormal\""
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -667,10 +703,38 @@
 			[
 				{
 					"buffer": 0,
-					"file": "tests/views/layout.jade",
+					"file": "tests/public/specs/server-add.js",
 					"settings":
 					{
-						"buffer_size": 303,
+						"buffer_size": 4636,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1206,
+								1690
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 342.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "tests/public/specs/server-remove.js",
+					"settings":
+					{
+						"buffer_size": 3858,
 						"regions":
 						{
 						},
@@ -678,12 +742,12 @@
 						[
 							[
 								0,
-								0
+								3858
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Jade/Syntaxes/Jade.tmLanguage",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
@@ -694,19 +758,131 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "tests/views/index.jade",
+					"buffer": 2,
+					"file": "tests/public/specs/indexes.js",
 					"settings":
 					{
-						"buffer_size": 255,
+						"buffer_size": 7807,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								110,
-								110
+								7313,
+								7313
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1083.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "tests/public/specs/query.js",
+					"settings":
+					{
+						"buffer_size": 8029,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7887,
+								7887
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3868.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "tests/public/specs/open-db.js",
+					"settings":
+					{
+						"buffer_size": 4101,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3381,
+								3381
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 570.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/db.js",
+					"settings":
+					{
+						"buffer_size": 9060,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4693,
+								4693
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 912.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "tests/views/index.jade",
+					"settings":
+					{
+						"buffer_size": 333,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								212,
+								212
 							]
 						],
 						"settings":
@@ -720,61 +896,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "tests/app.js",
-					"settings":
-					{
-						"buffer_size": 850,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								802,
-								802
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "tests/package.json",
-					"settings":
-					{
-						"buffer_size": 160,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								120,
-								120
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
+					"buffer": 7,
 					"file": "README.md",
 					"settings":
 					{
@@ -796,118 +918,6 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "/C/Users/Aaron/Downloads/9781430244882/9781430244882_ch05_sourcecode/Chapter 5/MetroGrocer/MetroGrocer/js/default.js",
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "tests/public/specs/server-add.js",
-					"settings":
-					{
-						"buffer_size": 3606,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3464,
-								3606
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 55.0,
-						"translation.y": 1296.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "tests/public/specs/query.js",
-					"settings":
-					{
-						"buffer_size": 2576,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1601,
-								1601
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 714.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "src/db.js",
-					"settings":
-					{
-						"buffer_size": 6259,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2401,
-								2401
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1251.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -946,6 +956,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.git":
+	{
+		"height": 124.0
+	},
 	"replace":
 	{
 		"height": 66.0
