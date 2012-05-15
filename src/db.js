@@ -114,8 +114,9 @@
                     value = cursor.value;
                     for ( var i = 0 , il = filters.length ; i < il ; i++ ) {
                         f = filters[ i ];
-                        
-                        if ( value[ f.field ] !== f.value ) {
+                        if (typeof f.field === 'function') {
+                            inc = f.field(value);
+                        } else if (value[f.field] !== f.value) {
                             inc = false;
                         }
                     }
