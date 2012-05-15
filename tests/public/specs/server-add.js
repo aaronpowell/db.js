@@ -2,7 +2,7 @@
     'use strict';
     
     describe( 'server.add' , function () {
-        var dbName = 'server-add-tests',
+        var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
            
        beforeEach( function () {

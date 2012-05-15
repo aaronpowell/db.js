@@ -1,7 +1,7 @@
 (function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
     'use strict';
     describe( 'db.open' , function () {
-        var dbName = 'open-db-tests',
+        var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
         
         beforeEach( function () {
