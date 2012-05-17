@@ -1,3 +1,7 @@
+---
+layout: default
+---
+
 # db.js
 
 db.js is a wrapper for [IndexedDB][1] to make it easier to work against, making it look more like a queryable API than the traditional IndexedDB API.
