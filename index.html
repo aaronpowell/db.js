@@ -14,7 +14,7 @@
     <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
     <script type="text/javascript">
       $(document).ready(function () {
-        $('#main_content').headsmart()
+        $('#main_content').headsmart();
       })
     </script>
     <title>db.js by aaronpowell</title>
@@ -46,67 +46,7 @@
 
 
       <section id="main_content">
-        <h1>db.js</h1>
-
-<p>db.js is a wrapper for <a href="http://www.w3.org/TR/IndexedDB/">IndexedDB</a> to make it easier to work against, making it look more like a queryable API than the traditional IndexedDB API.</p>
-
-<h1>Usage</h1>
-
-<p>Add a reference to db.js in your application before you want to use IndexedDB:</p>
-
-<pre><code>&lt;script src='/scripts/db.js'&gt;&lt;/script&gt;
-</code></pre>
-
-<p>Once you have the script included you can then open connections to each different database within your application:</p>
-
-<pre><code>var server;
-  db.open({
-         server: 'my-app',
-         version: 1, {
-             people: {
-                 key: { keyPath: 'id' , autoIncrement: true }
-             }
-         }
-    }).done( function ( s ) {
-      server = s  
-  });
-</code></pre>
-
-<p>A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the <code>/tests/public/spec</code> folder for more examples.</p>
-
-<h2>Adding items</h2>
-
-<pre><code>server.people.add( {
-      firstName: 'Aaron',
-      lastName: 'Powell'
-  } ).done( function ( item ) {
-      //item stored
-  });
-</code></pre>
-
-<h2>Removing</h2>
-
-<pre><code>
-  server.people.remove( 1 ).done( function ( item ) {
-      //item stored
-  });
-</code></pre>
-
-<h2>Querying</h2>
-
-<pre><code>
-  server.people.query( 'firstName' , 'Aaron' )
-        .execute()
-        .done( function ( results ) {
-            //do something with the results
-        });
-</code></pre>
-
-<h1>License</h1>
-
-<p>The MIT License</p>
-
-<p>Copyright (c) 2012 Aaron Powell</p>
+        {{ content }}
       </section>
 
       <footer>
@@ -123,16 +63,16 @@
 
     </div>
 
-              <script type="text/javascript">
-            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-          </script>
-          <script type="text/javascript">
-            try {
-              var pageTracker = _gat._getTracker("UA-20152461-5");
-            pageTracker._trackPageview();
-            } catch(err) {}
-          </script>
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+      </script>
+      <script type="text/javascript">
+        try {
+          var pageTracker = _gat._getTracker("UA-20152461-5");
+        pageTracker._trackPageview();
+        } catch(err) {}
+    </script>
 
   </body>
 </html>
