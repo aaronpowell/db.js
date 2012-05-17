@@ -15,15 +15,14 @@ Once you have the script included you can then open connections to each differen
 	var server;
 	db.open({
          server: 'my-app',
-         version: 1,
-         done: function ( s ) {
-             server = s;
-         }, {
+         version: 1, {
              people: {
                  key: { keyPath: 'id' , autoIncrement: true }
              }
          }
-    });
+    }).done( function ( s ) {
+    	server = s	
+	});
 	
 A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the `/tests/public/spec` folder for more examples.
 
@@ -32,20 +31,21 @@ A connection is intended to be persisted and you can perform multiple operations
 	server.people.add( {
 	    firstName: 'Aaron',
 	    lastName: 'Powell'
-	} , function ( item ) {
+	} ).done( function ( item ) {
 	    //item stored
 	});
 	
 ## Removing
 
-	server.people.remove( 1 , function ( item ) {
+	server.people.remove( 1 ).done( function ( item ) {
 	    //item stored
 	});
 
 ## Querying
 
 	server.people.query( 'firstName' , 'Aaron' )
-        .execute( function ( results ) {
+        .execute()
+        .done( function ( results ) {
             //do something with the results
         });
 
