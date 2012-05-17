@@ -60,17 +60,16 @@
 <p>Once you have the script included you can then open connections to each different database within your application:</p>
 
 <pre><code>var server;
-db.open({
+  db.open({
          server: 'my-app',
-         version: 1,
-         done: function ( s ) {
-             server = s;
-         }, {
+         version: 1, {
              people: {
                  key: { keyPath: 'id' , autoIncrement: true }
              }
          }
-    });
+    }).done( function ( s ) {
+      server = s  
+  });
 </code></pre>
 
 <p>A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the <code>/tests/public/spec</code> folder for more examples.</p>
@@ -78,24 +77,27 @@ db.open({
 <h2>Adding items</h2>
 
 <pre><code>server.people.add( {
-    firstName: 'Aaron',
-    lastName: 'Powell'
-} , function ( item ) {
-    //item stored
-});
+      firstName: 'Aaron',
+      lastName: 'Powell'
+  } ).done( function ( item ) {
+      //item stored
+  });
 </code></pre>
 
 <h2>Removing</h2>
 
-<pre><code>server.people.remove( 1 , function ( item ) {
-    //item stored
-});
+<pre><code>
+  server.people.remove( 1 ).done( function ( item ) {
+      //item stored
+  });
 </code></pre>
 
 <h2>Querying</h2>
 
-<pre><code>server.people.query( 'firstName' , 'Aaron' )
-        .execute( function ( results ) {
+<pre><code>
+  server.people.query( 'firstName' , 'Aaron' )
+        .execute()
+        .done( function ( results ) {
             //do something with the results
         });
 </code></pre>
