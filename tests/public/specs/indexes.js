@@ -67,10 +67,7 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    } ,
+                    version: 1,
                     schema: { 
                         test: {
                             key: {
@@ -82,6 +79,8 @@
                             }
                         }
                     }
+                }).done(function ( s ) {
+                    spec.server = s;
                 });
             });
 
@@ -180,10 +179,7 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    } ,
+                    version: 1,
                     schema: { 
                         test: {
                             key: {
@@ -195,6 +191,8 @@
                             }
                         }
                     }
+                }).done(function ( s ) {
+                    spec.server = s;
                 });
             });
 
@@ -216,7 +214,7 @@
                     firstName: 'Aaron',
                     lastName: 'Smith'
                 };
-                spec.server.test.add( [ item1 , item2 , item3 ] , function () {
+                spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
                     done = true;
                 });
             });
@@ -227,7 +225,7 @@
 
             runs( function () {
                 done = false;
-                spec.server.test.index( 'firstName' ).only( 'Aaron' , function ( results ) {
+                spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     done = true;
                 });

@@ -17,10 +17,70 @@
 		throw 'IndexedDB required';
 	}
 
+    var CallbackList = function () {
+        var state,
+            list = [];
+
+        var exec = function ( context , args ) {
+            if ( list ) {
+                args = args || [];
+                state = state || [ context , args ];
+
+                for ( var i = 0 , il = list.length ; i < il ; i++ ) {
+                    list[ i ].apply( state[ 0 ] , state[ 1 ] );
+                }
+
+                list = [];
+            }
+        };
+
+        this.add = function () {
+            for ( var i = 0 , il = arguments.length ; i < il ; i ++ ) {
+                list.push( arguments[ i ] );
+            }
+
+            if ( state ) {
+                exec();
+            }
+
+            return this;
+        };
+
+        this.execute = function () {
+            exec( this , arguments );
+            return this;
+        };
+    };
+
+    var Promise = function () {
+        var doneList = new CallbackList(),
+            failedList = new CallbackList(),
+            progressList = new CallbackList(),
+            state = 'progress'
+            ;
+
+        this.done = doneList.add;
+        this.fail = failedList.add;
+        this.progress = progressList.add;
+        this.resolve = doneList.execute;
+        this.reject = failedList.execute;
+        this.notify = progressList.execute;
+
+        this.then = function ( doneHandler , failedHandler , progressHandler ) {
+            return this.done( doneHandler ).fail( failedHandler ).progress( progressHandler );
+        };
+
+        this.done( function () { 
+            state = 'resolved';
+        }).fail( function () {
+            state = 'rejected';
+        });
+    };
+
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
-        this.add = function( table , records , done ) {
+        this.add = function( table , records ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
@@ -30,29 +90,31 @@
             if ( records.constructor !== Array ) {
                 records = [ records ];
             }
+
+            var promise = new Promise();
             
             records.forEach( function ( record ) {
                 var req = store.add( record );
                 req.onsuccess = function ( e ) {
                     var target = e.target;
                     record[ target.source.keyPath ] = target.result;
-                };
-                req.onerror = function ( e ) {
-                    console.log( 'error adding record' , record , e );
+
+                    promise.notify();
                 };
             });
             
             transaction.oncomplete = function () {
-                done.call( that , records );
+                promise.resolve( records ,that );
             };
 
             transaction.onerror = function ( e ) {
-                console.log( 'transaction error when adding' , e , records );
+                promise.reject( records , e );
             };
 
             transaction.onabort = function ( e ) {
-                console.log( 'add transaction aborted' , e , records );
-            }
+                promise.reject( records , e );
+            };
+            return promise;
         };
         
         this.remove = function ( table , key ) {
@@ -81,13 +143,19 @@
             delete dbCache[ name ];
         };
 
-        this.get = function ( table , id , fn ) {
+        this.get = function ( table , id ) {
             var transaction = db.transaction( table ),
-                store = transaction.objectStore( table );
+                store = transaction.objectStore( table ),
+                promise = new Promise();
 
-            store.get( id ).onsuccess = function ( e ) {
-                fn( e.target.result );
+            var req = store.get( id );
+            req.onsuccess = function ( e ) {
+                promise.resolve( e.target.result );
             };
+            req.onerror = function ( e ) {
+                promise.reject( e );
+            };
+            return promise;
         };
 
         this.index = function ( table , index ) {
@@ -113,12 +181,13 @@
     };
 
     var IndexQuery = function ( table , indexName , db ) {
-        this.only = function ( val , done ) {
+        this.only = function ( val ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = store.index( indexName ),
                 singleKeyRange = IDBKeyRange.only( val ),
-                results = [];
+                results = [],
+                promise = new Promise();
 
             index.openCursor( singleKeyRange ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
@@ -130,8 +199,15 @@
             };
 
             transaction.oncomplete = function () {
-                done( results );
+                promise.resolve( results );
             };
+            transaction.onerror = function ( e ) {
+                promise.reject( e );
+            };
+            transaction.onabort = function ( e ) {
+                promise.reject( e );
+            };
+            return promise;
         };
     };
     
@@ -147,12 +223,15 @@
             return that;
         };
         
-        this.execute = function ( done ) {
+        this.execute = function () {
             var records = [],
                 transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
             
-            store.openCursor().onsuccess = function ( e ) {
+            var req = store.openCursor();
+            var promise = new Promise();
+
+            req.onsuccess = function ( e ) {
                 var value, f,
                     inc = true,
                     cursor = e.target.result;
@@ -178,9 +257,18 @@
                     
                     cursor.continue();
                 } else {
-                    done( records );
+                    promise.resolve( records );
                 }
             };
+
+            req.onerror = function ( e ) {
+                promise.reject( e );
+            };
+            transaction.onabort = function ( e ) {
+                promise.reject( e );
+            };
+
+            return promise;
         };
     };
     
@@ -204,32 +292,34 @@
         }
     };
     
-    var open = function ( e , server , version , ready , schema ) {
+    var open = function ( e , server , version , schema ) {
         var db = e.target.result;
         var s = new Server( db , server );
         var upgrade;
+
+        var promise = new Promise();
         
         if ( oldApi && window.parseInt( db.version ) !== version ) {
             upgrade = db.setVersion( version );
             
             upgrade.onsuccess = function ( e ) {
                 createSchema( e , schema , db );
-                
-                var s = new Server ( db , server );
-                
-                ready( s );
+                                
+                promise.resolve( s );
             };
-            upgrade.onerror = function () {
-                console.log( 'error trying to upgrade database' , arguments );
+            upgrade.onerror = function ( e ) {
+                promise.reject( e );
             };
             
             upgrade.onblocked = function () {
-                console.log( 'database blocked and cannot upgrade' , arguments );
+                promise.reject( e );
             };
         } else {
-            ready( s );
+            promise.resolve( s );
         }
         dbCache[ server ] = db;
+
+        return promise;
     };
 
     var dbCache = {};
@@ -238,26 +328,36 @@
         open: function ( options ) {
             var request;
 
+            var promise = new Promise();
+
             if ( dbCache[ options.server ] ) {
                 open( {
                     target: {
                         result: dbCache[ options.server ]
                     }
-                } , options.server , options.version , options.done , options.schema );
+                } , options.server , options.version , options.schema )
+                .done(promise.resolve)
+                .fail(promise.reject)
+                .progress(promise.notify);
             } else {
                 request = indexedDB.open( options.server , options.version );
                             
                 request.onsuccess = function ( e ) {
-                    open( e , options.server , options.version , options.done , options.schema );
+                    open( e , options.server , options.version , options.schema )
+                        .done(promise.resolve)
+                        .fail(promise.reject)
+                        .progress(promise.notify);
                 };
             
                 request.onupgradeneeded = function ( e ) {
                     createSchema( e , options.schema , e.target.result );
                 };
-                request.onerror = function () {
-                    console.log( 'failed to open db' , options.server , arguments );
+                request.onerror = function ( e ) {
+                    promise.reject( e );
                 };
             }
+
+            return promise;
         }
     };
 })( window );

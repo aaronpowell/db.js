@@ -34,10 +34,7 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    } ,
+                    version: 1 ,
                     schema: { 
                         test: {
                             key: {
@@ -46,6 +43,8 @@
                             }
                         }
                     }
+                }).done(function ( s ) {
+                    spec.server = s;
                 });
             });
             
@@ -90,7 +89,7 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , item, function ( records ) {
+                spec.server.add( 'test' , item ).done( function ( records ) {
                     item = records[0];
                 });
             });
@@ -118,7 +117,7 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , [ item1 , item2 ] , function ( items ) {
+                spec.server.add( 'test' , [ item1 , item2 ] ).done( function ( items ) {
                     item1.id = items[ 0 ].id;
                     item2.id = items[ 1 ].id;
                 });

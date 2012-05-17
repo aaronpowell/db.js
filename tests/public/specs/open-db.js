@@ -60,10 +60,9 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    }
+                    version: 1
+                }).done( function ( s ) {
+                    spec.server = s;
                 });
             });
             
@@ -83,10 +82,7 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    } ,
+                    version: 1,
                     schema: { 
                         test: {
                             key: {
@@ -95,6 +91,8 @@
                             }
                         }
                     }
+                }).done(function ( s ) {
+                    spec.server = s;
                 });
             });
             

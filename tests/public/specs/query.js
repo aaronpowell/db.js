@@ -33,10 +33,7 @@
             runs( function () {
                 db.open( {
                     server: dbName ,
-                    version: 1 , 
-                    done: function ( s ) {
-                        spec.server = s;
-                    } ,
+                    version: 1,
                     schema: { 
                         test: {
                             key: {
@@ -45,6 +42,8 @@
                             }
                         }
                     }
+                }).done(function ( s ) {
+                    spec.server = s;
                 });
             });
             
@@ -87,7 +86,7 @@
             };
 
             runs( function () {
-                this.server.add( 'test' , item , function ( x ) {
+                this.server.add( 'test' , item ).done( function ( x ) {
                     item = x[0];
                 });
             });
@@ -98,7 +97,7 @@
 
             var done = false;
             runs( function () {
-                this.server.get( 'test' , item.id , function ( x ) {
+                this.server.get( 'test' , item.id ).done( function ( x ) {
                     expect( x ).toBeDefined();
                     expect( x.id ).toEqual( item.id );
                     expect( x.firstName ).toEqual( item.firstName );
@@ -125,7 +124,7 @@
             var done = false;
 
             runs( function () {
-                this.server.add( 'test' , [ item1 , item2 ] , function () {
+                this.server.add( 'test' , [ item1 , item2 ] ).done( function () {
                     done = true;
                 });
             });
@@ -136,7 +135,7 @@
 
             runs( function () {
                 done = false;
-                this.server.query( 'test' ).execute( function ( results ) {
+                this.server.query( 'test' ).execute().done( function ( results ) {
                     expect( results ).toBeDefined();
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].firstName ).toEqual( item1.firstName );
@@ -168,7 +167,7 @@
             var done = false;
 
             runs( function () {
-                this.server.add( 'test' , [ item1 , item2 , item3 ] , function () {
+                this.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
                     done = true;
                 });
             });
@@ -182,7 +181,8 @@
                 this.server
                     .query( 'test' )
                     .filter('firstName', 'Aaron')
-                    .execute( function ( results ) {
+                    .execute()
+                    .done( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 2 );
                         expect( results[0].firstName ).toEqual( item1.firstName );
@@ -214,7 +214,7 @@
             var done = false;
 
             runs( function () {
-                this.server.test.add( [ item1 , item2 , item3 ] , function () {
+                this.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
                     done = true;
                 });
             });
@@ -230,7 +230,8 @@
                     .filter( function ( x ) {
                         return x.firstName === 'Aaron' && x.lastName === 'Powell'
                     })
-                    .execute( function ( results ) {
+                    .execute()
+                    .done(function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 1 );
                         expect( results[0].firstName ).toEqual( item1.firstName );
