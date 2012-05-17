@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"prog",
+				"progressList"
+			],
+			[
+				"fai",
+				"failedHandler"
+			],
+			[
 				"ind",
 				"indexKey"
 			],
@@ -219,7 +227,7 @@
 			"file": "src/db.js",
 			"settings":
 			{
-				"buffer_size": 9060,
+				"buffer_size": 11585,
 				"line_ending": "Windows"
 			}
 		},
@@ -230,26 +238,14 @@
 				"buffer_size": 333,
 				"line_ending": "Windows"
 			}
-		},
-		{
-			"file": "README.md",
-			"settings":
-			{
-				"buffer_size": 1006,
-				"line_ending": "Windows"
-			}
 		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 81.0,
+		"height": 242.0,
 		"selected_items":
 		[
-			[
-				"insta",
-				"Package Control: Install Package"
-			],
 			[
 				"comm",
 				"Git: Commit"
@@ -259,16 +255,36 @@
 				"Git: Add..."
 			],
 			[
+				"stat",
+				"Git: Status"
+			],
+			[
+				"xml",
+				"Set Syntax: XML"
+			],
+			[
+				"c#",
+				"Set Syntax: C#"
+			],
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"pull",
+				"Git: Pull"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
 				"git stat",
 				"Git: Status"
 			],
 			[
 				"quic",
 				"Git: Quick Commit"
-			],
-			[
-				"stat",
-				"Git: Status"
 			],
 			[
 				"sta",
@@ -291,20 +307,12 @@
 				"Word Wrap: Toggle"
 			],
 			[
-				"xml",
-				"Set Syntax: XML"
-			],
-			[
 				"instal",
 				"Package Control: Install Package"
 			],
 			[
 				"javasc",
 				"Set Syntax: JavaScript"
-			],
-			[
-				"c#",
-				"Set Syntax: C#"
 			],
 			[
 				"java",
@@ -343,10 +351,6 @@
 				"Git: Commit"
 			],
 			[
-				"push",
-				"Git: Push"
-			],
-			[
 				"quick",
 				"Git: Quick Commit"
 			],
@@ -361,10 +365,6 @@
 			[
 				"open",
 				"View: Toggle Open Files in Side Bar"
-			],
-			[
-				"pull",
-				"Git: Pull"
 			],
 			[
 				"wr",
@@ -383,7 +383,7 @@
 				"Package Control: Discover Packages"
 			]
 		],
-		"width": 512.0
+		"width": 416.0
 	},
 	"console":
 	{
@@ -400,7 +400,19 @@
 	},
 	"file_history":
 	[
+		"/D/_Projects/tmp/PullRequestRequiredException.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/Service References/GlossaryServices/configuration.svcinfo",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/Service References/GlossaryServices/Reference.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/MainPage.xaml.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/Share/Converters.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/ServiceReferences.ClientConfig",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/SilverlightGlossary.csproj",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceB/SilverlightGlossary/SilverlightGlossary/UpdateGlossary.xaml.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceA/PuzzleOneToThree/frmPuzzle3.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceA/PuzzleOneToThree/frmPuzzle2.cs",
+		"/C/Users/Aaron/Downloads/Jess Fist Interview Attachment/Jess Fist Interview Attachment/ChoiceA/PuzzleOneToThree/frmPuzzle1.cs",
 		"/D/_Projects/github/db.js/README.md",
+		"/D/_Projects/github/db.js/LICENSE.md",
 		"/D/_Projects/posts.json",
 		"/D/_Projects/github/jquery/src/core.js",
 		"/C/Users/Aaron/Documents/Visual Studio 11/Projects/App2/App2/pages/itemDetail/itemDetail.html",
@@ -515,19 +527,7 @@
 		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Shared/PageTemplates/Default.cshtml",
 		"/D/_Projects/bitbucket.org/funnelweb-dev/src/FunnelWeb.Web/Views/Wiki/Page.cshtml",
 		"/C/Ruby193/devkit/config.yml",
-		"/D/_Projects/github/Pinboard/Pinboard.suo",
-		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj",
-		"/D/_Projects/github/Pinboard/Pinboard/Pinboard.jsproj.user",
-		"/D/_Projects/github/Pinboard/Pinboard.v11.suo",
-		"/D/_Projects/github/tbd/tests.js",
-		"/D/_Projects/github/tbd/index.js",
-		"/D/_Projects/github/cv/package.json",
-		"/C/Users/Az/Dropbox/Talks/2011 - Teched NZ - JavaScript Pitfalls/css/main.css",
-		"/D/_Projects/github/cv/views/layout.jade",
-		"/C/Users/Az/Dropbox/Talks/2011 - Teched NZ - JavaScript Pitfalls/js/slideshow.js",
-		"/C/_Projects/tmp/sniffer.js",
-		"/D/_Projects/github/cv/public/js/ga.js",
-		"/C/Users/Az/Desktop/lync.cer"
+		"/D/_Projects/github/Pinboard/Pinboard.suo"
 	],
 	"find":
 	{
@@ -535,7 +535,7 @@
 	},
 	"find_in_files":
 	{
-		"height": 93.0,
+		"height": 0.0,
 		"where_history":
 		[
 			"",
@@ -698,7 +698,7 @@
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 5,
 			"sheets":
 			[
 				{
@@ -846,15 +846,15 @@
 					"file": "src/db.js",
 					"settings":
 					{
-						"buffer_size": 9060,
+						"buffer_size": 11585,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4693,
-								4693
+								2368,
+								2368
 							]
 						],
 						"settings":
@@ -864,7 +864,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 912.0,
+						"translation.y": 1391.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -888,33 +888,6 @@
 						"settings":
 						{
 							"syntax": "Packages/Jade/Syntaxes/Jade.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "README.md",
-					"settings":
-					{
-						"buffer_size": 1006,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Markdown/Markdown.tmLanguage",
-							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
