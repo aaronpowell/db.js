@@ -5,8 +5,8 @@
         IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
-            readonly: IDBTransaction.READ_ONLY || 'readonly',
-            readwrite: IDBTransaction.READ_WRITE || 'readwrite'
+            readonly: 'readonly',
+            readwrite: 'readwrite'
         };
         
     var hasOwn = Object.prototype.hasOwnProperty;
