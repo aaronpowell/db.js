@@ -2,7 +2,7 @@
     "name": "db.js-tests",
     "version": "0.1.0",
     "private": "true",
-    "dependencies": {
+    "devDependencies": {
         "express": ">=3.0.*",
         "jade": ">0.1.0"
     }
