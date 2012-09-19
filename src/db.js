@@ -12,9 +12,9 @@
 
     var oldApi = !!IDBDatabase.prototype.setVersion;
 
-	if ( !indexedDB ) {
-		throw 'IndexedDB required';
-	}
+    if ( !indexedDB ) {
+        throw 'IndexedDB required';
+    }
 
     var CallbackList = function () {
         var state,
@@ -55,8 +55,7 @@
         var doneList = new CallbackList(),
             failedList = new CallbackList(),
             progressList = new CallbackList(),
-            state = 'progress'
-            ;
+            state = 'progress';
 
         this.done = doneList.add;
         this.fail = failedList.add;
@@ -79,37 +78,34 @@
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
+        
         this.add = function( table , records ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction( table , transactionModes.readwrite );
-            var store = transaction.objectStore( table );
+            var transaction = db.transaction( table , transactionModes.readwrite ),
+                store = transaction.objectStore( table ),
+                promise = new Promise();
             
             if ( records.constructor !== Array ) {
                 records = [ records ];
             }
-
-            var promise = new Promise();
             
             records.forEach( function ( record ) {
                 var req = store.add( record );
                 req.onsuccess = function ( e ) {
                     var target = e.target;
                     record[ target.source.keyPath ] = target.result;
-
                     promise.notify();
                 };
-            });
+            } );
             
             transaction.oncomplete = function () {
-                promise.resolve( records ,that );
+                promise.resolve( records , that );
             };
-
             transaction.onerror = function ( e ) {
                 promise.reject( records , e );
             };
-
             transaction.onabort = function ( e ) {
                 promise.reject( records , e );
             };
@@ -120,10 +116,18 @@
             if ( closed ) {
                 throw 'Database has been closed';
             }
-            var transaction = db.transaction( table , transactionModes.readwrite );
-            var store = transaction.objectStore( table );
+            var transaction = db.transaction( table , transactionModes.readwrite ),
+                store = transaction.objectStore( table ),
+                promise = new Promise();
             
-            store.delete( key );
+            var req = store.delete( key );
+            req.onsuccess = function ( e ) {
+                promise.resolve( key );
+            };
+            req.onerror = function ( e ) {
+                promise.reject( e );
+            };
+            return promise;
         };
         
         this.query = function ( table ) {
@@ -143,6 +147,9 @@
         };
 
         this.get = function ( table , id ) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 promise = new Promise();
@@ -158,6 +165,9 @@
         };
 
         this.index = function ( table , index ) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
             return new IndexQuery( table , index , db );
         };
 
@@ -178,7 +188,6 @@
             })( db.objectStoreNames[ i ] );
         }
     };
-
 
     var IndexQuery = function ( table , indexName , db ) {
         var runQuery = function ( type, args ) {
@@ -242,10 +251,9 @@
         this.execute = function () {
             var records = [],
                 transaction = db.transaction( table ),
-                store = transaction.objectStore( table );
-            
-            var req = store.openCursor();
-            var promise = new Promise();
+                store = transaction.objectStore( table ),
+                req = store.openCursor(),
+                promise = new Promise();
 
             req.onsuccess = function ( e ) {
                 var value, f,
