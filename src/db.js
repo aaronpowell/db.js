@@ -179,16 +179,17 @@
         }
     };
 
+
     var IndexQuery = function ( table , indexName , db ) {
-        this.only = function ( val ) {
+        var runQuery = function ( type, args ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = store.index( indexName ),
-                singleKeyRange = IDBKeyRange.only( val ),
+                keyRange = IDBKeyRange[type].apply( null, args )
                 results = [],
                 promise = new Promise();
 
-            index.openCursor( singleKeyRange ).onsuccess = function ( e ) {
+            index.openCursor( keyRange ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( cursor ) {
@@ -207,6 +208,22 @@
                 promise.reject( e );
             };
             return promise;
+        };
+        
+        this.only = function () {
+            return runQuery( 'only', arguments );
+        };
+        
+        this.bound = function () {
+            return runQuery( 'bound', arguments );
+        };
+        
+        this.upperBound = function () {
+            return runQuery( 'upperBound', arguments );
+        };
+        
+        this.lowerBound = function () {
+            return runQuery( 'lowerBound', arguments );
         };
     };
     
