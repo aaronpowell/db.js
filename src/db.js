@@ -185,7 +185,7 @@
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = store.index( indexName ),
-                keyRange = IDBKeyRange[type].apply( null, args )
+                keyRange = IDBKeyRange[type].apply( null, args ),
                 results = [],
                 promise = new Promise();
 
