@@ -75,7 +75,8 @@
                                 autoIncrement: true
                             },
                             indexes: {
-                                firstName: { }
+                                firstName: { },
+                                age: { }
                             }
                         }
                     }
@@ -98,9 +99,11 @@
 
                     var transaction = res.transaction( 'test' );
                     var store = transaction.objectStore( 'test' );
+                    var indexNames = Array.prototype.slice.call( store.indexNames );
 
-                    expect( store.indexNames.length ).toEqual( 1 );
-                    expect( store.indexNames[ 0 ] ).toEqual( 'firstName' );
+                    expect( indexNames.length ).toEqual( 2 );
+                    expect( indexNames ).toContain( 'firstName' );
+                    expect( indexNames ).toContain( 'age' );
 
                     spec.server = res;
                     done = true;
@@ -187,7 +190,8 @@
                                 autoIncrement: true
                             },
                             indexes: {
-                                firstName: { }
+                                firstName: { },
+                                age: { }
                             }
                         }
                     }
@@ -204,15 +208,18 @@
             runs( function () {
                 var item1 = {
                     firstName: 'Aaron',
-                    lastName: 'Powell'
+                    lastName: 'Powell',
+                    age: 20
                 };
                 var item2 = {
                     firstName: 'John',
-                    lastName: 'Smith'
+                    lastName: 'Smith',
+                    age: 30
                 };
                 var item3 = {
                     firstName: 'Aaron',
-                    lastName: 'Smith'
+                    lastName: 'Smith',
+                    age: 40
                 };
                 spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
                     done = true;
@@ -233,7 +240,48 @@
 
             waitsFor( function () {
                 return done;
-            } , 1000 , 'timed out running specs' );
+            } , 1000 , 'timed out running specs for \'only\'' );
+
+            runs( function () {
+                done = false;
+                spec.server.index( 'test' , 'age' ).lowerBound( 30 ).done( function ( results ) {
+                    expect( results.length ).toEqual( 2 );
+                    expect( results[0].age ).toEqual( 30 );
+                    expect( results[1].age ).toEqual( 40 );
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'lowerBound\'' );
+
+            runs( function () {
+                done = false;
+                spec.server.index( 'test' , 'age' ).upperBound( 30, true ).done( function ( results ) {
+                    expect( results.length ).toEqual( 1 );
+                    expect( results[0].age ).toEqual( 20 );
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'upperBound\'' );
+
+            runs( function () {
+                done = false;
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, true ).done( function ( results ) {
+                    expect( results.length ).toEqual( 2 );
+                    expect( results[0].age ).toEqual( 20 );
+                    expect( results[1].age ).toEqual( 30 );
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'bound\'' );
         });
     });
 
