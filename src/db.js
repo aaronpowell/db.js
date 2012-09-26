@@ -201,7 +201,9 @@
             index[cursorType]( keyRange ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
-                if ( cursor ) {
+                if ( typeof cursor === typeof 0 ) {
+                    results = cursor;
+                } else if ( cursor ) {
                     results.push( cursor.value );
                     cursor.continue();
                 }
@@ -234,6 +236,16 @@
         this.lowerBound = function () {
             return runQuery( 'lowerBound', arguments , 'openCursor' );
         };
+
+        Object.defineProperty( this , 'count' , {
+            get: function () {
+                return {
+                    only: function () {
+                        return runQuery( 'only' , arguments , 'count' );
+                    }
+                };
+            }
+        });
     };
     
     var Query = function ( table , db ) {
