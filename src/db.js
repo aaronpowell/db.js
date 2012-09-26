@@ -204,7 +204,7 @@
                 if ( typeof cursor === typeof 0 ) {
                     results = cursor;
                 } else if ( cursor ) {
-                    results.push( cursor.value );
+                    results.push( 'value' in cursor ? cursor.value : cursor.key );
                     cursor.continue();
                 }
             };

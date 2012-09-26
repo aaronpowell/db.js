@@ -175,16 +175,19 @@
             runs( function () {
                 done = false;
                 var item1 = {
+                    id: 1,
                     firstName: 'Aaron',
                     lastName: 'Powell',
                     age: 20
                 };
                 var item2 = {
+                    id: 2,
                     firstName: 'John',
                     lastName: 'Smith',
                     age: 30
                 };
                 var item3 = {
+                    id: 3,
                     firstName: 'Aaron',
                     lastName: 'Smith',
                     age: 40
@@ -387,6 +390,76 @@
                 waitsFor( function () {
                     return done;
                 } , 1000 , 'timed out running specs for \'count.lowerBound\'' );
+            });
+        });
+
+        describe( 'index.query.keys' , function () {
+            it( 'should allow an only query to return just the keys' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).keys().done( function ( results ) {
+                        expect( results.length ).toEqual( 2 );
+                        expect( results[0] ).toEqual( 'Aaron' );
+                        expect( results[1] ).toEqual( 'Aaron' );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'only.keys\'' );
+            });
+
+            it( 'should allow a bound query to return just the keys' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).bound( 20 , 40 , false , false ).keys().done( function ( results ) {
+                        expect( results.length ).toEqual( 3 );
+                        expect( results[0] ).toEqual( 20 );
+                        expect( results[1] ).toEqual( 30 );
+                        expect( results[2] ).toEqual( 40 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'bound.keys\'' );
+            });
+
+            it( 'should allow an upperBound query to return just the keys' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).upperBound( 30 , true ).keys().done( function ( results ) {
+                        expect( results.length ).toEqual( 1 );
+                        expect( results[0] ).toEqual( 20 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'upperBound.keys\'' );
+            });
+
+            it( 'should allow a lowerBound query to return just the keys' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).lowerBound( 30 ).keys().done( function ( results ) {
+                        expect( results.length ).toEqual( 2 );
+                        expect( results[0] ).toEqual( 30 );
+                        expect( results[1] ).toEqual( 40 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'lowerBound.keys\'' );
             });
         });
     });
