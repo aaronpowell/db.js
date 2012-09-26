@@ -190,6 +190,7 @@
     };
 
     var IndexQuery = function ( table , indexName , db ) {
+        var that = this;
         var runQuery = function ( type, args , cursorType ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
@@ -235,21 +236,11 @@
             }
         };
         
-        this.only = function () {
-            return new Query( 'only' , arguments );
-        };
-        
-        this.bound = function () {
-            return new Query( 'bound' , arguments );
-        };
-        
-        this.upperBound = function () {
-            return new Query( 'upperBound' , arguments );
-        };
-        
-        this.lowerBound = function () {
-            return new Query( 'lowerBound' , arguments );
-        };
+        'only bound upperBound lowerBound'.split(' ').forEach(function (name) {
+            that[name] = function () {
+                return new Query( name , arguments );
+            };
+        });
     };
     
     var Query = function ( table , db ) {
