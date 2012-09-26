@@ -121,7 +121,7 @@
                 promise = new Promise();
             
             var req = store.delete( key );
-            req.onsuccess = function ( e ) {
+            req.onsuccess = function ( ) {
                 promise.resolve( key );
             };
             req.onerror = function ( e ) {
@@ -236,7 +236,7 @@
 
                     return promise;
                 }
-            }
+            };
         };
         
         'only bound upperBound lowerBound'.split(' ').forEach(function (name) {
