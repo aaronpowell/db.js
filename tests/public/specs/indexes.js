@@ -236,7 +236,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     done = true;
                 });
@@ -251,7 +251,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).lowerBound( 30 ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'age' ).lowerBound( 30 ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 30 );
                     expect( results[1].age ).toEqual( 40 );
@@ -268,7 +268,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).upperBound( 30, true ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'age' ).upperBound( 30, true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 1 );
                     expect( results[0].age ).toEqual( 20 );
                     done = true;
@@ -284,7 +284,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, false ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'age' ).bound( 20, 40, false, false ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 3 );
                     expect( results[0].age ).toEqual( 20 );
                     expect( results[1].age ).toEqual( 30 );
@@ -302,7 +302,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, true , true ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'age' ).bound( 20, 40, true , true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 1 );
                     expect( results[0].age ).toEqual( 30 );
                     done = true;
@@ -318,7 +318,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, true ).execute().done( function ( results ) {
+                spec.server.query( 'test' , 'age' ).bound( 20, 40, false, true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 20 );
                     expect( results[1].age ).toEqual( 30 );
@@ -336,7 +336,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).count().done( function ( results ) {
+                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).count().done( function ( results ) {
                         expect( results ).toEqual( 2 );
                         done = true;
                     });
@@ -351,7 +351,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).bound( 20 , 40 , false , false ).count().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).bound( 20 , 40 , false , false ).count().done( function ( results ) {
                         expect( results ).toEqual( 3 );
                         done = true;
                     });
@@ -366,7 +366,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).upperBound( 30 , true ).count().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).upperBound( 30 , true ).count().done( function ( results ) {
                         expect( results ).toEqual( 1 );
                         done = true;
                     });
@@ -381,7 +381,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).lowerBound( 30 ).count().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).lowerBound( 30 ).count().done( function ( results ) {
                         expect( results ).toEqual( 2 );
                         done = true;
                     });
@@ -398,7 +398,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).keys().done( function ( results ) {
+                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).keys().done( function ( results ) {
                         expect( results.length ).toEqual( 2 );
                         expect( results[0] ).toEqual( 'Aaron' );
                         expect( results[1] ).toEqual( 'Aaron' );
@@ -415,7 +415,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).bound( 20 , 40 , false , false ).keys().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).bound( 20 , 40 , false , false ).keys().done( function ( results ) {
                         expect( results.length ).toEqual( 3 );
                         expect( results[0] ).toEqual( 20 );
                         expect( results[1] ).toEqual( 30 );
@@ -433,7 +433,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).upperBound( 30 , true ).keys().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).upperBound( 30 , true ).keys().done( function ( results ) {
                         expect( results.length ).toEqual( 1 );
                         expect( results[0] ).toEqual( 20 );
                         done = true;
@@ -449,7 +449,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).lowerBound( 30 ).keys().done( function ( results ) {
+                    spec.server.query( 'test' , 'age' ).lowerBound( 30 ).keys().done( function ( results ) {
                         expect( results.length ).toEqual( 2 );
                         expect( results[0] ).toEqual( 30 );
                         expect( results[1] ).toEqual( 40 );
@@ -468,7 +468,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).filter(function ( person ) {
+                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).filter(function ( person ) {
                         return person.age < 40;
                     }).done( function ( results ) {
                         expect( results.length ).toEqual( 1 );
@@ -485,7 +485,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' ).filter( function ( person ) {
+                    spec.server.query( 'test' ).filter( function ( person ) {
                         return person.age < 40;
                     }).done( function ( results ) {
                         expect( results.length ).toEqual( 2 );
@@ -502,7 +502,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' ).filter( function ( person ) {
+                    spec.server.query( 'test' ).filter( function ( person ) {
                         return person.age < 40 && person.firstName === 'Aaron';
                     }).done( function ( results ) {
                         expect( results.length ).toEqual( 1 );

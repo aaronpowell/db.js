@@ -157,7 +157,7 @@
             return promise;
         };
 
-        this.index = function ( table , index ) {
+        this.query = function ( table , index ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }

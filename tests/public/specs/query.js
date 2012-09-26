@@ -135,7 +135,7 @@
 
             runs( function () {
                 done = false;
-                this.server.index( 'test' ).all().done( function ( results ) {
+                this.server.query( 'test' ).all().done( function ( results ) {
                     expect( results ).toBeDefined();
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].firstName ).toEqual( item1.firstName );
@@ -179,7 +179,7 @@
             runs( function () {
                 done = false;
                 this.server
-                    .index( 'test' )
+                    .query( 'test' )
                     .filter('firstName', 'Aaron')
                     .done( function ( results ) {
                         expect( results ).toBeDefined();
@@ -225,7 +225,7 @@
             runs( function () {
                 done = false;
                 this.server
-                    .index( 'test' )
+                    .query( 'test' )
                     .filter( function ( x ) {
                         return x.firstName === 'Aaron' && x.lastName === 'Powell'
                     })
