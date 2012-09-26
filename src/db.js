@@ -168,7 +168,7 @@
             if ( closed ) {
                 throw 'Database has been closed';
             }
-            return new IndexQuery( table , index , db );
+            return new IndexQuery( table , db , index );
         };
 
         for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
@@ -189,7 +189,7 @@
         }
     };
 
-    var IndexQuery = function ( table , indexName , db ) {
+    var IndexQuery = function ( table , db , indexName ) {
         var that = this;
         var runQuery = function ( type, args , cursorType ) {
             var transaction = db.transaction( table ),
