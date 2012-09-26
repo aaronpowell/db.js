@@ -331,6 +331,26 @@
             } , 1000 , 'timed out running specs for \'bound\'' );
         });
 
+        it( 'should allow descending ordering of results', function () {
+            var spec = this;
+            var done;
+            runs( function () {
+                spec.server.query( 'test' , 'age' )
+                    .bound( 20, 40, false, true )
+                    .desc()
+                    .done( function ( results ) {
+                        expect( results.length ).toEqual( 2 );
+                        expect( results[0].age ).toEqual( 30 );
+                        expect( results[1].age ).toEqual( 20 );
+                        done = true;
+                    });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'bound\'' );
+        });
+
         describe( 'index.query.count' , function () {
             it( 'should allow an only query to return just a count' , function () {
                 var spec = this;

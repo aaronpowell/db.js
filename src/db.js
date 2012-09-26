@@ -184,15 +184,20 @@
 
     var IndexQuery = function ( table , db , indexName ) {
         var that = this;
-        var runQuery = function ( type, args , cursorType ) {
+        var runQuery = function ( type, args , cursorType , direction ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
-                promise = new Promise();
+                promise = new Promise(),
+                indexArgs = [ keyRange ];
 
-            index[cursorType]( keyRange ).onsuccess = function ( e ) {
+            if ( cursorType !== 'count' ) {
+                indexArgs.push( direction || 'next' );
+            };
+
+            index[cursorType].apply( index , indexArgs ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( typeof cursor === typeof 0 ) {
@@ -235,6 +240,9 @@
                     }, promise.reject , promise.progress );
 
                     return promise;
+                },
+                desc: function () {
+                    return runQuery( type , args , 'openCursor' , 'prev' );
                 }
             };
         };
