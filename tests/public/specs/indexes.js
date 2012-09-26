@@ -343,6 +343,51 @@
                     return done;
                 } , 1000 , 'timed out running specs for \'count.only\'' );
             });
+
+            it( 'should allow a bound query to return just a count' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).count.bound( 20 , 40 , false , false ).done( function ( results ) {
+                        expect( results ).toEqual( 3 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'count.bound\'' );
+            });
+
+            it( 'should allow an upperBound query to return just a count' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).count.upperBound( 30 , true ).done( function ( results ) {
+                        expect( results ).toEqual( 1 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'count.upperBound\'' );
+            });
+
+            it( 'should allow a lowerBound query to return just a count' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'age' ).count.lowerBound( 30 ).done( function ( results ) {
+                        expect( results ).toEqual( 2 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'count.lowerBound\'' );
+            });
         });
     });
 
