@@ -190,7 +190,7 @@
     };
 
     var IndexQuery = function ( table , indexName , db ) {
-        var runQuery = function ( type, args ) {
+        var runQuery = function ( type, args , cursorType ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = store.index( indexName ),
@@ -198,7 +198,7 @@
                 results = [],
                 promise = new Promise();
 
-            index.openCursor( keyRange ).onsuccess = function ( e ) {
+            index[cursorType]( keyRange ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( cursor ) {
@@ -220,19 +220,19 @@
         };
         
         this.only = function () {
-            return runQuery( 'only', arguments );
+            return runQuery( 'only', arguments , 'openCursor' );
         };
         
         this.bound = function () {
-            return runQuery( 'bound', arguments );
+            return runQuery( 'bound', arguments , 'openCursor' );
         };
         
         this.upperBound = function () {
-            return runQuery( 'upperBound', arguments );
+            return runQuery( 'upperBound', arguments , 'openCursor' );
         };
         
         this.lowerBound = function () {
-            return runQuery( 'lowerBound', arguments );
+            return runQuery( 'lowerBound', arguments , 'openCursor' );
         };
     };
     
