@@ -517,4 +517,149 @@
         });
     });
 
+    describe( 'index.multiEntry' , function () {
+        var dbName = 'tests',
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+           
+       beforeEach( function () {
+            var done = false;
+            var spec = this;
+            
+            spec.server = undefined;
+            
+            runs( function () {
+                var req = indexedDB.deleteDatabase( dbName );
+                
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db in beforeEach' , arguments );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments , spec );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+
+            var spec = this;
+            runs( function () {
+                db.open( {
+                    server: dbName ,
+                    version: 1,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            },
+                            indexes: {
+                                firstName: { },
+                                age: { },
+                                tags: {
+                                    multiEntry: true
+                                }
+                            }
+                        }
+                    }
+                }).done(function ( s ) {
+                    spec.server = s;
+                });
+            });
+
+            waitsFor( function () {
+                return !!spec.server;
+            } , 1000 , 'timed out opening the db' );
+
+            runs( function () {
+                done = false;
+                var item1 = {
+                    id: 1,
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20,
+                    tags: ['one', 'two', 'three']
+                };
+                var item2 = {
+                    id: 2,
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30,
+                    tags: ['one', 'two', 'three']
+                };
+                var item3 = {
+                    id: 3,
+                    firstName: 'Aaron',
+                    lastName: 'Smith',
+                    age: 40,
+                    tags: ['one', 'two', 'three', 'four']
+                };
+                spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out adding entries' );
+        });
+        
+        afterEach( function () {
+            var done;
+
+            runs( function () {
+                if ( this.server ) {
+                    this.server.close();
+                }
+
+                var spec = this;
+
+                var req = indexedDB.deleteDatabase( dbName );
+
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db in afterEach' , arguments , spec );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+        });
+
+        it('should query for data in a multiEntry index', function () {
+            var spec = this,
+                done = false;
+
+            runs(function () {
+                spec.server.test
+                    .query( 'tags' )
+                    .only( 'one' )
+                    .execute()
+                    .done(function ( data ) {
+                        expect( data.length ).toEqual( 3 );
+                        expect( data[0].firstName ).toEqual( 'Aaron' );
+                        expect( data[2].tags ).toEqual( ['one', 'two', 'three', 'four' ] );
+                        done = true;
+                    });
+            });
+
+            waitsFor(function () {
+                return done;
+            }, 1000);
+        });
+    });
+
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );

@@ -288,7 +288,7 @@
 
             for ( var indexKey in table.indexes ) {
                 var index = table.indexes[ indexKey ];
-                store.createIndex( indexKey , index.key || indexKey , index.options || { unique: false } );
+                store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
             }
         }
     };
