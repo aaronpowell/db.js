@@ -250,25 +250,6 @@
         this.lowerBound = function () {
             return new Query( 'lowerBound' , arguments );
         };
-
-        Object.defineProperty( this , 'count' , {
-            get: function () {
-                return {
-                    only: function () {
-                        return runQuery( 'only' , arguments , 'count' );
-                    },
-                    bound: function () {
-                        return runQuery( 'bound' , arguments , 'count' );
-                    },
-                    upperBound: function () {
-                        return runQuery( 'upperBound', arguments , 'count' );
-                    },
-                    lowerBound: function () {
-                        return runQuery( 'lowerBound', arguments , 'count' );
-                    }
-                };
-            }
-        });
     };
     
     var Query = function ( table , db ) {

@@ -328,12 +328,12 @@
             } , 1000 , 'timed out running specs for \'bound\'' );
         });
 
-        describe( 'index.count' , function () {
+        describe( 'index.query.count' , function () {
             it( 'should allow an only query to return just a count' , function () {
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'firstName' ).count.only( 'Aaron' ).done( function ( results ) {
+                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).count().done( function ( results ) {
                         expect( results ).toEqual( 2 );
                         done = true;
                     });
@@ -348,7 +348,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).count.bound( 20 , 40 , false , false ).done( function ( results ) {
+                    spec.server.index( 'test' , 'age' ).bound( 20 , 40 , false , false ).count().done( function ( results ) {
                         expect( results ).toEqual( 3 );
                         done = true;
                     });
@@ -363,7 +363,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).count.upperBound( 30 , true ).done( function ( results ) {
+                    spec.server.index( 'test' , 'age' ).upperBound( 30 , true ).count().done( function ( results ) {
                         expect( results ).toEqual( 1 );
                         done = true;
                     });
@@ -378,7 +378,7 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.index( 'test' , 'age' ).count.lowerBound( 30 ).done( function ( results ) {
+                    spec.server.index( 'test' , 'age' ).lowerBound( 30 ).count().done( function ( results ) {
                         expect( results ).toEqual( 2 );
                         done = true;
                     });
