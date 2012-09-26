@@ -220,21 +220,35 @@
             };
             return promise;
         };
+
+        var Query = function ( type , args ) {
+            return {
+                execute: function () {
+                    return runQuery( type , args , 'openCursor' );
+                },
+                count: function () {
+                    return runQuery( type , args , 'count' );
+                },
+                keys: function () {
+                    return runQuery( type , args , 'openKeyCursor' );
+                }
+            }
+        };
         
         this.only = function () {
-            return runQuery( 'only', arguments , 'openCursor' );
+            return new Query( 'only' , arguments );
         };
         
         this.bound = function () {
-            return runQuery( 'bound', arguments , 'openCursor' );
+            return new Query( 'bound' , arguments );
         };
         
         this.upperBound = function () {
-            return runQuery( 'upperBound', arguments , 'openCursor' );
+            return new Query( 'upperBound' , arguments );
         };
         
         this.lowerBound = function () {
-            return runQuery( 'lowerBound', arguments , 'openCursor' );
+            return new Query( 'lowerBound' , arguments );
         };
 
         Object.defineProperty( this , 'count' , {

@@ -233,7 +233,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).done( function ( results ) {
+                spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     done = true;
                 });
@@ -248,7 +248,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).lowerBound( 30 ).done( function ( results ) {
+                spec.server.index( 'test' , 'age' ).lowerBound( 30 ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 30 );
                     expect( results[1].age ).toEqual( 40 );
@@ -265,7 +265,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).upperBound( 30, true ).done( function ( results ) {
+                spec.server.index( 'test' , 'age' ).upperBound( 30, true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 1 );
                     expect( results[0].age ).toEqual( 20 );
                     done = true;
@@ -281,7 +281,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, false ).done( function ( results ) {
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, false ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 3 );
                     expect( results[0].age ).toEqual( 20 );
                     expect( results[1].age ).toEqual( 30 );
@@ -299,7 +299,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, true , true ).done( function ( results ) {
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, true , true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 1 );
                     expect( results[0].age ).toEqual( 30 );
                     done = true;
@@ -315,7 +315,7 @@
             var spec = this;
             var done;
             runs( function () {
-                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, true ).done( function ( results ) {
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, true ).execute().done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 20 );
                     expect( results[1].age ).toEqual( 30 );
