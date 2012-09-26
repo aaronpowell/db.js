@@ -188,11 +188,11 @@
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
                 index = indexName ? store.index( indexName ) : store,
-                keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : undefined,
+                keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
                 promise = new Promise();
 
-            ( keyRange ? index[cursorType]( keyRange ) : index[cursorType]( ) ).onsuccess = function ( e ) {
+            index[cursorType]( keyRange ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( typeof cursor === typeof 0 ) {
