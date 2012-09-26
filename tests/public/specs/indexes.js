@@ -462,6 +462,26 @@
                 } , 1000 , 'timed out running specs for \'lowerBound.keys\'' );
             });
         });
+
+        describe( 'index.query.filters' , function () {
+            it( 'should allow additional filter on an only query' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).filter(function ( person ) {
+                        return person.age < 40;
+                    }).done( function ( results ) {
+                        expect( results.length ).toEqual( 1 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'only.filter\'' );
+
+            });
+        });
     });
 
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );

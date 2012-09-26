@@ -232,6 +232,16 @@
                 },
                 keys: function () {
                     return runQuery( type , args , 'openKeyCursor' );
+                },
+                filter: function ( fn ) {
+                    var promise = new Promise();
+
+                    runQuery( type , args , 'openCursor' ).then( function ( data ) {
+                        var results = data.filter( fn );
+                        promise.resolve( results );
+                    }, promise.reject , promise.progress );
+
+                    return promise;
                 }
             }
         };
