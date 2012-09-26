@@ -479,7 +479,40 @@
                 waitsFor( function () {
                     return done;
                 } , 1000 , 'timed out running specs for \'only.filter\'' );
+            });
 
+            it( 'should allow a filter without an index' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' ).filter( function ( person ) {
+                        return person.age < 40;
+                    }).done( function ( results ) {
+                        expect( results.length ).toEqual( 2 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'filter\'' );
+            });
+
+            it( 'should allow a filter without an index to do multi-field filtering' , function () {
+                var spec = this;
+                var done;
+                runs( function () {
+                    spec.server.index( 'test' ).filter( function ( person ) {
+                        return person.age < 40 && person.firstName === 'Aaron';
+                    }).done( function ( results ) {
+                        expect( results.length ).toEqual( 1 );
+                        done = true;
+                    });
+                });
+
+                waitsFor( function () {
+                    return done;
+                } , 1000 , 'timed out running specs for \'filter\'' );
             });
         });
     });

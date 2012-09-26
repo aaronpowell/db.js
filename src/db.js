@@ -194,12 +194,12 @@
         var runQuery = function ( type, args , cursorType ) {
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
-                index = store.index( indexName ),
-                keyRange = IDBKeyRange[type].apply( null, args ),
+                index = indexName ? store.index( indexName ) : store,
+                keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : undefined,
                 results = [],
                 promise = new Promise();
 
-            index[cursorType]( keyRange ).onsuccess = function ( e ) {
+            ( keyRange ? index[cursorType]( keyRange ) : index[cursorType]( ) ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( typeof cursor === typeof 0 ) {
@@ -251,6 +251,15 @@
                 return new Query( name , arguments );
             };
         });
+
+        this.filter = function ( fn ) {
+            var promise = new Promise();
+            runQuery( null , null , 'openCursor' ).done( function ( data ) {
+                var results = data.filter( fn );
+                promise.resolve( results );
+            }, promise.reject , promise.progress );
+            return promise;
+        };
     };
     
     var Query = function ( table , db ) {
