@@ -130,13 +130,6 @@
             return promise;
         };
         
-        this.query = function ( table ) {
-            if ( closed ) {
-                throw 'Database has been closed';
-            }
-            return new Query( table , db );
-        };
-        
         this.close = function ( ) {
             if ( closed ) {
                 throw 'Database has been closed';
@@ -252,73 +245,31 @@
             };
         });
 
-        this.filter = function ( fn ) {
+        this.filter = function ( ) {
+            var run = runQuery( null , null , 'openCursor' );
+            var args = arguments;
+            if ( !args.length ) {
+                return run;
+            }
+
             var promise = new Promise();
-            runQuery( null , null , 'openCursor' ).done( function ( data ) {
-                var results = data.filter( fn );
-                promise.resolve( results );
+            run.done( function ( data ) {
+                if ( args.length === 1 ) {
+                    promise.resolve( data.filter( args[ 0 ] ) );
+                } else {
+                    promise.resolve( 
+                        data.filter( function ( record ) {
+                            return record[ args[ 0 ] ] === args[ 1 ];
+                        })
+                    );
+                }
+
             }, promise.reject , promise.progress );
             return promise;
         };
-    };
-    
-    var Query = function ( table , db ) {
-        var that = this,
-            filters = [];
-        
-        this.filter = function ( field , value ) {
-            filters.push( {
-                field: field,
-                value: value
-            });
-            return that;
-        };
-        
-        this.execute = function () {
-            var records = [],
-                transaction = db.transaction( table ),
-                store = transaction.objectStore( table ),
-                req = store.openCursor(),
-                promise = new Promise();
 
-            req.onsuccess = function ( e ) {
-                var value, f,
-                    inc = true,
-                    cursor = e.target.result;
-                
-                if ( cursor ) {
-                    value = cursor.value;
-                    for ( var i = 0 , il = filters.length ; i < il ; i++ ) {
-                        f = filters[ i ];
-                        if (typeof f.field === 'function') {
-                            inc = f.field(value);
-                        } else if (value[f.field] !== f.value) {
-                            inc = false;
-                        }
-                    }
-                    
-                    if ( inc ) {
-                        records.push( value );
-                    } else {
-                        if ( ~records.indexOf( value ) ) {
-                            records = records.slice( 0 , records.indexOf( value ) ).concat( records.indexOf( value ) );
-                        }
-                    }
-                    
-                    cursor.continue();
-                } else {
-                    promise.resolve( records );
-                }
-            };
-
-            req.onerror = function ( e ) {
-                promise.reject( e );
-            };
-            transaction.onabort = function ( e ) {
-                promise.reject( e );
-            };
-
-            return promise;
+        this.all = function () {
+            return this.filter();
         };
     };
     

@@ -135,7 +135,7 @@
 
             runs( function () {
                 done = false;
-                this.server.query( 'test' ).execute().done( function ( results ) {
+                this.server.index( 'test' ).all().done( function ( results ) {
                     expect( results ).toBeDefined();
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].firstName ).toEqual( item1.firstName );
@@ -179,9 +179,8 @@
             runs( function () {
                 done = false;
                 this.server
-                    .query( 'test' )
+                    .index( 'test' )
                     .filter('firstName', 'Aaron')
-                    .execute()
                     .done( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 2 );
@@ -226,11 +225,10 @@
             runs( function () {
                 done = false;
                 this.server
-                    .query( 'test' )
+                    .index( 'test' )
                     .filter( function ( x ) {
                         return x.firstName === 'Aaron' && x.lastName === 'Powell'
                     })
-                    .execute()
                     .done(function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 1 );
