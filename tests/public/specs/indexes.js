@@ -145,6 +145,58 @@
             waitsFor( function () {
                  return done;
             }, 'timed out deleting the database', 1000);
+
+            var spec = this;
+            runs( function () {
+                db.open( {
+                    server: dbName ,
+                    version: 1,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: true
+                            },
+                            indexes: {
+                                firstName: { },
+                                age: { }
+                            }
+                        }
+                    }
+                }).done(function ( s ) {
+                    spec.server = s;
+                });
+            });
+
+            waitsFor( function () {
+                return !!spec.server;
+            } , 1000 , 'timed out opening the db' );
+
+            runs( function () {
+                done = false;
+                var item1 = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20
+                };
+                var item2 = {
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30
+                };
+                var item3 = {
+                    firstName: 'Aaron',
+                    lastName: 'Smith',
+                    age: 40
+                };
+                spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out adding entries' );
         });
         
         afterEach( function () {
@@ -177,61 +229,10 @@
             }, 'timed out deleting the database', 1000);
         });
         
-        it( 'should allow querying on indexes' , function () {
+        it( 'should allow matching exact values' , function () {
             var spec = this;
+            var done;
             runs( function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1,
-                    schema: { 
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: true
-                            },
-                            indexes: {
-                                firstName: { },
-                                age: { }
-                            }
-                        }
-                    }
-                }).done(function ( s ) {
-                    spec.server = s;
-                });
-            });
-
-            waitsFor( function () {
-                return !!spec.server;
-            } , 1000 , 'timed out opening the db' );
-
-            var done = false;
-            runs( function () {
-                var item1 = {
-                    firstName: 'Aaron',
-                    lastName: 'Powell',
-                    age: 20
-                };
-                var item2 = {
-                    firstName: 'John',
-                    lastName: 'Smith',
-                    age: 30
-                };
-                var item3 = {
-                    firstName: 'Aaron',
-                    lastName: 'Smith',
-                    age: 40
-                };
-                spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
-                    done = true;
-                });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out adding entries' );
-
-            runs( function () {
-                done = false;
                 spec.server.index( 'test' , 'firstName' ).only( 'Aaron' ).done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     done = true;
@@ -241,9 +242,12 @@
             waitsFor( function () {
                 return done;
             } , 1000 , 'timed out running specs for \'only\'' );
+        });
 
+        it( 'should allow matching on a lower bound range' , function () {
+            var spec = this;
+            var done;
             runs( function () {
-                done = false;
                 spec.server.index( 'test' , 'age' ).lowerBound( 30 ).done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 30 );
@@ -255,9 +259,12 @@
             waitsFor( function () {
                 return done;
             } , 1000 , 'timed out running specs for \'lowerBound\'' );
+        });
 
+        it( 'should allow matching on an upper bound range' , function () {
+            var spec = this;
+            var done;
             runs( function () {
-                done = false;
                 spec.server.index( 'test' , 'age' ).upperBound( 30, true ).done( function ( results ) {
                     expect( results.length ).toEqual( 1 );
                     expect( results[0].age ).toEqual( 20 );
@@ -268,9 +275,46 @@
             waitsFor( function () {
                 return done;
             } , 1000 , 'timed out running specs for \'upperBound\'' );
+        });
 
+        it( 'should allow matching across a whole bound range with inclusive limits', function () {
+            var spec = this;
+            var done;
             runs( function () {
-                done = false;
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, false, false ).done( function ( results ) {
+                    expect( results.length ).toEqual( 3 );
+                    expect( results[0].age ).toEqual( 20 );
+                    expect( results[1].age ).toEqual( 30 );
+                    expect( results[2].age ).toEqual( 40 );
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'bound\'' );
+        });
+
+        it( 'should allow matching across a whole bound range with exclusive limits', function () {
+            var spec = this;
+            var done;
+            runs( function () {
+                spec.server.index( 'test' , 'age' ).bound( 20, 40, true , true ).done( function ( results ) {
+                    expect( results.length ).toEqual( 1 );
+                    expect( results[0].age ).toEqual( 30 );
+                    done = true;
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running specs for \'bound\'' );
+        });
+
+        it( 'should allow matching across a whole bound range with mixed limits', function () {
+            var spec = this;
+            var done;
+            runs( function () {
                 spec.server.index( 'test' , 'age' ).bound( 20, 40, false, true ).done( function ( results ) {
                     expect( results.length ).toEqual( 2 );
                     expect( results[0].age ).toEqual( 20 );
