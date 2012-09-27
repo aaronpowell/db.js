@@ -221,29 +221,55 @@
         };
 
         var Query = function ( type , args ) {
+            var direction = 'next',
+                cursorType = 'openCursor';
+
+            var execute = function () {
+                return runQuery( type , args , cursorType , direction );
+            };
+            var count = function () {
+                direction = null;
+                cursorType = 'count';
+
+                return {
+                    execute: execute
+                };
+            };
+            var keys = function () {
+                cursorType = 'openKeyCursor';
+
+                return {
+                    desc: desc,
+                    execute: execute,
+                    filter: filter
+                };
+            };
+            var filter = function ( fn ) {
+                var promise = new Promise();
+
+                runQuery( type , args , 'openCursor' ).then( function ( data ) {
+                    var results = data.filter( fn );
+                    promise.resolve( results );
+                }, promise.reject , promise.progress );
+
+                return promise;
+            };
+            var desc = function () {
+                direction = 'prev';
+
+                return {
+                    keys: keys,
+                    execute: execute,
+                    filter: filter
+                };
+            };
+
             return {
-                execute: function () {
-                    return runQuery( type , args , 'openCursor' );
-                },
-                count: function () {
-                    return runQuery( type , args , 'count' );
-                },
-                keys: function () {
-                    return runQuery( type , args , 'openKeyCursor' );
-                },
-                filter: function ( fn ) {
-                    var promise = new Promise();
-
-                    runQuery( type , args , 'openCursor' ).then( function ( data ) {
-                        var results = data.filter( fn );
-                        promise.resolve( results );
-                    }, promise.reject , promise.progress );
-
-                    return promise;
-                },
-                desc: function () {
-                    return runQuery( type , args , 'openCursor' , 'prev' );
-                }
+                execute: execute,
+                count: count,
+                keys: keys,
+                filter: filter,
+                desc: desc
             };
         };
         

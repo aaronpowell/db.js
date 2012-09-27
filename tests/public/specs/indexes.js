@@ -338,6 +338,7 @@
                 spec.server.query( 'test' , 'age' )
                     .bound( 20, 40, false, true )
                     .desc()
+                    .execute()
                     .done( function ( results ) {
                         expect( results.length ).toEqual( 2 );
                         expect( results[0].age ).toEqual( 30 );
@@ -356,10 +357,14 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).count().done( function ( results ) {
-                        expect( results ).toEqual( 2 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'firstName' )
+                        .only( 'Aaron' )
+                        .count()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results ).toEqual( 2 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -371,10 +376,14 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).bound( 20 , 40 , false , false ).count().done( function ( results ) {
-                        expect( results ).toEqual( 3 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .bound( 20 , 40 , false , false )
+                        .count()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results ).toEqual( 3 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -386,10 +395,14 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).upperBound( 30 , true ).count().done( function ( results ) {
-                        expect( results ).toEqual( 1 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .upperBound( 30 , true )
+                        .count()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results ).toEqual( 1 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -401,10 +414,14 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).lowerBound( 30 ).count().done( function ( results ) {
-                        expect( results ).toEqual( 2 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .lowerBound( 30 )
+                        .count()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results ).toEqual( 2 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -418,12 +435,16 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).keys().done( function ( results ) {
-                        expect( results.length ).toEqual( 2 );
-                        expect( results[0] ).toEqual( 'Aaron' );
-                        expect( results[1] ).toEqual( 'Aaron' );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'firstName' )
+                        .only( 'Aaron' )
+                        .keys()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 2 );
+                            expect( results[0] ).toEqual( 'Aaron' );
+                            expect( results[1] ).toEqual( 'Aaron' );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -435,13 +456,17 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).bound( 20 , 40 , false , false ).keys().done( function ( results ) {
-                        expect( results.length ).toEqual( 3 );
-                        expect( results[0] ).toEqual( 20 );
-                        expect( results[1] ).toEqual( 30 );
-                        expect( results[2] ).toEqual( 40 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .bound( 20 , 40 , false , false )
+                        .keys()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 3 );
+                            expect( results[0] ).toEqual( 20 );
+                            expect( results[1] ).toEqual( 30 );
+                            expect( results[2] ).toEqual( 40 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -453,11 +478,15 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).upperBound( 30 , true ).keys().done( function ( results ) {
-                        expect( results.length ).toEqual( 1 );
-                        expect( results[0] ).toEqual( 20 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .upperBound( 30 , true )
+                        .keys()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 1 );
+                            expect( results[0] ).toEqual( 20 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -469,12 +498,16 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'age' ).lowerBound( 30 ).keys().done( function ( results ) {
-                        expect( results.length ).toEqual( 2 );
-                        expect( results[0] ).toEqual( 30 );
-                        expect( results[1] ).toEqual( 40 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'age' )
+                        .lowerBound( 30 )
+                        .keys()
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 2 );
+                            expect( results[0] ).toEqual( 30 );
+                            expect( results[1] ).toEqual( 40 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
