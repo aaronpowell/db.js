@@ -571,6 +571,78 @@
                 } , 1000 , 'timed out running specs for \'filter\'' );
             });
         });
+
+        describe( 'distinct querying' , function () {
+            it( 'should allow distinct querying even if the index isn\'t unique' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .only( 'Aaron' )
+                        .distinct()
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 1 );
+
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in distinct query' );
+            });
+
+            it( 'should return the first record when distinct ascending' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .only( 'Aaron' )
+                        .distinct()
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data[ 0 ].firstName ).toEqual( spec.item1.firstName );
+
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in distinct query' );
+            });
+
+            it( 'should return the last record when distinct descending' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .only( 'Aaron' )
+                        .distinct()
+                        .desc()
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data[ 0 ].firstName ).toEqual( spec.item3.firstName );
+
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in distinct query' );
+            });
+        });
     });
 
     describe( 'index.multiEntry' , function () {

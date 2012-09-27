@@ -223,12 +223,13 @@
         var Query = function ( type , args ) {
             var direction = 'next',
                 cursorType = 'openCursor',
-                filters = [];
+                filters = [],
+                unique = false;
 
             var execute = function () {
                 var promise = new Promise();
                 
-                runQuery( type , args , cursorType , direction )
+                runQuery( type , args , cursorType , unique ? direction + 'unique' : direction )
                     .then( function ( data ) {
                         filters.forEach( function ( filter ) {
                             if ( !filter || !filter.length ) {
@@ -264,7 +265,8 @@
                 return {
                     desc: desc,
                     execute: execute,
-                    filter: filter
+                    filter: filter,
+                    distinct: distinct
                 };
             };
             var filter = function ( ) {
@@ -274,7 +276,8 @@
                     keys: keys,
                     execute: execute,
                     filter: filter,
-                    desc: desc
+                    desc: desc,
+                    distinct: distinct
                 };
             };
             var desc = function () {
@@ -283,7 +286,18 @@
                 return {
                     keys: keys,
                     execute: execute,
-                    filter: filter
+                    filter: filter,
+                    distinct: distinct
+                };
+            };
+            var distinct = function () {
+                unique = true;
+                return {
+                    keys: keys,
+                    count: count,
+                    execute: execute,
+                    filter: filter,
+                    desc: desc
                 };
             };
 
@@ -292,7 +306,8 @@
                 count: count,
                 keys: keys,
                 filter: filter,
-                desc: desc
+                desc: desc,
+                distinct: distinct
             };
         };
         
