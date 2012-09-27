@@ -231,20 +231,21 @@
                 
                 runQuery( type , args , cursorType , unique ? direction + 'unique' : direction )
                     .then( function ( data ) {
-                        filters.forEach( function ( filter ) {
-                            if ( !filter || !filter.length ) {
-                                return;
-                            }
+                        if ( data.constructor === Array ) {
+                            filters.forEach( function ( filter ) {
+                                if ( !filter || !filter.length ) {
+                                    return;
+                                }
 
-                            if ( filter.length === 2 ) {
-                                data = data.filter( function ( x ) {
-                                    return x[ filter[ 0 ] ] === filter[ 1 ];
-                                });
-                            } else {
-                                data = data.filter( filter[ 0 ] );
-                            }
-                        });
-
+                                if ( filter.length === 2 ) {
+                                    data = data.filter( function ( x ) {
+                                        return x[ filter[ 0 ] ] === filter[ 1 ];
+                                    });
+                                } else {
+                                    data = data.filter( filter[ 0 ] );
+                                }
+                            });
+                        }
                         promise.resolve( data );
                     }, promise.reject , promise.notify );
                 ;
