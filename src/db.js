@@ -222,10 +222,33 @@
 
         var Query = function ( type , args ) {
             var direction = 'next',
-                cursorType = 'openCursor';
+                cursorType = 'openCursor',
+                filters = [];
 
             var execute = function () {
-                return runQuery( type , args , cursorType , direction );
+                var promise = new Promise();
+                
+                runQuery( type , args , cursorType , direction )
+                    .then( function ( data ) {
+                        filters.forEach( function ( filter ) {
+                            if ( !filter || !filter.length ) {
+                                return;
+                            }
+
+                            if ( filter.length === 2 ) {
+                                data = data.filter( function ( x ) {
+                                    return x[ filter[ 0 ] ] === filter[ 1 ];
+                                });
+                            } else {
+                                data = data.filter( filter[ 0 ] );
+                            }
+                        });
+
+                        promise.resolve( data );
+                    }, promise.reject , promise.notify );
+                ;
+
+                return promise;
             };
             var count = function () {
                 direction = null;
@@ -244,15 +267,15 @@
                     filter: filter
                 };
             };
-            var filter = function ( fn ) {
-                var promise = new Promise();
+            var filter = function ( ) {
+                filters.push( Array.prototype.slice.call( arguments , 0 , 2 ) );
 
-                runQuery( type , args , 'openCursor' ).then( function ( data ) {
-                    var results = data.filter( fn );
-                    promise.resolve( results );
-                }, promise.reject , promise.progress );
-
-                return promise;
+                return {
+                    keys: keys,
+                    execute: execute,
+                    filter: filter,
+                    desc: desc
+                };
             };
             var desc = function () {
                 direction = 'prev';
@@ -279,27 +302,9 @@
             };
         });
 
-        this.filter = function ( ) {
-            var run = runQuery( null , null , 'openCursor' );
-            var args = arguments;
-            if ( !args.length ) {
-                return run;
-            }
-
-            var promise = new Promise();
-            run.done( function ( data ) {
-                if ( args.length === 1 ) {
-                    promise.resolve( data.filter( args[ 0 ] ) );
-                } else {
-                    promise.resolve( 
-                        data.filter( function ( record ) {
-                            return record[ args[ 0 ] ] === args[ 1 ];
-                        })
-                    );
-                }
-
-            }, promise.reject , promise.progress );
-            return promise;
+        this.filter = function () {
+            var query = new Query( null , null );
+            return query.filter.apply( query , arguments );
         };
 
         this.all = function () {

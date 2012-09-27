@@ -521,12 +521,16 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' , 'firstName' ).only( 'Aaron' ).filter(function ( person ) {
-                        return person.age < 40;
-                    }).done( function ( results ) {
-                        expect( results.length ).toEqual( 1 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' , 'firstName' )
+                        .only( 'Aaron' )
+                        .filter(function ( person ) {
+                            return person.age < 40;
+                        })
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 1 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -538,12 +542,15 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' ).filter( function ( person ) {
-                        return person.age < 40;
-                    }).done( function ( results ) {
-                        expect( results.length ).toEqual( 2 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' )
+                        .filter( function ( person ) {
+                            return person.age < 40;
+                        })
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 2 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {
@@ -555,12 +562,15 @@
                 var spec = this;
                 var done;
                 runs( function () {
-                    spec.server.query( 'test' ).filter( function ( person ) {
-                        return person.age < 40 && person.firstName === 'Aaron';
-                    }).done( function ( results ) {
-                        expect( results.length ).toEqual( 1 );
-                        done = true;
-                    });
+                    spec.server.query( 'test' )
+                        .filter( function ( person ) {
+                            return person.age < 40 && person.firstName === 'Aaron';
+                        })
+                        .execute()
+                        .done( function ( results ) {
+                            expect( results.length ).toEqual( 1 );
+                            done = true;
+                        });
                 });
 
                 waitsFor( function () {

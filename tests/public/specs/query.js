@@ -135,14 +135,17 @@
 
             runs( function () {
                 done = false;
-                this.server.query( 'test' ).all().done( function ( results ) {
-                    expect( results ).toBeDefined();
-                    expect( results.length ).toEqual( 2 );
-                    expect( results[0].firstName ).toEqual( item1.firstName );
-                    expect( results[1].firstName ).toEqual( item2.firstName );
+                this.server.query( 'test' )
+                    .all()
+                    .execute()
+                    .done( function ( results ) {
+                        expect( results ).toBeDefined();
+                        expect( results.length ).toEqual( 2 );
+                        expect( results[0].firstName ).toEqual( item1.firstName );
+                        expect( results[1].firstName ).toEqual( item2.firstName );
 
-                    done = true;
-                });
+                        done = true;
+                    });
             });
 
             waitsFor( function () {
@@ -181,6 +184,7 @@
                 this.server
                     .query( 'test' )
                     .filter('firstName', 'Aaron')
+                    .execute()
                     .done( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 2 );
@@ -229,6 +233,7 @@
                     .filter( function ( x ) {
                         return x.firstName === 'Aaron' && x.lastName === 'Powell'
                     })
+                    .execute()
                     .done(function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 1 );
