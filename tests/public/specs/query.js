@@ -71,7 +71,7 @@
                 };
                 spec.item3 = {
                     firstName: 'Aaron',
-                    lastName: 'Smith',
+                    lastName: 'Jones',
                     age: 40
                 };
                 spec.server.add( 'test' , [ spec.item1 , spec.item2 , spec.item3 ] ).done( function () {
@@ -145,8 +145,34 @@
                     .done( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 3 );
-                        expect( results[0].firstName ).toEqual( spec.item1.firstName );
-                        expect( results[1].firstName ).toEqual( spec.item2.firstName );
+                        expect( results[0].id ).toEqual( spec.item1.id );
+                        expect( results[1].id ).toEqual( spec.item2.id );
+                        expect( results[2].id ).toEqual( spec.item3.id );
+
+                        done = true;
+                    });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running expects' );
+        });
+
+        it( 'should allow a get all descending operation' , function () {
+            var done = false;
+
+            runs( function () {
+                var spec = this;
+                this.server.query( 'test' )
+                    .all()
+                    .desc()
+                    .execute()
+                    .done( function ( results ) {
+                        expect( results ).toBeDefined();
+                        expect( results.length ).toEqual( 3 );
+                        expect( results[0].id ).toEqual( spec.item3.id );
+                        expect( results[1].id ).toEqual( spec.item2.id );
+                        expect( results[2].id ).toEqual( spec.item1.id );
 
                         done = true;
                     });
@@ -619,7 +645,7 @@
                 } , 1000 , 'timeout in distinct query' );
             });
 
-            it( 'should return the last record when distinct descending' , function () {
+            it( 'should return only one record per key in a dinstinct query' , function () {
                 var done;
 
                 runs(function () {
@@ -627,13 +653,42 @@
 
                     spec.server.test
                         .query( 'firstName' )
-                        .only( 'Aaron' )
+                        .all()
+                        .distinct()
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 2 );
+                            expect( data[ 0 ].firstName ).toEqual( spec.item1.firstName );
+                            expect( data[ 0 ].lastName ).toEqual( spec.item1.lastName );
+                            expect( data[ 1 ].firstName ).toEqual( spec.item2.firstName );
+                            expect( data[ 1 ].lastName ).toEqual( spec.item2.lastName );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in distinct query' );
+            });
+
+            it( 'should return only one record per key in a dinstinct query in descending order' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .all()
                         .distinct()
                         .desc()
                         .execute()
                         .done( function ( data ) {
-                            expect( data[ 0 ].firstName ).toEqual( spec.item3.firstName );
-
+                            expect( data.length ).toEqual( 2 );
+                            expect( data[ 0 ].firstName ).toEqual( spec.item2.firstName );
+                            expect( data[ 0 ].lastName ).toEqual( spec.item2.lastName );
+                            expect( data[ 1 ].firstName ).toEqual( spec.item1.firstName );
+                            expect( data[ 1 ].lastName ).toEqual( spec.item1.lastName );
                             done = true;
                         });
                 });
@@ -723,7 +778,7 @@
                 var item3 = {
                     id: 3,
                     firstName: 'Aaron',
-                    lastName: 'Smith',
+                    lastName: 'Jones',
                     age: 40,
                     tags: ['one', 'two', 'three', 'four']
                 };
