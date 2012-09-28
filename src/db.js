@@ -380,7 +380,7 @@
 
     var dbCache = {};
 
-    window.db = {
+    var db = {
         open: function ( options ) {
             var request;
 
@@ -416,4 +416,9 @@
             return promise;
         }
     };
+    if ( typeof define === 'function' && define.amd ) {
+        define( function() { return db; } );
+    } else {
+        window.db = db;
+    }
 })( window );
