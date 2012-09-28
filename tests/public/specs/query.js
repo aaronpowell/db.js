@@ -687,8 +687,8 @@
                             expect( data.length ).toEqual( 2 );
                             expect( data[ 0 ].firstName ).toEqual( spec.item2.firstName );
                             expect( data[ 0 ].lastName ).toEqual( spec.item2.lastName );
-                            expect( data[ 1 ].firstName ).toEqual( spec.item1.firstName );
-                            expect( data[ 1 ].lastName ).toEqual( spec.item1.lastName );
+                            expect( data[ 1 ].firstName ).toEqual( spec.item3.firstName );
+                            expect( data[ 1 ].lastName ).toEqual( spec.item3.lastName );
                             done = true;
                         });
                 });
@@ -832,10 +832,10 @@
                     .only( 'one' )
                     .execute()
                     .done(function ( data ) {
+                        done = true;
                         expect( data.length ).toEqual( 3 );
                         expect( data[0].firstName ).toEqual( 'Aaron' );
                         expect( data[2].tags ).toEqual( ['one', 'two', 'three', 'four' ] );
-                        done = true;
                     });
             });
 
