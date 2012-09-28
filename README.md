@@ -10,6 +10,8 @@ Add a reference to db.js in your application before you want to use IndexedDB:
 
 	<script src='/scripts/db.js'></script>
 
+Alternatively, db.js includes an optional `define` call, and can be loaded as module using the [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) loader of your choice.
+
 Once you have the script included you can then open connections to each different database within your application:
 
 	var server;
