@@ -79,17 +79,19 @@
         var that = this,
             closed = false;
         
-        this.add = function( table , records ) {
+        this.add = function( table ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
+
+            var records = [];
+            for (var i = 0; i < arguments.length - 1; i++) {
+                records[i] = arguments[i + 1];
+            }
+
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
                 promise = new Promise();
-            
-            if ( records.constructor !== Array ) {
-                records = [ records ];
-            }
             
             records.forEach( function ( record ) {
                 var req = store.add( record );

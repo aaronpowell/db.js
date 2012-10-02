@@ -117,7 +117,7 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , [ item1 , item2 ] ).done( function ( items ) {
+                spec.server.add( 'test' , item1 , item2 ).done( function ( items ) {
                     item1.id = items[ 0 ].id;
                     item2.id = items[ 1 ].id;
                 });
