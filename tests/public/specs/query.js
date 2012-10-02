@@ -685,10 +685,8 @@
                         .execute()
                         .done( function ( data ) {
                             expect( data.length ).toEqual( 2 );
-                            expect( data[ 0 ].firstName ).toEqual( spec.item2.firstName );
-                            expect( data[ 0 ].lastName ).toEqual( spec.item2.lastName );
-                            expect( data[ 1 ].firstName ).toEqual( spec.item3.firstName );
-                            expect( data[ 1 ].lastName ).toEqual( spec.item3.lastName );
+                            expect( data[ 0 ].id ).toEqual( spec.item2.id );
+                            expect( data[ 1 ].id ).toEqual( spec.item1.id );
                             done = true;
                         });
                 });
