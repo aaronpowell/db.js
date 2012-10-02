@@ -829,7 +829,7 @@
             runs(function () {
                 spec.server.test
                     .query( 'tags' )
-                    .only( 'one' )
+                    .all()
                     .execute()
                     .done(function ( data ) {
                         done = true;
