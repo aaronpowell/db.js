@@ -1,4 +1,4 @@
-(function ( window ) {
+(function ( window , undefined ) {
     'use strict';
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
@@ -79,23 +79,39 @@
         var that = this,
             closed = false;
         
-        this.add = function( table , records ) {
+        this.add = function( table ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
+
+            var records = [];
+            for (var i = 0; i < arguments.length - 1; i++) {
+                records[i] = arguments[i + 1];
+            }
+
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
                 promise = new Promise();
             
-            if ( records.constructor !== Array ) {
-                records = [ records ];
-            }
-            
             records.forEach( function ( record ) {
-                var req = store.add( record );
+                var req;
+                if ( record.item && record.key ) {
+                    var key = record.key;
+                    record = record.item;
+                    req = store.add( record , key );
+                } else {
+                    req = store.add( record );
+                }
+
                 req.onsuccess = function ( e ) {
                     var target = e.target;
-                    record[ target.source.keyPath ] = target.result;
+                    var keyPath = target.source.keyPath;
+                    if ( keyPath === null ) {
+                        keyPath = '__id__';
+                    }
+                    Object.defineProperty( record , keyPath , {
+                        value: target.result
+                    });
                     promise.notify();
                 };
             } );
@@ -338,7 +354,7 @@
             if ( !hasOwn.call( schema , tableName ) ) {
                 continue;
             }
-            
+
             var store = db.createObjectStore( tableName , table.key );
 
             for ( var indexKey in table.indexes ) {
