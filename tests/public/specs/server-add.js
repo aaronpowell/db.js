@@ -136,4 +136,111 @@
         });
     });
 
+    describe( 'server.add-custom key' , function () {
+        var dbName = 'tests',
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+           
+       beforeEach( function () {
+            var done = false;
+            var spec = this;
+            
+            spec.server = undefined;
+            
+            runs( function () {
+                var req = indexedDB.deleteDatabase( dbName );
+                
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db' , arguments );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments , spec );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+            
+            runs( function () {
+                db.open( {
+                    server: dbName ,
+                    version: 1 ,
+                    schema: { 
+                        test: {
+                            key: {
+                                keyPath: 'id',
+                                autoIncrement: false
+                            }
+                        }
+                    }
+                }).done(function ( s ) {
+                    spec.server = s;
+                });
+            });
+            
+            waitsFor( function () { 
+                return !!spec.server;
+            } , 'wait on db' , 500 );
+        });
+        
+        afterEach( function () {
+            var done;
+
+            runs( function () {
+                if ( this.server ) {
+                    this.server.close();
+                }                
+                var req = indexedDB.deleteDatabase( dbName );
+                
+                req.onsuccess = function () {
+                    done = true;
+                };
+                
+                req.onerror = function () {
+                    console.log( 'failed to delete db' , arguments );
+                };
+                
+                req.onblocked = function () {
+                    console.log( 'db blocked' , arguments );
+                };
+            });
+            
+            waitsFor( function () {
+                 return done;
+            }, 'timed out deleting the database', 1000);
+        });
+
+        it( 'should insert a new item into the object store' , function () {
+            var item = {
+                firstName: 'Aaron',
+                lastName: 'Powell',
+                id: 'abcd'
+            };
+            
+            var spec = this;
+            var done;
+            
+            runs( function () {
+                spec.server.add( 'test' , item ).done( function ( records ) {
+                    done = true;
+                    item = records[0];
+                });
+            });
+            
+            waitsFor( function () {
+                return done;
+            } , 'timeout waiting for item to be added' , 1000 );
+            
+            runs( function () {
+                expect( item.id ).toBeDefined();
+                expect( item.id ).toEqual( 'abcd' );
+            });
+        });
+    });
+
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
