@@ -1,4 +1,4 @@
-(function ( window ) {
+(function ( window , undefined ) {
     'use strict';
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
@@ -94,10 +94,25 @@
                 promise = new Promise();
             
             records.forEach( function ( record ) {
-                var req = store.add( record );
+                var req;
+                if ( record.item && record.key ) {
+                    var key = record.key;
+                    record = record.item;
+                    req = store.add( record , key );
+                } else {
+                    req = store.add( record );
+                }
+
                 req.onsuccess = function ( e ) {
                     var target = e.target;
-                    record[ target.source.keyPath ] = target.result;
+
+                    if ( target.source.keyPath === null ) {
+                        Object.defineProperty( record , '__id__' , {
+                            value: target.result
+                        });
+                    } else {
+                        record[ target.source.keyPath ] = target.result;
+                    }
                     promise.notify();
                 };
             } );
@@ -340,7 +355,7 @@
             if ( !hasOwn.call( schema , tableName ) ) {
                 continue;
             }
-            
+
             var store = db.createObjectStore( tableName , table.key );
 
             for ( var indexKey in table.indexes ) {
