@@ -117,14 +117,11 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , item1 , item2 ).done( function ( items ) {
-                    item1.id = items[ 0 ].id;
-                    item2.id = items[ 1 ].id;
-                });
+                spec.server.add( 'test' , item1 , item2 );
             });
             
             waitsFor( function () {
-                return typeof item1.id !== 'undefined';
+                return typeof item2.id !== 'undefined';
             } , 'timed out waiting for items to be added' , 1000 );
             
             runs( function () {

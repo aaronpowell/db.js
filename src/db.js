@@ -105,14 +105,13 @@
 
                 req.onsuccess = function ( e ) {
                     var target = e.target;
-
-                    if ( target.source.keyPath === null ) {
-                        Object.defineProperty( record , '__id__' , {
-                            value: target.result
-                        });
-                    } else {
-                        record[ target.source.keyPath ] = target.result;
+                    var keyPath = target.source.keyPath;
+                    if ( keyPath === null ) {
+                        keyPath = '__id__';
                     }
+                    Object.defineProperty( record , keyPath , {
+                        value: target.result
+                    });
                     promise.notify();
                 };
             } );
