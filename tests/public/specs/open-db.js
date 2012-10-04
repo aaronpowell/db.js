@@ -117,5 +117,44 @@
                 return done;
             } , 'timed out on expectations' , 1000 );
         });
+
+        it( 'should allow schemas without keypaths' , function () {
+            var done = false;
+            var spec = this;
+
+            runs( function () {
+                db.open( {
+                    server: dbName ,
+                    version: 1,
+                    schema: { 
+                        test: {
+                        }
+                    }
+                }).done(function ( s ) {
+                    spec.server = s;
+                });
+            });
+            
+            waitsFor( function () { 
+                return !!spec.server;
+            } , 'wait on db' , 500 );
+            
+            runs( function () {
+                var req = indexedDB.open( dbName );
+                req.onsuccess = function ( e ) {
+                    var db = e.target.result;
+                    
+                    expect( db.objectStoreNames.length ).toEqual( 1 );
+                    expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
+                    
+                    db.close();
+                    done = true;
+                };
+            });
+            
+            waitsFor( function () {
+                return done;
+            } , 'timed out on expectations' , 1000 );
+        });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );

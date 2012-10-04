@@ -74,7 +74,7 @@
                     lastName: 'Jones',
                     age: 40
                 };
-                spec.server.add( 'test' , [ spec.item1 , spec.item2 , spec.item3 ] ).done( function () {
+                spec.server.add( 'test' , spec.item1 , spec.item2 , spec.item3 ).done( function () {
                     done = true;
                 });
             });
@@ -780,7 +780,7 @@
                     age: 40,
                     tags: ['one', 'two', 'three', 'four']
                 };
-                spec.server.add( 'test' , [ item1 , item2 , item3 ] ).done( function () {
+                spec.server.add( 'test' , item1 , item2 , item3 ).done( function () {
                     done = true;
                 });
             });
@@ -827,13 +827,33 @@
             runs(function () {
                 spec.server.test
                     .query( 'tags' )
-                    .all()
+                    .only( 'one' )
                     .execute()
                     .done(function ( data ) {
                         done = true;
                         expect( data.length ).toEqual( 3 );
                         expect( data[0].firstName ).toEqual( 'Aaron' );
                         expect( data[2].tags ).toEqual( ['one', 'two', 'three', 'four' ] );
+                    });
+            });
+
+            waitsFor(function () {
+                return done;
+            }, 1000);
+        });
+
+        it('should query for all data in a multiEntry index', function () {
+            var spec = this,
+                done = false;
+
+            runs(function () {
+                spec.server.test
+                    .query( 'tags' )
+                    .all()
+                    .execute()
+                    .done(function ( data ) {
+                        done = true;
+                        expect( data.length ).toEqual( 10 );
                     });
             });
 
