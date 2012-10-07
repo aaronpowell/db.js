@@ -78,7 +78,7 @@
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
-        
+
         this.add = function( table ) {
             if ( closed ) {
                 throw 'Database has been closed';
@@ -110,8 +110,51 @@
                         keyPath = '__id__';
                     }
                     Object.defineProperty( record , keyPath , {
-                        value: target.result
+                        value: target.result,
+                        enumerable: true
                     });
+                    promise.notify();
+                };
+            } );
+            
+            transaction.oncomplete = function () {
+                promise.resolve( records , that );
+            };
+            transaction.onerror = function ( e ) {
+                promise.reject( records , e );
+            };
+            transaction.onabort = function ( e ) {
+                promise.reject( records , e );
+            };
+            return promise;
+        };
+
+        this.update = function( table ) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
+
+            var records = [];
+            for ( var i = 0 ; i < arguments.length - 1 ; i++ ) {
+                records[ i ] = arguments[ i + 1 ];
+            }
+
+            var transaction = db.transaction( table , transactionModes.readwrite ),
+                store = transaction.objectStore( table ),
+                keyPath = store.keyPath,
+                promise = new Promise();
+
+            records.forEach( function ( record ) {
+                var req;
+                if ( record.item && record.key ) {
+                    var key = record.key;
+                    record = record.item;
+                    req = store.put( record , key );
+                } else {
+                    req = store.put( record );
+                }
+
+                req.onsuccess = function ( e ) {
                     promise.notify();
                 };
             } );
@@ -397,7 +440,7 @@
     var dbCache = {};
 
     var db = {
-        version: '0.5.0',
+        version: '0.6.0',
         open: function ( options ) {
             var request;
 

@@ -507,6 +507,48 @@
                 expect( item3.__id__ ).toEqual( 6 );
             });
         });
+
+        it( 'should should error when adding an item with an existing key' , function () {
+            var item1 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+            var key = 'key';
+            
+            var spec = this;
+            var done;
+            
+            runs( function () {
+                spec.server.add( 'test' , {
+                    item: item1,
+                    key: key
+                } ).done( function ( records ) {
+                    done = true;
+                });
+            });
+            
+            waitsFor( function () {
+                return done;
+            } , 'timeout waiting for item to be added' , 1000 );
+            
+            runs( function () {
+                done = false;
+
+                spec.server.add( 'test' , {
+                    item: item1,
+                    key: key
+                } ).done( function ( records ) {
+                    //done = true;
+                }).fail( function ( items , e ) {
+                    done = true;
+                    expect( e.target.error.name ).toBe( 'ConstraintError' );
+                });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 'timeout waiting for item add to fail' , 1000 );
+        });
     });
 
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
