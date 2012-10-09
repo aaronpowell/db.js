@@ -112,21 +112,21 @@
                     .query()
                     .all()
                     .execute();
-console.log(queryDeferred);
+
                 $.when( ajaxDeferred , queryDeferred )
                     .done(function ( ajaxData , queryData ) {
                         done = true;
 
                         expect( ajaxData ).toBeDefined();
-                        expect( ajaxData[ 0 ][ 0 ] ).toEqual({
+                        expect( ajaxData[ 0 ] ).toEqual({
                             firstName: 'John',
                             lastName: 'Smith'
                         });
 
                         expect( queryData ).toBeDefined();
-                        expect( queryData[ 0 ].length ).toBe( 1 );
-                        expect( queryData[ 0 ][ 0 ].firstName ).toBe( 'Aaron' );
-                        expect( queryData[ 0 ][ 0 ].lastName ).toBe( 'Powell' );
+                        expect( queryData.length ).toBe( 1 );
+                        expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
+                        expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
                     })
             });
 
