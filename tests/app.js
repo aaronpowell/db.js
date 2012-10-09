@@ -17,6 +17,13 @@ app.configure('production', function(){
     app.use(express.errorHandler());
 });
 
+app.get('/foo', function (req, res) {
+  res.json({
+    firstName: 'John',
+    lastName: 'Smith'
+  });
+});
+
 app.get('/', function (req, res) {
     res.render('index');
 });
