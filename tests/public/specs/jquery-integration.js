@@ -112,7 +112,7 @@
                     .query()
                     .all()
                     .execute();
-
+console.log(queryDeferred);
                 $.when( ajaxDeferred , queryDeferred )
                     .done(function ( ajaxData , queryData ) {
                         done = true;
