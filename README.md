@@ -77,13 +77,13 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 
 All ranges supported by IDBKeyRange can be used.
 
-	server.people.index()
+	server.people.query( 'indexName' )
 	      .only( 'firstName', 'Aaron' )
 	      .done( function ( results ) {
 	          //do something with the results
 	      } );
 
-	server.people.index()
+	server.people.query( 'indexName' )
 	      .bound( 'answer', 30, 50 )
 	      .done( function ( results ) {
 	          //do something with the results
@@ -92,6 +92,14 @@ All ranges supported by IDBKeyRange can be used.
 ## Closing connection
 
 	server.close();
+
+# Deferred/ Promise notes
+
+db.js used the Promise spec to handle asynchronous operations. All operations that are asynchronous will return an instance of the internal Promise object that exposes a `then` method which will take up to three callbacks, `success`, `failed` and `progress`. It also exposes useful helpers for these such as `done`, `fail` and `progress`.
+
+As of version `0.7.0` db.js's Promise API is designed to work with jQuery*, allowing you to link db.js Promises with other Promises.
+
+*_Note: It's likely that other Promise libraries also integrate with it, jQuery is just the only tested on._
 
 The MIT License
 
