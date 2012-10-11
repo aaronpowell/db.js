@@ -5,64 +5,49 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="viewport" content="width=640" />
 
-    <link rel="stylesheet" href="/db.js/stylesheets/core.css" media="screen"/>
-    <link rel="stylesheet" href="/db.js/stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
-    <link rel="stylesheet" href="/db.js/stylesheets/pygment_trac.css"/>
+    <link rel="stylesheet" href="/db.js/stylesheets/bootstrap.min.css" media="screen"/>
+    <link rel="stylesheet" href="/db.js/stylesheets/bootstrap-responsive.min.css" media="screen"/>
+    <link rel="stylesheet" href="/db.js/stylesheets/docs.css"/>
+    <link rel="stylesheet" href="/db.js/stylesheets/prism.css"/>
 
     <script type="text/javascript" src="/db.js/javascripts/modernizr.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="/db.js/javascripts/headsmart.min.js"></script>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        $('#main_content').headsmart();
-      })
-    </script>
     <title>{{ site.appname }} by {{ site.author }}</title>
   </head>
 
   <body>
-    <a id="forkme_banner" href="https://github.com/aaronpowell/db.js">View on GitHub</a>
-    <div class="shell">
-
-      <header>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <h1>{{ site.appname }}</h1>
-            <h2>{{ site.appname }} is a wrapper for IndexedDB to make it easier to work against</h2>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-      </header>
-
-      <section id="downloads">
-        <span class="inner">
-          <a href="https://github.com/aaronpowell/db.js/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/aaronpowell/db.js/tarball/master" class="tgz"><em>download</em> .TGZ</a>
-        </span>
-      </section>
-
-
-      <span class="banner-fix"></span>
-
-
-      <section id="main_content">
-        {{ content }}
-      </section>
-
-      <footer>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <p>This project by <a href="https://github.com/aaronpowell">{{ site.author }}</a> can be found on <a href="https://github.com/aaronpowell/db.js">GitHub</a></p>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
-        <span class="octocat"></span>
-      </footer>
-
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li>
+                <a href="./index.html">Home</a>
+              </li>
+              <li>
+                <a href="./getting-started.html">Get started</a>
+              </li>
+              <li>
+                <a href="./querying.html">Querying</a>
+              </li>
+              <li>
+                <a href="./faq.html">FAQ</a>
+              </li>
+              <li>
+                <a href="{{ site.link }}">Download</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span10">
+          {{ content }}
+        </div>
+      </div>
+    </div>
+    <script src="/db.js/javascript/prism.js"></script>
     <script type="text/javascript">
         var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
         document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));

@@ -10,7 +10,7 @@ If you've done much work with IndexedDB you'll have noticed that the API isn't q
 
 ### 2. What browsers does it support?
 
-Currently `db.js` is designed to work with the latest version of the IndexedDB spec (May 2012) and this means that it should work in browsers that have implemented that (Firefox 13+ and Chrome 20+). There is some level of backwards compatibility that means IE10 (Windows 8 Consumer Preview) is supported and *some* support for older WebKit implementations (which rely on the `setVersion` implementation).
+Currently `db.js` is designed to work with the latest version of the IndexedDB spec (May 2012) and this means that it should work in browsers that have implemented that (Firefox 13+ Chrome 20+, IE10). There is some level of backwards compatibility that means IE10 (Windows 8 Consumer Preview) is supported and *some* support for older WebKit implementations (which rely on the `setVersion` implementation).
 
 If you find it **not** working in a browser which has IndexedDB support raise an issue.
 
