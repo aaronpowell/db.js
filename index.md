@@ -13,7 +13,7 @@ Usage
 Add a reference to db.js in your application before you want to use IndexedDB:
 
 <pre>
-  <code class="language-html">
+  <code class="language-markup">
     &lt;script src='/scripts/db.js'&gt;&lt;/script&gt;
   </code>
 </pre>
@@ -23,7 +23,7 @@ Alternatively, db.js includes an optional `define` call, and can be loaded as mo
 Once you have the script included you can then open connections to each different database within your application:
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   var server;
   db.open( {
       server: 'my-app',
@@ -53,7 +53,7 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 ## Adding items
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.people.add( {
       firstName: 'Aaron',
       lastName: 'Powell',
@@ -67,7 +67,7 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 ## Removing
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.people.remove( 1 ).done( function ( key ) {
       // item removed
   } );
@@ -79,7 +79,7 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 ### Getting a single object by ID
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.people.query( 'firstName' , 'Aaron' )
         .execute()
         .done( function ( results ) {
@@ -91,7 +91,7 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 ### Querying all objects, with optional filtering
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.people.query()
         .filter( 'firstName', 'Aaron' )
         .execute()
@@ -106,7 +106,7 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 All ranges supported by IDBKeyRange can be used.
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.people.query( 'indexName' )
         .only( 'firstName', 'Aaron' )
         .execute()
@@ -126,7 +126,7 @@ All ranges supported by IDBKeyRange can be used.
 ## Closing connection
 
 <pre>
-  <code class="language-js">
+  <code class="language-javascript">
   server.close();
   </code>
 </pre>
