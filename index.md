@@ -52,6 +52,8 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 
 ## Adding items
 
+<pre>
+  <code class="language-js">
   server.people.add( {
       firstName: 'Aaron',
       lastName: 'Powell',
@@ -59,51 +61,75 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
   } ).done( function ( item ) {
       // item stored
   } );
+  </code>
+</pre>
 
 ## Removing
 
+<pre>
+  <code class="language-js">
   server.people.remove( 1 ).done( function ( key ) {
       // item removed
   } );
+  </code>
+</pre>
 
 ## Fetching
 
 ### Getting a single object by ID
 
+<pre>
+  <code class="language-js">
   server.people.query( 'firstName' , 'Aaron' )
         .execute()
         .done( function ( results ) {
             // do something with the results
         } );
+  </code>
+</pre>
 
 ### Querying all objects, with optional filtering
 
+<pre>
+  <code class="language-js">
   server.people.query()
         .filter( 'firstName', 'Aaron' )
         .execute()
         .done( function ( results ) {
             // do something with the results
         } );
+  </code>
+</pre>
 
 ### Querying using indexes
 
 All ranges supported by IDBKeyRange can be used.
 
+<pre>
+  <code class="language-js">
   server.people.query( 'indexName' )
         .only( 'firstName', 'Aaron' )
+        .execute()
         .done( function ( results ) {
             //do something with the results
         } );
 
   server.people.query( 'indexName' )
         .bound( 'answer', 30, 50 )
+        .execute()
         .done( function ( results ) {
             //do something with the results
         } );
+  </code>
+</pre>
 
 ## Closing connection
 
+<pre>
+  <code class="language-js">
   server.close();
+  </code>
+</pre>
 
 # Deferred/ Promise notes
 
