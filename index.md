@@ -14,7 +14,7 @@ Add a reference to db.js in your application before you want to use IndexedDB:
 
 <pre>
   <code class="language-html">
-    <script src='/scripts/db.js'></script>
+    &lt;script src='/scripts/db.js'&gt;&lt;/script&gt;
   </code>
 </pre>
 
