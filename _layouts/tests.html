@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=640" />
+    <link rel="stylesheet" type="text/css" href="https://raw.github.com/aaronpowell/db.js/master/tests/public/jasmine.css">
+    <title>{{ site.appname }} by {{ site.author }} - Unit Tests</title>
+  </head>
+
+  <body>
+    <h1>IndexedDB Testing</h1>
+    <script src="https://raw.github.com/aaronpowell/db.js/master/src/db.js"></script>
+    <script src="https://raw.github.com/aaronpowell/db.js/master/tests/public/jasmine.js"></script>
+    <script src="https://raw.github.com/aaronpowell/db.js/master/tests/public/jasmine-html.js"></script>
+    <script src="https://raw.github.com/aaronpowell/db.js/master/tests/public/jquery-1.8.2.min.js"></script>
+
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/open-db.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/server-add.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/server-update.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/server-remove.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/query.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/indexes.js"></script>
+    <script src="https://github.com/aaronpowell/db.js/raw/master/tests/public/specs/jquery-integration.js"></script>
+
+    <script type="text/javascript">
+        jasmine.getEnv().addReporter(new jasmine.HtmlReporter());
+        jasmine.getEnv().execute();
+    </script>
+  </body>
+</html>
