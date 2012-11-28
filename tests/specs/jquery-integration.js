@@ -105,7 +105,7 @@
             var done;
 
             runs( function () {
-                var ajaxDeferred = $.getJSON( '/foo' );
+                var ajaxDeferred = $.getJSON( 'foo' );
                 var queryDeferred = this
                     .server
                     .test
@@ -116,7 +116,6 @@
                 $.when( ajaxDeferred , queryDeferred )
                     .done(function ( ajaxData , queryData ) {
                         done = true;
-
                         expect( ajaxData ).toBeDefined();
                         expect( ajaxData[ 0 ] ).toEqual({
                             firstName: 'John',
@@ -132,7 +131,7 @@
 
             waitsFor( function () {
                 return done;
-            } , 'deferred to return' , 500 );
+            } , 'deferred to return' , 1000 );
         });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach , window.jQuery );
