@@ -23,6 +23,7 @@
 	},
 	"devDependencies": {
 		"grunt": "~0.3.12",
+		"grunt-contrib" : "*",
 		"grunt-saucelabs": "~1.1.2"
 	},
 	"keywords": ["indexeddb"]
