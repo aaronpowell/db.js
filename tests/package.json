@@ -1,9 +1,0 @@
-{
-    "name": "db.js-tests",
-    "version": "0.1.0",
-    "private": "true",
-    "devDependencies": {
-        "express": ">=3.0.x",
-        "jade": ">0.1.0"
-    }
-}

@@ -17,3 +17,8 @@ npm-debug.log
 *.sublime-workspace
 
 config.js
+
+.DS_Store
+sauce_connect.log*
+.project
+tests/index.html
