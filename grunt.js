@@ -5,7 +5,10 @@ module.exports = function(grunt){
 	if (process.env.TRAVIS_SECURE_ENV_VARS) {
 		saucekey = process.env.saucekey;
 	}
-	saucekey = '02c94a66-b6f2-421e-9370-0cbc249337e2';
+
+	if (!saucekey) {
+		throw 'Unable to load saurcelabs key';
+	}
 	
 	grunt.initConfig({
 		jade: {
