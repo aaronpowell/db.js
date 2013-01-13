@@ -6,6 +6,10 @@ module.exports = function(grunt){
 		saucekey = process.env.saucekey;
 	}
 
+	if (!saucekey) {
+		throw 'Unable to load saurcelabs key';
+	}
+	
 	grunt.initConfig({
 		jade: {
 			release: {
@@ -24,7 +28,7 @@ module.exports = function(grunt){
 		
 		'saucelabs-jasmine': {
 			all: {
-				username: 'parashu',
+				username: 'aaronpowell',
 				key: saucekey,
 				testname: 'db.js',
 				tags: ['master'],
@@ -33,6 +37,13 @@ module.exports = function(grunt){
 					browserName: 'firefox',
 					platform: 'Windows 2012',
 					version: '17'
+				}, {
+					browserName: 'internet explorer',
+					platform: 'Windows 2012',
+					version: '10'
+				}, {
+					browserName: 'chrome',
+					platform: 'Windows 2008'
 				}]
 			}
 		}
