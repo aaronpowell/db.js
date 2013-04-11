@@ -1,6 +1,7 @@
 (function ( window , undefined ) {
     'use strict';
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
+        IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
             readonly: 'readonly',
@@ -8,6 +9,8 @@
         };
         
     var hasOwn = Object.prototype.hasOwnProperty;
+
+    var oldApi = !!IDBDatabase.prototype.setVersion;
 
     if ( !indexedDB ) {
         throw 'IndexedDB required';
@@ -457,7 +460,25 @@
         var upgrade;
 
         var deferred = Deferred();
-        deferred.resolve( s );
+        
+        if ( oldApi && window.parseInt( db.version ) !== version ) {
+            upgrade = db.setVersion( version );
+            
+            upgrade.onsuccess = function ( e ) {
+                createSchema( e , schema , db );
+                                
+                deferred.resolve( s );
+            };
+            upgrade.onerror = function ( e ) {
+                deferred.reject( e );
+            };
+            
+            upgrade.onblocked = function () {
+                deferred.reject( e );
+            };
+        } else {
+            deferred.resolve( s );
+        }
         dbCache[ server ] = db;
 
         return deferred.promise();
