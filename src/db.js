@@ -3,7 +3,13 @@
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBDatabase = window.IDBDatabase || window.webkitIDBDatabase,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
-        transactionModes = {
+        transactionModes = (window.IDBTransaction && window.IDBTransaction.READ_WRITE) ? {
+            readonly: window.IDBTransaction.READ_ONLY,
+            readwrite: window.IDBTransaction.READ_WRITE
+        } : (window.webkitIDBTransaction && window.webkitIDBTransaction.READ_WRITE) ? {
+            readonly: window.webkitIDBTransaction.READ_ONLY,
+            readwrite: window.webkitIDBTransaction.READ_WRITE
+        } : {
             readonly: 'readonly',
             readwrite: 'readwrite'
         };
