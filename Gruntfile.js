@@ -7,7 +7,7 @@ module.exports = function(grunt){
 	}
 
 	if (!saucekey) {
-		throw 'Unable to load saurcelabs key';
+		console.warn('Unable to load saurcelabs key');
 	}
 	
 	grunt.initConfig({
@@ -21,9 +21,13 @@ module.exports = function(grunt){
 		
 		clean: ["tests/index.html"],
 		
-		server: {
-			base: ".",
-			port: 9999
+		connect: {
+			server: {
+				options: {
+					base: ".",
+					port: 9999
+				}
+			}
 		},
 		
 		'saucelabs-jasmine': {
@@ -48,20 +52,20 @@ module.exports = function(grunt){
 			}
 		}
 	});
-	
-	grunt.loadNpmTasks('grunt-saucelabs');
-	grunt.loadNpmTasks('grunt-contrib');
+
+  // load all grunt tasks
+  require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 	
 	grunt.registerTask("forever", function(){
 		this.async();
 	});
 	
-	var testJobs = ["jade", "server"];
+	var testJobs = ["clean", "jade", "connect"];
 	if (saucekey !== null) {
 		testJobs.push("saucelabs-jasmine");
 	}
 	
-	grunt.registerTask('test', testJobs.join(" "));
+	grunt.registerTask('test', testJobs);
 	grunt.registerTask('default', 'test');
 };
 

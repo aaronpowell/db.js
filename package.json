@@ -1,30 +1,37 @@
 {
-	"name": "db.js",
-	"description": "db.js is a wrapper for IndexedDB to make it easier to work against, making it look more like a queryable API.",
-	"version": "0.0.1",
-	"homepage": "http://aaronpowell.github.com/db.js/",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/aaronpowell/db.js"
-	},
-	"bugs": {
-		"url": "https://github.com/aaronpowell/db.js/issues"
-	},
-	"licenses": [{
-		"type": "MIT",
-		"url": "https://github.com/aaronpowell/db.js/blob/master/LICENSE.md"
-	}],
-	"main": "grunt.js",
-	"engines": {
-		"node": ">=0.8"
-	},
-	"scripts": {
-		"test": "grunt test"
-	},
-	"devDependencies": {
-		"grunt": "~0.3.12",
-		"grunt-contrib" : "*",
-		"grunt-saucelabs": "~1.1.2"
-	},
-	"keywords": ["indexeddb"]
+  "name": "db.js",
+  "description": "db.js is a wrapper for IndexedDB to make it easier to work against, making it look more like a queryable API.",
+  "version": "0.0.1",
+  "homepage": "http://aaronpowell.github.com/db.js/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aaronpowell/db.js"
+  },
+  "bugs": {
+    "url": "https://github.com/aaronpowell/db.js/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/aaronpowell/db.js/blob/master/LICENSE.md"
+    }
+  ],
+  "main": "grunt.js",
+  "engines": {
+    "node": ">=0.8"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jade": "~0.5.1",
+    "grunt-contrib-clean": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-saucelabs": "~4.0.2",
+    "matchdep": "~0.1.2"
+  },
+  "keywords": [
+    "indexeddb"
+  ]
 }
