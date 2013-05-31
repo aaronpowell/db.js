@@ -129,9 +129,14 @@
             }
 
             var records = [];
-            for (var i = 0; i < arguments.length - 1; i++) {
-                records[i] = arguments[i + 1];
-            }
+            if(arguments[1] instanceof Array) {
+				records = arguments[1];
+			} else {
+				for (var i = 0; i < arguments.length - 1; i++) {
+					records[i] = arguments[i + 1];
+				}
+			}
+            
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
