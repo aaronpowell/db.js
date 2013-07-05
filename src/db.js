@@ -237,6 +237,26 @@
             };
             return deferred.promise();
         };
+		
+		this.clear = function( table ) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
+
+            var transaction = db.transaction( table , transactionModes.readwrite ),
+                store = transaction.objectStore( table ),
+                deferred = Deferred();
+            
+            var clearReq = store.clear();
+            clearReq.onsuccess = function (ev) {
+                deferred.resolve( that );
+            };
+            clearReq.onerror = function(ev){
+                deferred.reject( ev );
+            };
+            
+            return deferred.promise();
+        };
         
         this.close = function ( ) {
             if ( closed ) {
