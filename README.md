@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/aaronpowell/db.js.png?branch=master)](https://travis-ci.org/aaronpowell/db.js)[![Selenium Test Status](https://saucelabs.com/buildstatus/aaronpowell)](https://saucelabs.com/u/aaronpowell)
-
 db.js
 =====
 
@@ -40,7 +38,7 @@ A connection is intended to be persisted and you can perform multiple operations
 
 Note that the methods below can be called either as `server.people.xxx( arg1, arg2, ... )` or `server.xxx( 'people', arg1, arg2, ... )`.
 
-## Adding items
+## Adding single item
 
 	server.people.add( {
 	    firstName: 'Aaron',
@@ -50,12 +48,30 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 	    // item stored
 	} );
 
+## Adding multiple items
+	server.people.add( [{
+	    firstName: 'Aaron',
+	    lastName: 'Powell',
+	    answer: 42
+	}, {
+	    firstName: 'Foo',
+	    lastName: 'Bar',
+	    answer: 22
+	}]).done( function ( items ) {
+	    // item stored
+	} );
+	
 ## Removing
 
 	server.people.remove( 1 ).done( function ( key ) {
 	    // item removed
 	} );
 
+## Cleaning object store
+	server.people.clear().done( function () {
+	    // store clear
+	} );
+	
 ## Fetching
 
 ### Getting a single object by ID

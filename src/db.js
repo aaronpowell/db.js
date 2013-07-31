@@ -129,9 +129,14 @@
             }
 
             var records = [];
-            for (var i = 0; i < arguments.length - 1; i++) {
-                records[i] = arguments[i + 1];
-            }
+            if(arguments[1] instanceof Array) {
+				records = arguments[1];
+			} else {
+				for (var i = 0; i < arguments.length - 1; i++) {
+					records[i] = arguments[i + 1];
+				}
+			}
+            
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
@@ -230,6 +235,26 @@
             req.onerror = function ( e ) {
                 deferred.reject( e );
             };
+            return deferred.promise();
+        };
+		
+		this.clear = function( table ) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
+
+            var transaction = db.transaction( table , transactionModes.readwrite ),
+                store = transaction.objectStore( table ),
+                deferred = Deferred();
+            
+            var clearReq = store.clear();
+            clearReq.onsuccess = function (ev) {
+                deferred.resolve( that );
+            };
+            clearReq.onerror = function(ev){
+                deferred.reject( ev );
+            };
+            
             return deferred.promise();
         };
         
@@ -436,18 +461,26 @@
             schema = schema();
         }
         
-        for ( var tableName in schema ) {
-            var table = schema[ tableName ];
-            if ( !hasOwn.call( schema , tableName ) ) {
-                continue;
-            }
+        for ( var version in schema ) {
+            if(e.oldVersion < version) {
+                var versionSchema = schema[version];
+                
+                for (var tableName in versionSchema) {
+                    var table = versionSchema[ tableName ];
+                    
+                    if (!hasOwn.call(versionSchema, tableName)) {
+                        continue;
+                    }
 
-            var store = db.createObjectStore( tableName , table.key );
+                    var store = db.createObjectStore(tableName, table.key);
 
-            for ( var indexKey in table.indexes ) {
-                var index = table.indexes[ indexKey ];
-                store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
+                    for (var indexKey in table.indexes) {
+                        var index = table.indexes[ indexKey ];
+                        store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : {unique: false});
+                    }
+                }
             }
+        }
         }
     };
     
