@@ -8,6 +8,8 @@ module.exports = function(grunt){
 
 	if (!saucekey) {
 		console.warn('Unable to load saurcelabs key');
+	} else {
+		console.log('we have a key', saucekey);
 	}
 	
 	grunt.initConfig({
