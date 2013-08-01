@@ -100,12 +100,12 @@
 
             var done = false;
             runs( function () {
-                spec.server.remove( 'test' , item.id );
+                spec.server.remove( 'test' , item.id ).done(function () {
+                    spec.server.get( 'test' , item.id ).done( function ( x ) {
+                        expect( x ).toEqual( undefined );
 
-                spec.server.get( 'test' , item.id ).done( function ( x ) {
-                    expect( x ).toEqual( undefined );
-
-                    done = true;
+                        done = true;
+                    });
                 });
             });
 

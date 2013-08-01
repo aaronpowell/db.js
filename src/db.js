@@ -224,10 +224,10 @@
                 deferred = Deferred();
             
             var req = store.delete( key );
-            req.onsuccess = function ( ) {
+            transaction.oncomplete = function ( ) {
                 deferred.resolve( key );
             };
-            req.onerror = function ( e ) {
+            transaction.onerror = function ( e ) {
                 deferred.reject( e );
             };
             return deferred.promise();
@@ -254,7 +254,7 @@
             req.onsuccess = function ( e ) {
                 deferred.resolve( e.target.result );
             };
-            req.onerror = function ( e ) {
+            transaction.onerror = function ( e ) {
                 deferred.reject( e );
             };
             return deferred.promise();
