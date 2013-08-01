@@ -32,23 +32,25 @@ module.exports = function(grunt){
 		
 		'saucelabs-jasmine': {
 			all: {
-				username: 'aaronpowell',
-				key: saucekey,
-				testname: 'db.js',
-				tags: ['master'],
-				urls: ['http://127.0.0.1:9999/tests/index.html'],
-				browsers: [{
-					browserName: 'firefox',
-					platform: 'Windows 2012',
-					version: '17'
-				}, {
-					browserName: 'internet explorer',
-					platform: 'Windows 2012',
-					version: '10'
-				}, {
-					browserName: 'chrome',
-					platform: 'Windows 2008'
-				}]
+				options: {
+					username: 'aaronpowell',
+					key: saucekey,
+					testname: 'db.js',
+					tags: ['master'],
+					urls: ['http://127.0.0.1:9999/tests/index.html'],
+					browsers: [/*{
+						browserName: 'firefox',
+						platform: 'Windows 2012',
+						version: '17'
+					}, {
+						browserName: 'internet explorer',
+						platform: 'Windows 2012',
+						version: '10'
+					}, */{
+						browserName: 'chrome',
+						platform: 'Windows 2008'
+					}]
+				}
 			}
 		}
 	});
