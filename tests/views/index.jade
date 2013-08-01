@@ -10,4 +10,5 @@ append scripts
     script(src='specs/jquery-integration.js')
     script
         jasmine.getEnv().addReporter(new jasmine.HtmlReporter());
+        jasmine.getEnv().addReporter(new jasmine.JSReporter());
         jasmine.getEnv().execute();
