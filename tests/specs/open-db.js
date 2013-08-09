@@ -156,5 +156,43 @@
                 return done;
             } , 'timed out on expectations' , 1000 );
         });
+
+        it( 'should skip creating existing object stores when migrating schema' , function () {
+            var migrated = undefined;
+
+            runs( function () {
+                db.open( {
+                    server: dbName,
+                    version: 1,
+                    schema: { 
+                        test: {}
+                    }
+                }).done(function ( s ) {
+                    s.close();
+
+                    db.open( {
+                        server: dbName,
+                        version: 2,
+                        schema: { 
+                            test: {},
+                            extra: {}
+                        }
+                    }).done(function ( s ) {
+                        s.close();
+                        migrated = true;
+                    }).fail(function () {
+                        migrated = false;
+                    });
+                });
+            });
+
+            waitsFor( function () {
+                return migrated !== undefined;
+            } , 'timed out on expectations' , 1000 );
+
+            runs( function () {
+              expect(migrated).toBe(true, 'schema migration failed');
+            })
+        });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
