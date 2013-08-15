@@ -438,7 +438,7 @@
         
         for ( var tableName in schema ) {
             var table = schema[ tableName ];
-            if ( !hasOwn.call( schema , tableName ) ) {
+            if ( !hasOwn.call( schema , tableName ) || db.objectStoreNames.contains( tableName ) ) {
                 continue;
             }
 
