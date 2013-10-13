@@ -438,11 +438,12 @@
         
         for ( var tableName in schema ) {
             var table = schema[ tableName ];
-            if ( !hasOwn.call( schema , tableName ) || db.objectStoreNames.contains( tableName ) ) {
-                continue;
+            var store;
+            if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
+                store = e.currentTarget.transaction.objectStore(tableName);
+            } else {
+                store = db.createObjectStore(tableName, table.key);
             }
-
-            var store = db.createObjectStore( tableName , table.key );
 
             for ( var indexKey in table.indexes ) {
                 var index = table.indexes[ indexKey ];
