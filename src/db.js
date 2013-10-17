@@ -287,8 +287,10 @@
 
     var IndexQuery = function ( table , db , indexName ) {
         var that = this;
+        var modifyObj = false;
+
         var runQuery = function ( type, args , cursorType , direction ) {
-            var transaction = db.transaction( table ),
+            var transaction = db.transaction( table, modifyObj ? transactionModes.readwrite : transactionModes.readonly ),
                 store = transaction.objectStore( table ),
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
@@ -300,13 +302,35 @@
                 indexArgs.push( direction || 'next' );
             };
 
+            // create a function that will set in the modifyObj properties into
+            // the passed record.
+            var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+            var modifyRecord = function(record) {
+                for(var i = 0; i < modifyKeys.length; i++) {
+                    var key = modifyKeys[i];
+                    var val = modifyObj[key];
+                    if(val instanceof Function) val = val(record);
+                    console.log('new val: ', val);
+                    record[key] = val;
+                }
+                return record;
+            };
+
             index[cursorType].apply( index , indexArgs ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
 
                 if ( typeof cursor === typeof 0 ) {
                     results = cursor;
                 } else if ( cursor ) {
-                    results.push( 'value' in cursor ? cursor.value : cursor.key );
+                    var val = 'value' in cursor ? cursor.value : cursor.key;
+                    results.push(val);
+
+                    // if we're doing a modify, run it now
+                    if(modifyObj)
+                    {
+                        val = modifyRecord(val);
+                        cursor.update(val);
+                    }
                     cursor.continue();
                 }
             };
@@ -381,7 +405,8 @@
                     execute: execute,
                     filter: filter,
                     desc: desc,
-                    distinct: distinct
+                    distinct: distinct,
+                    modify: modify
                 };
             };
             var desc = function () {
@@ -391,7 +416,8 @@
                     keys: keys,
                     execute: execute,
                     filter: filter,
-                    distinct: distinct
+                    distinct: distinct,
+                    modify: modify
                 };
             };
             var distinct = function () {
@@ -401,7 +427,14 @@
                     count: count,
                     execute: execute,
                     filter: filter,
-                    desc: desc
+                    desc: desc,
+                    modify: modify
+                };
+            };
+            var modify = function(update) {
+                modifyObj = update;
+                return {
+                    execute: execute
                 };
             };
 
@@ -411,7 +444,8 @@
                 keys: keys,
                 filter: filter,
                 desc: desc,
-                distinct: distinct
+                distinct: distinct,
+                modify: modify
             };
         };
         
