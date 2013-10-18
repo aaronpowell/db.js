@@ -696,6 +696,87 @@
                 } , 1000 , 'timeout in distinct query' );
             });
         });
+
+        describe( 'atomic updates' , function () {
+			it( 'should modify only data returned by query' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+					spec.server.test
+                        .query( 'age' )
+                        .lowerBound(30)
+                        .modify({aboveThirty: true})
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual(2);
+                            for(var i = 0; i < data.length; i++)
+                            {
+                                var result = data[i];
+                                expect(result.aboveThirty).toEqual(true);
+                            }
+                            expect( data[ 0 ].id ).toEqual( spec.item2.id );
+                            expect( data[ 1 ].id ).toEqual( spec.item3.id );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in atomic modify query' );
+			});
+
+			it( 'should modify data using a function of the original data' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+					spec.server.test
+                        .query()
+                        .all()
+                        .modify({nextAge: function( item ) { return item.age + 1; }})
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual(3);
+                            for(var i = 0; i < data.length; i++)
+                            {
+                                var result = data[i];
+                                expect(result.nextAge).toEqual(result.age + 1);
+                            }
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in atomic modify query' );
+			});
+
+            it( 'should only allow `modify` from a specific query type' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    expect(spec.server.test.get('id').modify).toBeUndefined();
+                    expect(spec.server.test.query().modify).toBeUndefined();
+                    expect(spec.server.test.query().all().modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query().filter({my:'filter'}).modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query('age').only(30).modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query('age').bound(1, 3).modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query('age').lowerBound(1).modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query('age').upperBound(3).modify instanceof Function).toEqual(true);
+                    expect(spec.server.test.query('age').upperBound(3).desc().modify instanceof Function).toEqual(true);
+                    done = true;
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in atomic modify query' );
+            });
+        });
     });
 
     describe( 'index.multiEntry' , function () {
