@@ -698,13 +698,13 @@
         });
 
         describe( 'atomic updates' , function () {
-			it( 'should modify only data returned by query' , function () {
+            it( 'should modify only data returned by query' , function () {
                 var done;
 
                 runs(function () {
                     var spec = this;
 
-					spec.server.test
+                    spec.server.test
                         .query( 'age' )
                         .lowerBound(30)
                         .modify({aboveThirty: true})
@@ -725,15 +725,15 @@
                 waitsFor(function () {
                     return done;
                 } , 1000 , 'timeout in atomic modify query' );
-			});
+            });
 
-			it( 'should modify data using a function of the original data' , function () {
+            it( 'should modify data using a function of the original data' , function () {
                 var done;
 
                 runs(function () {
                     var spec = this;
 
-					spec.server.test
+                    spec.server.test
                         .query()
                         .all()
                         .modify({nextAge: function( item ) { return item.age + 1; }})
@@ -752,7 +752,7 @@
                 waitsFor(function () {
                     return done;
                 } , 1000 , 'timeout in atomic modify query' );
-			});
+            });
 
             it( 'should only allow `modify` from a specific query type' , function () {
                 var done;
