@@ -310,7 +310,6 @@
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
                     if(val instanceof Function) val = val(record);
-                    console.log('new val: ', val);
                     record[key] = val;
                 }
                 return record;
