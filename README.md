@@ -91,6 +91,49 @@ All ranges supported by IDBKeyRange can be used.
 	          //do something with the results
 	      } );
 
+### Atomic updates
+
+Any query that returns a range of results can also be set to modify the returned
+records atomically. This is done by adding `.modify()` at the end of the query
+(right before `.execute()`).
+
+`modify` only runs updates on objects matched by the query, and still returns
+the same results to the `done()` function (however, the results will have the
+modifications applied to them).
+
+Examples:
+
+```javascript
+// grab all users modified in the last 10 seconds,
+server.users.query('last_mod')
+    .lowerBound(new Date().getTime() - 10000)
+    .modify({last_mod: new Date.getTime()})
+    .execute()
+    .done(function(results) {
+        // now we have a list of recently modified users
+    });
+
+// grab all changed records and atomically set them as unchanged
+server.users.query('changed')
+    .only(true)
+    .modify({changed: false})
+    .execute()
+    .done(...)
+
+// use a function to update the results. the function is passed the original
+// (unmodified) record, which allows us to update the data based on the record
+// itself.
+server.profiles.query('name')
+    .lowerBound('marcy')
+    .modify({views: function(profile) { return profile.views + 1; }})
+    .execute()
+    .done(...)
+
+```
+
+`modify` can be used after: `all`, `filter`, `desc`, `distinct`, `only`,
+`bound`, `upperBound`, or `lowerBound`.
+
 ## Closing connection
 
 	server.close();
