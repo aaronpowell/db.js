@@ -289,14 +289,17 @@
         var that = this;
         var modifyObj = false;
 
-        var runQuery = function ( type, args , cursorType , direction ) {
+        var runQuery = function ( type, args , cursorType , direction, limitRange, filters ) {
             var transaction = db.transaction( table, modifyObj ? transactionModes.readwrite : transactionModes.readonly ),
                 store = transaction.objectStore( table ),
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
                 deferred = Deferred(),
-                indexArgs = [ keyRange ];
+                indexArgs = [ keyRange ],
+                limitRange = limitRange ? limitRange : null,
+                filters = filters ? filters : [],
+                counter = 0;
 
             if ( cursorType !== 'count' ) {
                 indexArgs.push( direction || 'next' );
@@ -317,18 +320,38 @@
 
             index[cursorType].apply( index , indexArgs ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
-
                 if ( typeof cursor === typeof 0 ) {
                     results = cursor;
                 } else if ( cursor ) {
-                    var val = 'value' in cursor ? cursor.value : cursor.key;
-                    results.push(val);
+                    var skip = false;
+                    var match_filter = true;
+                    var result = 'value' in cursor ? cursor.value : cursor.key;
+                    filters.forEach( function ( filter ) {
+                        if ( !filter || !filter.length ) {
+                            //Invalid filter do nothing
+                        } else if ( filter.length === 2 ) {
+                            match_filter = (result[filter[0]] === filter[1])
+                        } else {
+                            match_filter = filter[0].apply(undefined,[result]);
+                        }
+                    });
 
-                    // if we're doing a modify, run it now
-                    if(modifyObj)
-                    {
-                        val = modifyRecord(val);
-                        cursor.update(val);
+                    if ( limitRange !== null && match_filter) {
+                        if (counter < limitRange[0] || counter >= limitRange[1] ) {
+                            skip = true
+                        }
+                        if (counter < limitRange[1]) {
+                            counter++;
+                        }
+                    }
+                    if (skip === false && match_filter) {
+                        results.push( result );
+                        // if we're doing a modify, run it now
+	                    if(modifyObj)
+	                    {
+                            result = modifyRecord(result);
+	                        cursor.update(result);
+	                    }
                     }
                     cursor.continue();
                 }
@@ -350,33 +373,22 @@
             var direction = 'next',
                 cursorType = 'openCursor',
                 filters = [],
+                limitRange = null,
                 unique = false;
 
             var execute = function () {
-                var deferred = Deferred();
-                
-                runQuery( type , args , cursorType , unique ? direction + 'unique' : direction )
-                    .then( function ( data ) {
-                        if ( data.constructor === Array ) {
-                            filters.forEach( function ( filter ) {
-                                if ( !filter || !filter.length ) {
-                                    return;
-                                }
+                return runQuery( type , args , cursorType , unique ? direction + 'unique' : direction, limitRange, filters );
+            };
 
-                                if ( filter.length === 2 ) {
-                                    data = data.filter( function ( x ) {
-                                        return x[ filter[ 0 ] ] === filter[ 1 ];
-                                    });
-                                } else {
-                                    data = data.filter( filter[ 0 ] );
-                                }
-                            });
-                        }
-                        deferred.resolve( data );
-                    }, deferred.reject , deferred.notify );
-                ;
+            var limit = function () {
+                limitRange = Array.prototype.slice.call( arguments , 0 , 2 )
+                if (limitRange.length == 1) {
+                    limitRange.unshift(0)
+                }
 
-                return deferred.promise();
+                return {
+                    execute: execute
+                };
             };
             var count = function () {
                 direction = null;
@@ -405,7 +417,8 @@
                     filter: filter,
                     desc: desc,
                     distinct: distinct,
-                    modify: modify
+                    modify: modify,
+                    limit: limit
                 };
             };
             var desc = function () {
@@ -444,7 +457,8 @@
                 filter: filter,
                 desc: desc,
                 distinct: distinct,
-                modify: modify
+                modify: modify,
+                limit: limit
             };
         };
         

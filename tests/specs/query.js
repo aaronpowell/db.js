@@ -697,6 +697,55 @@
             });
         });
 
+        describe( 'limit' , function () {
+            it( 'should return first 2 records' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .all()
+                        .limit(0, 2)
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 2 );
+                            expect( data[ 0 ].id ).toEqual( spec.item1.id );
+                            expect( data[ 1 ].id ).toEqual( spec.item3.id );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in limit query' );
+            });
+            it( 'should return 2 records, skipping the first' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .all()
+                        .limit(1, 3)
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 2 );
+                            expect( data[ 0 ].id ).toEqual( spec.item3.id );
+                            expect( data[ 1 ].id ).toEqual( spec.item2.id );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in limit query' );
+            });
+        });
+
         describe( 'atomic updates' , function () {
             it( 'should modify only data returned by query' , function () {
                 var done;
