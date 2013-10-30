@@ -56,6 +56,16 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 	    // item removed
 	} );
 
+### Clearing
+This allows removing all items in a table/collection:
+
+```javascript
+server.people.clear()
+    .done(function() {
+        // all table data is gone.
+    })
+```
+
 ## Fetching
 
 ### Getting a single object by ID
