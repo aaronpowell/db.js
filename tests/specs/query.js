@@ -707,7 +707,7 @@
                     spec.server.test
                         .query( 'firstName' )
                         .all()
-                        .limit(0, 2)
+                        .limit(2)
                         .execute()
                         .done( function ( data ) {
                             expect( data.length ).toEqual( 2 );
@@ -744,6 +744,53 @@
                     return done;
                 } , 1000 , 'timeout in limit query' );
             });
+
+            it( 'should return 1 records, skipping the first' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .all()
+                        .limit(1, 1)
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 1 );
+                            expect( data[ 0 ].id ).toEqual( spec.item3.id );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in limit query' );
+            });
+
+            it( 'should return 1 records, skipping the first two' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'firstName' )
+                        .all()
+                        .limit(1, 1)
+                        .execute()
+                        .done( function ( data ) {
+                            expect( data.length ).toEqual( 1 );
+                            //expect( data[ 0 ].id ).toEqual( spec.item1.id );
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in limit query' );
+            });
+
         });
 
         describe( 'atomic updates' , function () {

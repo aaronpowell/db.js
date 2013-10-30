@@ -341,37 +341,36 @@
                 if ( typeof cursor === typeof 0 ) {
                     results = cursor;
                 } else if ( cursor ) {
-                    var skip = false;
-                    var match_filter = true;
-                    var result = 'value' in cursor ? cursor.value : cursor.key;
-                    filters.forEach( function ( filter ) {
-                        if ( !filter || !filter.length ) {
-                            //Invalid filter do nothing
-                        } else if ( filter.length === 2 ) {
-                            match_filter = (result[filter[0]] === filter[1])
-                        } else {
-                            match_filter = filter[0].apply(undefined,[result]);
-                        }
-                    });
+                	if ( limitRange !== null && limitRange[0] > counter) {
+                    	counter = limitRange[0];
+                    	cursor.advance(limitRange[0]);
+                    } else if ( limitRange !== null && counter >= (limitRange[0] + limitRange[1]) ) {
+                        //out of limit range... skip
+                    } else {
+                        var matchFilter = true;
+                        var result = 'value' in cursor ? cursor.value : cursor.key;
 
-                    if ( limitRange !== null && match_filter) {
-                        if (counter < limitRange[0] || counter >= limitRange[1] ) {
-                            skip = true
-                        }
-                        if (counter < limitRange[1]) {
+                        filters.forEach( function ( filter ) {
+                            if ( !filter || !filter.length ) {
+                                //Invalid filter do nothing
+                            } else if ( filter.length === 2 ) {
+                                matchFilter = (result[filter[0]] === filter[1])
+                            } else {
+                                matchFilter = filter[0].apply(undefined,[result]);
+                            }
+                        });
+
+                        if (matchFilter) {
                             counter++;
+                            results.push( result );
+                            // if we're doing a modify, run it now
+                            if(modifyObj) {
+                                result = modifyRecord(result);
+                                cursor.update(result);
+                            }
                         }
+                        cursor.continue();
                     }
-                    if (skip === false && match_filter) {
-                        results.push( result );
-                        // if we're doing a modify, run it now
-	                    if(modifyObj)
-	                    {
-                            result = modifyRecord(result);
-	                        cursor.update(result);
-	                    }
-                    }
-                    cursor.continue();
                 }
             };
 
