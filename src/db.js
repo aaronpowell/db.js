@@ -554,7 +554,10 @@
             return deferred.promise();
         }
     };
-    if ( typeof define === 'function' && define.amd ) {
+
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+        module.exports = db;
+    } else if ( typeof define === 'function' && define.amd ) {
         define( function() { return db; } );
     } else {
         window.db = db;
