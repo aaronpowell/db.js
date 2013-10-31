@@ -777,11 +777,11 @@
                     spec.server.test
                         .query( 'firstName' )
                         .all()
-                        .limit(1, 1)
+                        .limit(2, 1)
                         .execute()
                         .done( function ( data ) {
                             expect( data.length ).toEqual( 1 );
-                            //expect( data[ 0 ].id ).toEqual( spec.item1.id );
+                            expect( data[ 0 ].id ).toEqual( spec.item2.id );
                             done = true;
                         });
                 });
