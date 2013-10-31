@@ -16,7 +16,7 @@
       "url": "https://github.com/aaronpowell/db.js/blob/master/LICENSE.md"
     }
   ],
-  "main": "grunt.js",
+  "main": "src/db.js",
   "engines": {
     "node": ">=0.8"
   },
