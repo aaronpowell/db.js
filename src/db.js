@@ -13,6 +13,10 @@
         throw 'IndexedDB required';
     }
 
+    var defaultMapper = function (value) {
+        return value;
+    };
+
     var CallbackList = function () {
         var state,
             list = [];
@@ -307,7 +311,7 @@
         var that = this;
         var modifyObj = false;
 
-        var runQuery = function ( type, args , cursorType , direction, limitRange, filters ) {
+        var runQuery = function ( type, args , cursorType , direction, limitRange, filters , mapper ) {
             var transaction = db.transaction( table, modifyObj ? transactionModes.readwrite : transactionModes.readonly ),
                 store = transaction.objectStore( table ),
                 index = indexName ? store.index( indexName ) : store,
@@ -362,7 +366,7 @@
 
                         if (matchFilter) {
                             counter++;
-                            results.push( result );
+                            results.push( mapper(result) );
                             // if we're doing a modify, run it now
                             if(modifyObj) {
                                 result = modifyRecord(result);
@@ -391,10 +395,11 @@
                 cursorType = 'openCursor',
                 filters = [],
                 limitRange = null,
+                mapper = defaultMapper,
                 unique = false;
 
             var execute = function () {
-                return runQuery( type , args , cursorType , unique ? direction + 'unique' : direction, limitRange, filters );
+                return runQuery( type , args , cursorType , unique ? direction + 'unique' : direction, limitRange, filters , mapper );
             };
 
             var limit = function () {
@@ -422,7 +427,8 @@
                     desc: desc,
                     execute: execute,
                     filter: filter,
-                    distinct: distinct
+                    distinct: distinct,
+                    map: map
                 };
             };
             var filter = function ( ) {
@@ -435,7 +441,8 @@
                     desc: desc,
                     distinct: distinct,
                     modify: modify,
-                    limit: limit
+                    limit: limit,
+                    map: map
                 };
             };
             var desc = function () {
@@ -446,7 +453,8 @@
                     execute: execute,
                     filter: filter,
                     distinct: distinct,
-                    modify: modify
+                    modify: modify,
+                    map: map
                 };
             };
             var distinct = function () {
@@ -457,13 +465,29 @@
                     execute: execute,
                     filter: filter,
                     desc: desc,
-                    modify: modify
+                    modify: modify,
+                    map: map
                 };
             };
             var modify = function(update) {
                 modifyObj = update;
                 return {
                     execute: execute
+                };
+            };
+            var map = function (fn) {
+                mapper = fn;
+
+                return {
+                    execute: execute,
+                    count: count,
+                    keys: keys,
+                    filter: filter,
+                    desc: desc,
+                    distinct: distinct,
+                    modify: modify,
+                    limit: limit,
+                    map: map
                 };
             };
 
@@ -475,7 +499,8 @@
                 desc: desc,
                 distinct: distinct,
                 modify: modify,
-                limit: limit
+                limit: limit,
+                map: map
             };
         };
         
@@ -531,7 +556,7 @@
     var dbCache = {};
 
     var db = {
-        version: '0.8.0',
+        version: '0.9.0',
         open: function ( options ) {
             var request;
 

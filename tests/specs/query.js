@@ -793,6 +793,35 @@
 
         });
 
+        describe( 'query mapping' , function () {
+            it( 'should allow you to transform the object being returned' , function () {
+                var done;
+
+                runs(function () {
+                    var spec = this;
+
+                    spec.server.test
+                        .query( 'age' )
+                        .lowerBound(30)
+                        .map(function (value) { 
+                            return {
+                                fullName: value.firstName + ' ' + value.lastName,
+                                raw: value
+                            };
+                        })
+                        .execute()
+                        .done( function ( data ) {
+                            expect(data[0].fullName).toEqual(data[0].raw.firstName + ' ' + data[0].raw.lastName);
+                            done = true;
+                        });
+                });
+
+                waitsFor(function () {
+                    return done;
+                } , 1000 , 'timeout in atomic modify query' );
+            });
+        });
+
         describe( 'atomic updates' , function () {
             it( 'should modify only data returned by query' , function () {
                 var done;
