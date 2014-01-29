@@ -282,6 +282,45 @@
             return deferred.promise();
         };
 
+        this.getAll = function(table) {
+            
+            if (closed) {
+                throw 'Database has been closed';
+            }
+            var transaction = db.transaction( table ),
+            store = transaction.objectStore( table ),
+            deferred = Deferred();
+            if(Object.prototype.hasOwnProperty.call(store,'getAll')){
+                //getAll method exists
+                var getAllRequest = store.getAll();
+                    getAllRequest.onsuccess = function (event) {
+                        deferred.resolve(event.target.result);
+                    };
+                    getAllRequest.onerror = function(event){
+                        deferred.reject(event);
+                    }
+            }
+            else {
+            //getAll method deprecated  
+            var all=[],result = null;
+                var cursorRequest = store.openCursor();
+                cursorRequest.onsuccess = function (event) {
+                    var cursor = event.target.result;
+                    if (cursor) {
+                        all.push(cursor.value);
+                        cursor['continue']();
+                    }
+                    else {
+                      result = all;
+                      deferred.resolve(result);
+                    }
+                };
+                cursorRequest.onError = function(event){
+                    deferred.reject(event);
+                    };
+            }
+            return deferred.promise();
+        };
         this.query = function ( table , index ) {
             if ( closed ) {
                 throw 'Database has been closed';
