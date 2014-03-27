@@ -1,5 +1,13 @@
 (function ( window , undefined ) {
     'use strict';
+
+    // only implement if no native implementation is available
+    if (typeof Array.isArray === 'undefined') {
+        Array.isArray = function(obj) {
+            return Object.toString.call(obj) === '[object Array]';
+        };
+    }
+
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
@@ -133,8 +141,18 @@
             }
 
             var records = [];
+            var counter = 0;
+
             for (var i = 0; i < arguments.length - 1; i++) {
-                records[i] = arguments[i + 1];
+                if (Array.isArray(arguments[i + 1])) {
+                    for (var j = 0; j < (arguments[i + 1]).length; j++) {
+                        records[counter] = (arguments[i + 1])[j];
+                        counter++;
+                    }
+                } else {
+                    records[counter] = arguments[i + 1];
+                    counter++;
+                }
             }
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
