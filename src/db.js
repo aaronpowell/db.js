@@ -535,6 +535,10 @@
             }
 
             for ( var indexKey in table.indexes ) {
+                if (store.indexNames.contains(indexKey)) {
+                    continue;
+                }
+                
                 var index = table.indexes[ indexKey ];
                 store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
             }
