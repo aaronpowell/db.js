@@ -375,6 +375,39 @@
             });
         });
 
+        it( 'should insert multiple items into the object store, using an array' , function () {
+            var items = [
+                {
+                    firstName: 'Aaron',
+                    lastName: 'Powell'
+                },
+                {
+                    firstName: 'Aaron',
+                    lastName: 'Powell'
+                }
+            ];
+            
+            var spec = this;
+            var done;
+            
+            runs( function () {
+                spec.server.add( 'test' , items ).done( function ( records ) {
+                    done = true;
+                });
+            });
+            
+            waitsFor( function () {
+                return done;
+            } , 'timeout waiting for item to be added' , 1000 );
+            
+            runs( function () {
+                expect( items[0].__id__ ).toBeDefined();
+                expect( items[0].__id__ ).toEqual( 1 );
+                expect( items[1].__id__ ).toBeDefined();
+                expect( items[1].__id__ ).toEqual( 2 );
+            });
+        });
+
         it( 'should insert an item with a provided key into the object store' , function () {
             var item1 = {
                 firstName: 'Aaron',

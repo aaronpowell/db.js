@@ -1,13 +1,6 @@
 (function ( window , undefined ) {
     'use strict';
 
-    // only implement if no native implementation is available
-    if (typeof Array.isArray === 'undefined') {
-        Array.isArray = function(obj) {
-            return Object.toString.call(obj) === '[object Array]';
-        };
-    }
-
     var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
