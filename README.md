@@ -156,6 +156,10 @@ As of version `0.7.0` db.js's Promise API is designed to work with jQuery*, allo
 
 *_Note: It's likely that other Promise libraries also integrate with it, jQuery is just the only tested on._
 
+# Contribute Note
+
+`grunt jasmine-sever` to run jasmine server
+
 The MIT License
 
 Copyright (c) 2012 Aaron Powell
