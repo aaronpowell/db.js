@@ -80,7 +80,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -129,7 +129,7 @@
                             },
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     s.close();
 					
                     db.open( {
@@ -147,7 +147,7 @@
 								}
 							}
 						}
-                    }).done(function ( s ) {
+                    }).then(function ( s ) {
 						spec.server = s;
                     });
                 });
@@ -200,7 +200,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     s.close();
                     
                     db.open( {
@@ -218,7 +218,7 @@
                                 }
                             }
                         }
-                    }).done(function ( s ) {
+                    }).then(function ( s ) {
                         spec.server = s;
                     });
                 });

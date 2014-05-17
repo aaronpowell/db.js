@@ -43,7 +43,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -90,7 +90,7 @@
             var done;
             
             runs( function () {
-                spec.server.add( 'test' , item ).done( function ( records ) {
+                spec.server.add( 'test' , item ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -107,7 +107,7 @@
                 spec.server
                     .test
                     .update( item )
-                    .done( function ( records ) {
+                    .then( function ( records ) {
                         done = true;
                     });
             });
@@ -122,7 +122,7 @@
                 spec.server
                     .test
                     .get( item.id )
-                    .done( function ( record ) {
+                    .then( function ( record ) {
                         done = true;
 
                         expect( record ).toBeDefined();
@@ -153,7 +153,7 @@
             var done;
 
             runs( function () {
-                spec.server.add( 'test' , item , item2 ).done( function ( records ) {
+                spec.server.add( 'test' , item , item2 ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -176,7 +176,7 @@
                 spec.server
                     .test
                     .update( item , item2 )
-                    .done( function ( records ) {
+                    .then( function ( records ) {
                         done = true;
                     });
             });
@@ -193,7 +193,7 @@
                     .query()
                     .all()
                     .execute()
-                    .done( function ( records ) {
+                    .then( function ( records ) {
                         done = true;
 
                         expect( records.length ).toBe( 2 );
@@ -259,7 +259,7 @@
                         test: {
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -312,7 +312,7 @@
                         item: item,
                         key: key
                     })
-                .done( function ( records ) {
+                .then( function ( records ) {
                     done = true;
                 });
             });
@@ -335,7 +335,7 @@
                         item: item,
                         key: key
                     } )
-                    .done( function ( records ) {
+                    .then( function ( records ) {
                         done = true;
                     });
             });
@@ -352,7 +352,7 @@
                     .query()
                     .all()
                     .execute()
-                    .done( function ( records ) {
+                    .then( function ( records ) {
                         done = true;
 
                         expect( records.length ).toBe( 1 );

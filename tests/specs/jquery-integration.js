@@ -43,7 +43,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -61,7 +61,7 @@
                         firstName: 'Aaron',
                         lastName: 'Powell'
                     })
-                    .done(function () {
+                    .then(function () {
                         done = true;
                     });
             });
