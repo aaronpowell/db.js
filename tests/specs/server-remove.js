@@ -43,7 +43,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -89,7 +89,7 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , item ).done( function ( records ) {
+                spec.server.add( 'test' , item ).then( function ( records ) {
                     item = records[0];
                 });
             });
@@ -100,8 +100,8 @@
 
             var done = false;
             runs( function () {
-                spec.server.remove( 'test' , item.id ).done(function () {
-                    spec.server.get( 'test' , item.id ).done( function ( x ) {
+                spec.server.remove( 'test' , item.id ).then(function () {
+                    spec.server.get( 'test' , item.id ).then( function ( x ) {
                         expect( x ).toEqual( undefined );
 
                         done = true;
@@ -128,7 +128,7 @@
             var done = false;
 
             runs( function () {
-                spec.server.add( 'test' , item , item2 ).done( function ( records ) {
+                spec.server.add( 'test' , item , item2 ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -139,8 +139,8 @@
 
             var done = false;
             runs( function () {
-                spec.server.clear( 'test' ).done(function () {
-                    spec.server.query( 'test' ).all().execute().done( function ( r ) {
+                spec.server.clear( 'test' ).then(function () {
+                    spec.server.query( 'test' ).all().execute().then( function ( r ) {
                         expect( r.length ).toEqual( 0 );
 
                         done = true;

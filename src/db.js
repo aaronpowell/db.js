@@ -53,77 +53,6 @@
         };
     };
 
-    var Deferred = function ( func ) {
-        var state = 'progress',
-            actions = [
-                [ 'resolve' , 'done' , new CallbackList() , 'resolved' ],
-                [ 'reject' , 'fail' , new CallbackList() , 'rejected' ],
-                [ 'notify' , 'progress' , new CallbackList() ],
-            ],
-            deferred = {},
-            promise = {
-                state: function () {
-                    return state;
-                },
-                then: function ( /* doneHandler , failedHandler , progressHandler */ ) {
-                    var handlers = arguments;
-
-                    return Deferred(function ( newDefer ) {
-                        actions.forEach(function ( action , i ) {
-                            var handler = handlers[ i ];
-
-                            deferred[ action[ 1 ] ]( typeof handler === 'function' ?
-                                function () {
-                                    var returned = handler.apply( this , arguments );
-
-                                    if ( returned && typeof returned.promise === 'function' ) {
-                                        returned.promise()
-                                            .done( newDefer.resolve )
-                                            .fail( newDefer.reject )
-                                            .progress( newDefer.notify );
-                                    }
-                                } : newDefer[ action[ 0 ] ]
-                            );
-                        });
-                    }).promise();
-                },
-                promise: function ( obj ) {
-                    if ( obj ) {
-                        Object.keys( promise )
-                            .forEach(function ( key ) {
-                                obj[ key ] = promise[ key ];
-                            });
-
-                        return obj;
-                    }
-                    return promise;
-                }
-            };
-
-        actions.forEach(function ( action , i ) {
-            var list = action[ 2 ],
-                actionState = action[ 3 ];
-
-            promise[ action[ 1 ] ] = list.add;
-
-            if ( actionState ) {
-                list.add(function () {
-                    state = actionState;
-                });
-            }
-
-            deferred[ action[ 0 ] ] = list.execute;
-        });
-
-        promise.promise( deferred );
-
-        if ( func ) {
-            func.call( deferred , deferred );
-        }
-
-        return deferred;
-    };
-
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
@@ -150,7 +79,7 @@
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
-                deferred = Deferred();
+                deferred = Promise.defer();
             
             records.forEach( function ( record ) {
                 var req;
@@ -172,7 +101,6 @@
                         value: target.result,
                         enumerable: true
                     });
-                    deferred.notify();
                 };
             } );
             
@@ -185,7 +113,7 @@
             transaction.onabort = function ( e ) {
                 deferred.reject( records , e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
 
         this.update = function( table ) {
@@ -201,7 +129,7 @@
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
                 keyPath = store.keyPath,
-                deferred = Deferred();
+                deferred = Promise.defer();
 
             records.forEach( function ( record ) {
                 var req;
@@ -214,7 +142,7 @@
                 }
 
                 req.onsuccess = function ( e ) {
-                    deferred.notify();
+                    // deferred.notify();
                 };
             } );
             
@@ -227,7 +155,7 @@
             transaction.onabort = function ( e ) {
                 deferred.reject( records , e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
         
         this.remove = function ( table , key ) {
@@ -236,7 +164,7 @@
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
-                deferred = Deferred();
+                deferred = Promise.defer();
             
             var req = store.delete( key );
             transaction.oncomplete = function ( ) {
@@ -245,7 +173,7 @@
             transaction.onerror = function ( e ) {
                 deferred.reject( e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
 
         this.clear = function ( table ) {
@@ -254,7 +182,7 @@
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
-                deferred = Deferred();
+                deferred = Promise.defer();
 
             var req = store.clear();
             transaction.oncomplete = function ( ) {
@@ -263,7 +191,7 @@
             transaction.onerror = function ( e ) {
                 deferred.reject( e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
         
         this.close = function ( ) {
@@ -281,7 +209,7 @@
             }
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table ),
-                deferred = Deferred();
+                deferred = Promise.defer();
 
             var req = store.get( id );
             req.onsuccess = function ( e ) {
@@ -290,7 +218,7 @@
             transaction.onerror = function ( e ) {
                 deferred.reject( e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
 
         this.query = function ( table , index ) {
@@ -328,7 +256,7 @@
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
-                deferred = Deferred(),
+                deferred = Promise.defer(),
                 indexArgs = [ keyRange ],
                 limitRange = limitRange ? limitRange : null,
                 filters = filters ? filters : [],
@@ -398,7 +326,7 @@
             transaction.onabort = function ( e ) {
                 deferred.reject( e );
             };
-            return deferred.promise();
+            return deferred.promise;
         };
 
         var Query = function ( type , args ) {
@@ -561,11 +489,11 @@
         var s = new Server( db , server );
         var upgrade;
 
-        var deferred = Deferred();
+        var deferred = Promise.defer();
         deferred.resolve( s );
         dbCache[ server ] = db;
 
-        return deferred.promise();
+        return deferred.promise;
     };
 
     var dbCache = {};
@@ -575,7 +503,7 @@
         open: function ( options ) {
             var request;
 
-            var deferred = Deferred();
+            var deferred = Promise.defer();
 
             if ( dbCache[ options.server ] ) {
                 open( {
@@ -583,17 +511,13 @@
                         result: dbCache[ options.server ]
                     }
                 } , options.server , options.version , options.schema )
-                .done(deferred.resolve)
-                .fail(deferred.reject)
-                .progress(deferred.notify);
+                .then(deferred.resolve, deferred.reject)
             } else {
                 request = indexedDB.open( options.server , options.version );
                             
                 request.onsuccess = function ( e ) {
                     open( e , options.server , options.version , options.schema )
-                        .done(deferred.resolve)
-                        .fail(deferred.reject)
-                        .progress(deferred.notify);
+                        .then(deferred.resolve, deferred.reject)
                 };
             
                 request.onupgradeneeded = function ( e ) {
@@ -604,7 +528,7 @@
                 };
             }
 
-            return deferred.promise();
+            return deferred.promise;
         }
     };
 

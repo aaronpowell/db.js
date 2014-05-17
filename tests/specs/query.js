@@ -48,7 +48,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -74,7 +74,7 @@
                     lastName: 'Jones',
                     age: 40
                 };
-                spec.server.add( 'test' , spec.item1 , spec.item2 , spec.item3 ).done( function () {
+                spec.server.add( 'test' , spec.item1 , spec.item2 , spec.item3 ).then( function () {
                     done = true;
                 });
             });
@@ -120,7 +120,7 @@
                 var spec = this;
                 this.server
                     .get( 'test' , spec.item1.id )
-                    .done( function ( x ) {
+                    .then( function ( x ) {
                         expect( x ).toBeDefined();
                         expect( x.id ).toEqual( spec.item1.id );
                         expect( x.firstName ).toEqual( spec.item1.firstName );
@@ -142,7 +142,7 @@
                 this.server.query( 'test' )
                     .all()
                     .execute()
-                    .done( function ( results ) {
+                    .then( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 3 );
                         expect( results[0].id ).toEqual( spec.item1.id );
@@ -167,7 +167,7 @@
                     .all()
                     .desc()
                     .execute()
-                    .done( function ( results ) {
+                    .then( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 3 );
                         expect( results[0].id ).toEqual( spec.item3.id );
@@ -191,7 +191,7 @@
                     .query( 'test' )
                     .filter('firstName', 'Aaron')
                     .execute()
-                    .done( function ( results ) {
+                    .then( function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 2 );
                         expect( results[0].firstName ).toEqual( spec.item1.firstName );
@@ -216,7 +216,7 @@
                         return x.firstName === 'Aaron' && x.lastName === 'Powell'
                     })
                     .execute()
-                    .done(function ( results ) {
+                    .then(function ( results ) {
                         expect( results ).toBeDefined();
                         expect( results.length ).toEqual( 1 );
                         expect( results[0].firstName ).toEqual( spec.item1.firstName );
@@ -239,7 +239,7 @@
                     spec.server.query( 'test' , 'firstName' )
                         .only( 'Aaron' )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             done = true;
                         });
@@ -257,7 +257,7 @@
                     spec.server.query( 'test' , 'age' )
                         .lowerBound( 30 )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             expect( results[0].age ).toEqual( 30 );
                             expect( results[1].age ).toEqual( 40 );
@@ -277,7 +277,7 @@
                     spec.server.query( 'test' , 'age' )
                         .upperBound( 30, true )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 1 );
                             expect( results[0].age ).toEqual( 20 );
                             done = true;
@@ -296,7 +296,7 @@
                     spec.server.query( 'test' , 'age' )
                         .bound( 20, 40, false, false )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 3 );
                             expect( results[0].age ).toEqual( 20 );
                             expect( results[1].age ).toEqual( 30 );
@@ -317,7 +317,7 @@
                     spec.server.query( 'test' , 'age' )
                         .bound( 20, 40, true , true )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 1 );
                             expect( results[0].age ).toEqual( 30 );
                             done = true;
@@ -336,7 +336,7 @@
                     spec.server.query( 'test' , 'age' )
                         .bound( 20, 40, false, true )
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             expect( results[0].age ).toEqual( 20 );
                             expect( results[1].age ).toEqual( 30 );
@@ -357,7 +357,7 @@
                         .bound( 20, 40, false, true )
                         .desc()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             expect( results[0].age ).toEqual( 30 );
                             expect( results[1].age ).toEqual( 20 );
@@ -380,7 +380,7 @@
                         .only( 'Aaron' )
                         .count()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results ).toEqual( 2 );
                             done = true;
                         });
@@ -399,7 +399,7 @@
                         .bound( 20 , 40 , false , false )
                         .count()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results ).toEqual( 3 );
                             done = true;
                         });
@@ -418,7 +418,7 @@
                         .upperBound( 30 , true )
                         .count()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results ).toEqual( 1 );
                             done = true;
                         });
@@ -437,7 +437,7 @@
                         .lowerBound( 30 )
                         .count()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results ).toEqual( 2 );
                             done = true;
                         });
@@ -458,7 +458,7 @@
                         .only( 'Aaron' )
                         .keys()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             expect( results[0] ).toEqual( 'Aaron' );
                             expect( results[1] ).toEqual( 'Aaron' );
@@ -479,7 +479,7 @@
                         .bound( 20 , 40 , false , false )
                         .keys()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 3 );
                             expect( results[0] ).toEqual( 20 );
                             expect( results[1] ).toEqual( 30 );
@@ -501,7 +501,7 @@
                         .upperBound( 30 , true )
                         .keys()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 1 );
                             expect( results[0] ).toEqual( 20 );
                             done = true;
@@ -521,7 +521,7 @@
                         .lowerBound( 30 )
                         .keys()
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             expect( results[0] ).toEqual( 30 );
                             expect( results[1] ).toEqual( 40 );
@@ -546,7 +546,7 @@
                             return person.age < 40;
                         })
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 1 );
                             done = true;
                         });
@@ -566,7 +566,7 @@
                             return person.age < 40;
                         })
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 2 );
                             done = true;
                         });
@@ -586,7 +586,7 @@
                             return person.age < 40 && person.firstName === 'Aaron';
                         })
                         .execute()
-                        .done( function ( results ) {
+                        .then( function ( results ) {
                             expect( results.length ).toEqual( 1 );
                             done = true;
                         });
@@ -610,7 +610,7 @@
                         .only( 'Aaron' )
                         .distinct()
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 1 );
 
                             done = true;
@@ -633,7 +633,7 @@
                         .only( 'Aaron' )
                         .distinct()
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data[ 0 ].firstName ).toEqual( spec.item1.firstName );
 
                             done = true;
@@ -656,7 +656,7 @@
                         .all()
                         .distinct()
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 2 );
                             expect( data[ 0 ].firstName ).toEqual( spec.item1.firstName );
                             expect( data[ 0 ].lastName ).toEqual( spec.item1.lastName );
@@ -683,7 +683,7 @@
                         .distinct()
                         .desc()
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 2 );
                             expect( data[ 0 ].id ).toEqual( spec.item2.id );
                             expect( data[ 1 ].id ).toEqual( spec.item1.id );
@@ -709,7 +709,7 @@
                         .all()
                         .limit(2)
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 2 );
                             expect( data[ 0 ].id ).toEqual( spec.item1.id );
                             expect( data[ 1 ].id ).toEqual( spec.item3.id );
@@ -732,7 +732,7 @@
                         .all()
                         .limit(1, 3)
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 2 );
                             expect( data[ 0 ].id ).toEqual( spec.item3.id );
                             expect( data[ 1 ].id ).toEqual( spec.item2.id );
@@ -756,7 +756,7 @@
                         .all()
                         .limit(1, 1)
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 1 );
                             expect( data[ 0 ].id ).toEqual( spec.item3.id );
                             done = true;
@@ -779,7 +779,7 @@
                         .all()
                         .limit(2, 1)
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual( 1 );
                             expect( data[ 0 ].id ).toEqual( spec.item2.id );
                             done = true;
@@ -810,7 +810,7 @@
                             };
                         })
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect(data[0].fullName).toEqual(data[0].raw.firstName + ' ' + data[0].raw.lastName);
                             done = true;
                         });
@@ -834,7 +834,7 @@
                         .lowerBound(30)
                         .modify({aboveThirty: true})
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual(2);
                             for(var i = 0; i < data.length; i++)
                             {
@@ -863,7 +863,7 @@
                         .all()
                         .modify({nextAge: function( item ) { return item.age + 1; }})
                         .execute()
-                        .done( function ( data ) {
+                        .then( function ( data ) {
                             expect( data.length ).toEqual(3);
                             for(var i = 0; i < data.length; i++)
                             {
@@ -954,7 +954,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -986,7 +986,7 @@
                     age: 40,
                     tags: ['one', 'two', 'three', 'four']
                 };
-                spec.server.add( 'test' , item1 , item2 , item3 ).done( function () {
+                spec.server.add( 'test' , item1 , item2 , item3 ).then( function () {
                     done = true;
                 });
             });
@@ -1035,7 +1035,7 @@
                     .query( 'tags' )
                     .only( 'one' )
                     .execute()
-                    .done(function ( data ) {
+                    .then(function ( data ) {
                         done = true;
                         expect( data.length ).toEqual( 3 );
                         expect( data[0].firstName ).toEqual( 'Aaron' );
@@ -1057,7 +1057,7 @@
                     .query( 'tags' )
                     .all()
                     .execute()
-                    .done(function ( data ) {
+                    .then(function ( data ) {
                         done = true;
                         expect( data.length ).toEqual( 10 );
                     });
