@@ -34,7 +34,7 @@ Once you have the script included you can then open connections to each differen
 	    server = s
 	} );
 
-A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the `/tests/public/specs` folder for more examples.
+A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the `/tests/specs` folder for more examples.
 
 ## General
 
