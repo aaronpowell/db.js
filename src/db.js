@@ -369,9 +369,9 @@
                             if ( !filter || !filter.length ) {
                                 //Invalid filter do nothing
                             } else if ( filter.length === 2 ) {
-                                matchFilter = (result[filter[0]] === filter[1])
+                                matchFilter = matchFilter && (result[filter[0]] === filter[1])
                             } else {
-                                matchFilter = filter[0].apply(undefined,[result]);
+                                matchFilter = matchFilter && filter[0].apply(undefined,[result]);
                             }
                         });
 
