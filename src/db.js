@@ -605,6 +605,22 @@
             }
 
             return deferred.promise();
+        },
+        delete: function ( dbName ) {
+            var deferred = Deferred();
+            var request = indexedDB.deleteDatabase( dbName );
+
+            request.onsuccess = function () {
+                deferred.resolve();
+            };
+            request.onerror = function ( e ) {
+                deferred.reject( e );
+            };
+            request.onblocked = function ( e ) {
+                deferred.reject( e );
+            };
+
+            return deferred.promise();
         }
     };
 
