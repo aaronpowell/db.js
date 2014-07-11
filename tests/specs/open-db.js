@@ -61,7 +61,7 @@
                 db.open( {
                     server: dbName ,
                     version: 1
-                }).done( function ( s ) {
+                }).then( function ( s ) {
                     spec.server = s;
                 });
             });
@@ -91,7 +91,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -130,7 +130,7 @@
                         test: {
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -167,7 +167,7 @@
                     schema: { 
                         test: {}
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     s.close();
 
                     db.open( {
@@ -177,10 +177,10 @@
                             test: {},
                             extra: {}
                         }
-                    }).done(function ( s ) {
+                    }).then(function ( s ) {
                         s.close();
                         migrated = true;
-                    }).fail(function () {
+                    },function () {
                         migrated = false;
                     });
                 });

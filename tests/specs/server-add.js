@@ -43,7 +43,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -89,7 +89,7 @@
             var spec = this;
             
             runs( function () {
-                spec.server.add( 'test' , item ).done( function ( records ) {
+                spec.server.add( 'test' , item ).then( function ( records ) {
                     item = records[0];
                 });
             });
@@ -175,7 +175,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -223,7 +223,7 @@
             var done;
             
             runs( function () {
-                spec.server.add( 'test' , item ).done( function ( records ) {
+                spec.server.add( 'test' , item ).then( function ( records ) {
                     done = true;
                     item = records[0];
                 });
@@ -281,7 +281,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -328,7 +328,7 @@
             var done;
             
             runs( function () {
-                spec.server.add( 'test' , item ).done( function ( records ) {
+                spec.server.add( 'test' , item ).then( function ( records ) {
                     done = true;
                     item = records[0];
                 });
@@ -358,7 +358,7 @@
             var done;
             
             runs( function () {
-                spec.server.add( 'test' , item1 , item2 ).done( function ( records ) {
+                spec.server.add( 'test' , item1 , item2 ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -391,7 +391,7 @@
             var done;
             
             runs( function () {
-                spec.server.add( 'test' , items ).done( function ( records ) {
+                spec.server.add( 'test' , items ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -421,7 +421,7 @@
                 spec.server.add( 'test' , {
                     item: item1,
                     key: 1.001
-                } ).done( function ( records ) {
+                } ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -449,7 +449,7 @@
                 spec.server.add( 'test' , {
                     item: item1,
                     key: 'key'
-                } ).done( function ( records ) {
+                } ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -484,7 +484,7 @@
                 } , {
                     item: item2,
                     key: 5
-                } ).done( function ( records ) {
+                } ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -522,7 +522,7 @@
                 spec.server.add( 'test' , item1 , {
                     item: item2,
                     key: 5
-                } , item3 ).done( function ( records ) {
+                } , item3 ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -555,7 +555,7 @@
                 spec.server.add( 'test' , {
                     item: item1,
                     key: key
-                } ).done( function ( records ) {
+                } ).then( function ( records ) {
                     done = true;
                 });
             });
@@ -570,9 +570,9 @@
                 spec.server.add( 'test' , {
                     item: item1,
                     key: key
-                } ).done( function ( records ) {
+                } ).then( function ( records ) {
                     //done = true;
-                }).fail( function ( items , e ) {
+                }).catch( function ( items , e ) {
                     done = true;
                     expect( e.target.error.name ).toBe( 'ConstraintError' );
                 });
