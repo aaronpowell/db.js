@@ -27,6 +27,13 @@ module.exports = function(grunt){
 					base: ".",
 					port: 9999
 				}
+			},
+			'server-debug': {
+				options: {
+					base: ".",
+					port: 9999,
+					keepalive: true
+				}
 			}
 		},
 		
@@ -61,12 +68,13 @@ module.exports = function(grunt){
 	grunt.registerTask("forever", function(){
 		this.async();
 	});
+
+	grunt.registerTask('debug', ["clean", "jade", "connect:server-debug"]);
 	
-	var testJobs = ["clean", "jade", "connect"];
+	var testJobs = ["clean", "jade", "connect:server"];
 	if (saucekey !== null) {
 		testJobs.push("saucelabs-jasmine");
 	}
-	
 	grunt.registerTask('test', testJobs);
 	grunt.registerTask('default', 'test');
 };

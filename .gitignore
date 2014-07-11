@@ -22,4 +22,5 @@ config.js
 .DS_Store
 sauce_connect.log*
 .project
+.idea
 tests/index.html

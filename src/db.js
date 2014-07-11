@@ -1,8 +1,10 @@
-(function ( window , undefined ) {
+(function () {
     'use strict';
 
-    var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
-        IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
+    var local = this;
+
+    var indexedDB = local.indexedDB || local.webkitIndexedDB || local.mozIndexedDB || local.oIndexedDB || local.msIndexedDB,
+        IDBKeyRange = local.IDBKeyRange || local.webkitIDBKeyRange,
         transactionModes = {
             readonly: 'readonly',
             readwrite: 'readwrite'
@@ -613,6 +615,6 @@
     } else if ( typeof define === 'function' && define.amd ) {
         define( function() { return db; } );
     } else {
-        window.db = db;
+        local.db = db;
     }
-})( window );
+}).call(this);
