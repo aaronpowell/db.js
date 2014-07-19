@@ -150,15 +150,18 @@ server.profiles.query('name')
 
 # Deferred/ Promise notes
 
-db.js used the Promise spec to handle asynchronous operations. All operations that are asynchronous will return an instance of the internal Promise object that exposes a `then` method which will take up to three callbacks, `success`, `failed` and `progress`. It also exposes useful helpers for these such as `done`, `fail` and `progress`.
+db.js used the es6 Promise spec to handle asynchronous operations.
 
-As of version `0.7.0` db.js's Promise API is designed to work with jQuery*, allowing you to link db.js Promises with other Promises.
+All operations that are asynchronous will return an instance of the es6 Promise object that exposes a `then` method which will take up to two callbacks, `onFulfilled` and `onRejected`.
+Please refer to es6 promise spec for more information.
 
-*_Note: It's likely that other Promise libraries also integrate with it, jQuery is just the only tested on._
+As of version `0.7.0` db.js's Promise API is designed to work with es6 Promise, please polyfil it if you would like to use other promise library.
 
 # Contribute Note
 
+`npm install` to install all the dependency
 `grunt jasmine-sever` to run jasmine server
+`open localhost:9999` to run the jasmine test
 
 The MIT License
 
