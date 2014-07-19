@@ -78,42 +78,43 @@
             }
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Promise.defer();
+                store = transaction.objectStore( table );
             
-            records.forEach( function ( record ) {
-                var req;
-                if ( record.item && record.key ) {
-                    var key = record.key;
-                    record = record.item;
-                    req = store.add( record , key );
-                } else {
-                    req = store.add( record );
-                }
+            return new Promise(function(resolve, reject){
+              records.forEach( function ( record ) {
+                  var req;
+                  if ( record.item && record.key ) {
+                      var key = record.key;
+                      record = record.item;
+                      req = store.add( record , key );
+                  } else {
+                      req = store.add( record );
+                  }
 
-                req.onsuccess = function ( e ) {
-                    var target = e.target;
-                    var keyPath = target.source.keyPath;
-                    if ( keyPath === null ) {
-                        keyPath = '__id__';
-                    }
-                    Object.defineProperty( record , keyPath , {
-                        value: target.result,
-                        enumerable: true
-                    });
-                };
-            } );
-            
-            transaction.oncomplete = function () {
-                deferred.resolve( records , that );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( records , e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( records , e );
-            };
-            return deferred.promise;
+                  req.onsuccess = function ( e ) {
+                      var target = e.target;
+                      var keyPath = target.source.keyPath;
+                      if ( keyPath === null ) {
+                          keyPath = '__id__';
+                      }
+                      Object.defineProperty( record , keyPath , {
+                          value: target.result,
+                          enumerable: true
+                      });
+                  };
+              } );
+              
+              transaction.oncomplete = function () {
+                  resolve( records , that );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( records , e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( records , e );
+              };
+
+            });
         };
 
         this.update = function( table ) {
