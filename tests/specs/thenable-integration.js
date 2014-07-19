@@ -1,7 +1,7 @@
 (function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach , $ ) {
     'use strict';
     
-    describe( 'thenable library deferred integration' , function () {
+    describe( 'thenable library promise integration' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
            
@@ -122,7 +122,7 @@
 
             waitsFor( function () {
                 return done;
-            } , 'deferred to return' , 3000 );
+            } , 'promise to return' , 3000 );
 
             runs(function(){
                 expect( queryData ).toBeDefined();
