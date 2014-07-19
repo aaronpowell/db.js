@@ -504,32 +504,30 @@
         open: function ( options ) {
             var request;
 
-            var deferred = Promise.defer();
-
-            if ( dbCache[ options.server ] ) {
-                open( {
-                    target: {
-                        result: dbCache[ options.server ]
-                    }
-                } , options.server , options.version , options.schema )
-                .then(deferred.resolve, deferred.reject)
-            } else {
-                request = indexedDB.open( options.server , options.version );
-                            
-                request.onsuccess = function ( e ) {
-                    open( e , options.server , options.version , options.schema )
-                        .then(deferred.resolve, deferred.reject)
-                };
-            
-                request.onupgradeneeded = function ( e ) {
-                    createSchema( e , options.schema , e.target.result );
-                };
-                request.onerror = function ( e ) {
-                    deferred.reject( e );
-                };
-            }
-
-            return deferred.promise;
+            return new Promise(function(resolve, reject){
+              if ( dbCache[ options.server ] ) {
+                  open( {
+                      target: {
+                          result: dbCache[ options.server ]
+                      }
+                  } , options.server , options.version , options.schema )
+                  .then(resolve, reject)
+              } else {
+                  request = indexedDB.open( options.server , options.version );
+                              
+                  request.onsuccess = function ( e ) {
+                      open( e , options.server , options.version , options.schema )
+                          .then(resolve, reject)
+                  };
+              
+                  request.onupgradeneeded = function ( e ) {
+                      createSchema( e , options.schema , e.target.result );
+                  };
+                  request.onerror = function ( e ) {
+                      reject( e );
+                  };
+              }
+            });
         }
     };
 
