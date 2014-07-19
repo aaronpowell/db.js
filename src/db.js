@@ -129,34 +129,36 @@
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
-                keyPath = store.keyPath,
-                deferred = Promise.defer();
+                keyPath = store.keyPath;
 
-            records.forEach( function ( record ) {
-                var req;
-                if ( record.item && record.key ) {
-                    var key = record.key;
-                    record = record.item;
-                    req = store.put( record , key );
-                } else {
-                    req = store.put( record );
-                }
+            return new Promise(function(resolve, reject){
+              records.forEach( function ( record ) {
+                  var req;
+                  var count;
+                  if ( record.item && record.key ) {
+                      var key = record.key;
+                      record = record.item;
+                      req = store.put( record , key );
+                  } else {
+                      req = store.put( record );
+                  }
 
-                req.onsuccess = function ( e ) {
-                    // deferred.notify();
-                };
-            } );
+                  req.onsuccess = function ( e ) {
+                      // deferred.notify(); es6 promise can't notify
+                  };
+              } );
+
+              transaction.oncomplete = function () {
+                  resolve( records , that );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( records , e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( records , e );
+              };
+            });
             
-            transaction.oncomplete = function () {
-                deferred.resolve( records , that );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( records , e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( records , e );
-            };
-            return deferred.promise;
         };
         
         this.remove = function ( table , key ) {
