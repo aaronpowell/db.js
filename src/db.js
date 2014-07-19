@@ -166,17 +166,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Promise.defer();
+                store = transaction.objectStore( table );
             
-            var req = store.delete( key );
-            transaction.oncomplete = function ( ) {
-                deferred.resolve( key );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise;
+            return new Promise(function(resolve, reject){
+              var req = store.delete( key );
+              transaction.oncomplete = function ( ) {
+                  resolve( key );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         this.clear = function ( table ) {
@@ -184,17 +184,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Promise.defer();
+                store = transaction.objectStore( table );
 
             var req = store.clear();
-            transaction.oncomplete = function ( ) {
-                deferred.resolve( );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise;
+            return new Promise(function(resolve, reject){
+              transaction.oncomplete = function ( ) {
+                  resolve( );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
         
         this.close = function ( ) {
@@ -211,17 +211,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table ),
-                store = transaction.objectStore( table ),
-                deferred = Promise.defer();
+                store = transaction.objectStore( table );
 
             var req = store.get( id );
-            req.onsuccess = function ( e ) {
-                deferred.resolve( e.target.result );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise;
+            return new Promise(function(resolve, reject){
+              req.onsuccess = function ( e ) {
+                  resolve( e.target.result );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         this.query = function ( table , index ) {
@@ -259,7 +259,6 @@
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
-                deferred = Promise.defer(),
                 indexArgs = [ keyRange ],
                 limitRange = limitRange ? limitRange : null,
                 filters = filters ? filters : [],
@@ -320,16 +319,17 @@
                 }
             };
 
-            transaction.oncomplete = function () {
-                deferred.resolve( results );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise;
+            return new Promise(function(resolve, reject){
+              transaction.oncomplete = function () {
+                  resolve( results );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         var Query = function ( type , args ) {
@@ -492,11 +492,9 @@
         var s = new Server( db , server );
         var upgrade;
 
-        var deferred = Promise.defer();
-        deferred.resolve( s );
         dbCache[ server ] = db;
 
-        return deferred.promise;
+        return Promise.resolve(s)
     };
 
     var dbCache = {};
