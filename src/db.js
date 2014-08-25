@@ -53,77 +53,6 @@
         };
     };
 
-    var Deferred = function ( func ) {
-        var state = 'progress',
-            actions = [
-                [ 'resolve' , 'done' , new CallbackList() , 'resolved' ],
-                [ 'reject' , 'fail' , new CallbackList() , 'rejected' ],
-                [ 'notify' , 'progress' , new CallbackList() ],
-            ],
-            deferred = {},
-            promise = {
-                state: function () {
-                    return state;
-                },
-                then: function ( /* doneHandler , failedHandler , progressHandler */ ) {
-                    var handlers = arguments;
-
-                    return Deferred(function ( newDefer ) {
-                        actions.forEach(function ( action , i ) {
-                            var handler = handlers[ i ];
-
-                            deferred[ action[ 1 ] ]( typeof handler === 'function' ?
-                                function () {
-                                    var returned = handler.apply( this , arguments );
-
-                                    if ( returned && typeof returned.promise === 'function' ) {
-                                        returned.promise()
-                                            .done( newDefer.resolve )
-                                            .fail( newDefer.reject )
-                                            .progress( newDefer.notify );
-                                    }
-                                } : newDefer[ action[ 0 ] ]
-                            );
-                        });
-                    }).promise();
-                },
-                promise: function ( obj ) {
-                    if ( obj ) {
-                        Object.keys( promise )
-                            .forEach(function ( key ) {
-                                obj[ key ] = promise[ key ];
-                            });
-
-                        return obj;
-                    }
-                    return promise;
-                }
-            };
-
-        actions.forEach(function ( action , i ) {
-            var list = action[ 2 ],
-                actionState = action[ 3 ];
-
-            promise[ action[ 1 ] ] = list.add;
-
-            if ( actionState ) {
-                list.add(function () {
-                    state = actionState;
-                });
-            }
-
-            deferred[ action[ 0 ] ] = list.execute;
-        });
-
-        promise.promise( deferred );
-
-        if ( func ) {
-            func.call( deferred , deferred );
-        }
-
-        return deferred;
-    };
-
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
@@ -149,43 +78,43 @@
             }
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Deferred();
+                store = transaction.objectStore( table );
             
-            records.forEach( function ( record ) {
-                var req;
-                if ( record.item && record.key ) {
-                    var key = record.key;
-                    record = record.item;
-                    req = store.add( record , key );
-                } else {
-                    req = store.add( record );
-                }
+            return new Promise(function(resolve, reject){
+              records.forEach( function ( record ) {
+                  var req;
+                  if ( record.item && record.key ) {
+                      var key = record.key;
+                      record = record.item;
+                      req = store.add( record , key );
+                  } else {
+                      req = store.add( record );
+                  }
 
-                req.onsuccess = function ( e ) {
-                    var target = e.target;
-                    var keyPath = target.source.keyPath;
-                    if ( keyPath === null ) {
-                        keyPath = '__id__';
-                    }
-                    Object.defineProperty( record , keyPath , {
-                        value: target.result,
-                        enumerable: true
-                    });
-                    deferred.notify();
-                };
-            } );
-            
-            transaction.oncomplete = function () {
-                deferred.resolve( records , that );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( records , e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( records , e );
-            };
-            return deferred.promise();
+                  req.onsuccess = function ( e ) {
+                      var target = e.target;
+                      var keyPath = target.source.keyPath;
+                      if ( keyPath === null ) {
+                          keyPath = '__id__';
+                      }
+                      Object.defineProperty( record , keyPath , {
+                          value: target.result,
+                          enumerable: true
+                      });
+                  };
+              } );
+              
+              transaction.oncomplete = function () {
+                  resolve( records , that );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( records , e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( records , e );
+              };
+
+            });
         };
 
         this.update = function( table ) {
@@ -200,34 +129,36 @@
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table ),
-                keyPath = store.keyPath,
-                deferred = Deferred();
+                keyPath = store.keyPath;
 
-            records.forEach( function ( record ) {
-                var req;
-                if ( record.item && record.key ) {
-                    var key = record.key;
-                    record = record.item;
-                    req = store.put( record , key );
-                } else {
-                    req = store.put( record );
-                }
+            return new Promise(function(resolve, reject){
+              records.forEach( function ( record ) {
+                  var req;
+                  var count;
+                  if ( record.item && record.key ) {
+                      var key = record.key;
+                      record = record.item;
+                      req = store.put( record , key );
+                  } else {
+                      req = store.put( record );
+                  }
 
-                req.onsuccess = function ( e ) {
-                    deferred.notify();
-                };
-            } );
+                  req.onsuccess = function ( e ) {
+                      // deferred.notify(); es6 promise can't notify
+                  };
+              } );
+
+              transaction.oncomplete = function () {
+                  resolve( records , that );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( records , e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( records , e );
+              };
+            });
             
-            transaction.oncomplete = function () {
-                deferred.resolve( records , that );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( records , e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( records , e );
-            };
-            return deferred.promise();
         };
         
         this.remove = function ( table , key ) {
@@ -235,17 +166,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Deferred();
+                store = transaction.objectStore( table );
             
-            var req = store.delete( key );
-            transaction.oncomplete = function ( ) {
-                deferred.resolve( key );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise();
+            return new Promise(function(resolve, reject){
+              var req = store.delete( key );
+              transaction.oncomplete = function ( ) {
+                  resolve( key );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         this.clear = function ( table ) {
@@ -253,17 +184,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
-                store = transaction.objectStore( table ),
-                deferred = Deferred();
+                store = transaction.objectStore( table );
 
             var req = store.clear();
-            transaction.oncomplete = function ( ) {
-                deferred.resolve( );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise();
+            return new Promise(function(resolve, reject){
+              transaction.oncomplete = function ( ) {
+                  resolve( );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
         
         this.close = function ( ) {
@@ -280,17 +211,17 @@
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table ),
-                store = transaction.objectStore( table ),
-                deferred = Deferred();
+                store = transaction.objectStore( table );
 
             var req = store.get( id );
-            req.onsuccess = function ( e ) {
-                deferred.resolve( e.target.result );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise();
+            return new Promise(function(resolve, reject){
+              req.onsuccess = function ( e ) {
+                  resolve( e.target.result );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         this.query = function ( table , index ) {
@@ -328,7 +259,6 @@
                 index = indexName ? store.index( indexName ) : store,
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
-                deferred = Deferred(),
                 indexArgs = [ keyRange ],
                 limitRange = limitRange ? limitRange : null,
                 filters = filters ? filters : [],
@@ -389,16 +319,17 @@
                 }
             };
 
-            transaction.oncomplete = function () {
-                deferred.resolve( results );
-            };
-            transaction.onerror = function ( e ) {
-                deferred.reject( e );
-            };
-            transaction.onabort = function ( e ) {
-                deferred.reject( e );
-            };
-            return deferred.promise();
+            return new Promise(function(resolve, reject){
+              transaction.oncomplete = function () {
+                  resolve( results );
+              };
+              transaction.onerror = function ( e ) {
+                  reject( e );
+              };
+              transaction.onabort = function ( e ) {
+                  reject( e );
+              };
+            });
         };
 
         var Query = function ( type , args ) {
@@ -561,11 +492,9 @@
         var s = new Server( db , server );
         var upgrade;
 
-        var deferred = Deferred();
-        deferred.resolve( s );
         dbCache[ server ] = db;
 
-        return deferred.promise();
+        return Promise.resolve(s)
     };
 
     var dbCache = {};
@@ -575,36 +504,30 @@
         open: function ( options ) {
             var request;
 
-            var deferred = Deferred();
-
-            if ( dbCache[ options.server ] ) {
-                open( {
-                    target: {
-                        result: dbCache[ options.server ]
-                    }
-                } , options.server , options.version , options.schema )
-                .done(deferred.resolve)
-                .fail(deferred.reject)
-                .progress(deferred.notify);
-            } else {
-                request = indexedDB.open( options.server , options.version );
-                            
-                request.onsuccess = function ( e ) {
-                    open( e , options.server , options.version , options.schema )
-                        .done(deferred.resolve)
-                        .fail(deferred.reject)
-                        .progress(deferred.notify);
-                };
-            
-                request.onupgradeneeded = function ( e ) {
-                    createSchema( e , options.schema , e.target.result );
-                };
-                request.onerror = function ( e ) {
-                    deferred.reject( e );
-                };
-            }
-
-            return deferred.promise();
+            return new Promise(function(resolve, reject){
+              if ( dbCache[ options.server ] ) {
+                  open( {
+                      target: {
+                          result: dbCache[ options.server ]
+                      }
+                  } , options.server , options.version , options.schema )
+                  .then(resolve, reject)
+              } else {
+                  request = indexedDB.open( options.server , options.version );
+                              
+                  request.onsuccess = function ( e ) {
+                      open( e , options.server , options.version , options.schema )
+                          .then(resolve, reject)
+                  };
+              
+                  request.onupgradeneeded = function ( e ) {
+                      createSchema( e , options.schema , e.target.result );
+                  };
+                  request.onerror = function ( e ) {
+                      reject( e );
+                  };
+              }
+            });
         }
     };
 

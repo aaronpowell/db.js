@@ -1,7 +1,7 @@
 (function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach , $ ) {
     'use strict';
     
-    describe( 'jQuery deferred integration' , function () {
+    describe( 'thenable library promise integration' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
            
@@ -43,7 +43,7 @@
                             }
                         }
                     }
-                }).done(function ( s ) {
+                }).then(function ( s ) {
                     spec.server = s;
                 });
             });
@@ -61,7 +61,7 @@
                         firstName: 'Aaron',
                         lastName: 'Powell'
                     })
-                    .done(function () {
+                    .then(function () {
                         done = true;
                     });
             });
@@ -101,37 +101,35 @@
             }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should chain against other jQuery deferred operations' , function () {
+        it( 'should be able to work with other thenable library' , function () {
             var done;
+            var ajaxData;
+            var queryData;
+            var ajaxDeferred = $.getJSON( 'foo' );
+            var queryDeferred = this
+                .server
+                .test
+                .query()
+                .all()
+                .execute();
 
-            runs( function () {
-                var ajaxDeferred = $.getJSON( 'foo' );
-                var queryDeferred = this
-                    .server
-                    .test
-                    .query()
-                    .all()
-                    .execute();
-
-                $.when( ajaxDeferred , queryDeferred )
-                    .done(function ( ajaxData , queryData ) {
-                        done = true;
-                        expect( ajaxData ).toBeDefined();
-                        expect( ajaxData[ 0 ] ).toEqual({
-                            firstName: 'John',
-                            lastName: 'Smith'
-                        });
-
-                        expect( queryData ).toBeDefined();
-                        expect( queryData.length ).toBe( 1 );
-                        expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
-                        expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
-                    })
-            });
+            Promise.all([Promise.resolve(ajaxDeferred), queryDeferred])
+              .then(function (resolvedArray) {
+                  ajaxData = resolvedArray[0]
+                  queryData = resolvedArray[1]
+                  done = true;
+              });
 
             waitsFor( function () {
                 return done;
-            } , 'deferred to return' , 1000 );
+            } , 'promise to return' , 3000 );
+
+            runs(function(){
+                expect( queryData ).toBeDefined();
+                expect( queryData.length ).toBe( 1 );
+                expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
+                expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
+            });
         });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach , window.jQuery );
