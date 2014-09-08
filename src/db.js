@@ -500,7 +500,7 @@
     var dbCache = {};
 
     var db = {
-        version: '0.9.0',
+        version: '0.9.2',
         open: function ( options ) {
             var request;
 

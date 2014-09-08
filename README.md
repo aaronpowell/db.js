@@ -30,7 +30,7 @@ Once you have the script included you can then open connections to each differen
 	            }
 	        }
 	    }
-	} ).done( function ( s ) {
+	} ).then( function ( s ) {
 	    server = s
 	} );
 
@@ -46,13 +46,13 @@ Note that the methods below can be called either as `server.people.xxx( arg1, ar
 	    firstName: 'Aaron',
 	    lastName: 'Powell',
 	    answer: 42
-	} ).done( function ( item ) {
+	} ).then( function ( item ) {
 	    // item stored
 	} );
 
 ## Removing
 
-	server.people.remove( 1 ).done( function ( key ) {
+	server.people.remove( 1 ).then( function ( key ) {
 	    // item removed
 	} );
 
@@ -61,7 +61,7 @@ This allows removing all items in a table/collection:
 
 ```javascript
 server.people.clear()
-    .done(function() {
+    .then(function() {
         // all table data is gone.
     })
 ```
@@ -72,7 +72,7 @@ server.people.clear()
 
 	server.people.query( 'firstName' , 'Aaron' )
 	      .execute()
-	      .done( function ( results ) {
+	      .then( function ( results ) {
 	          // do something with the results
 	      } );
 
@@ -81,7 +81,7 @@ server.people.clear()
 	server.people.query()
 	      .filter( 'firstName', 'Aaron' )
 	      .execute()
-	      .done( function ( results ) {
+	      .then( function ( results ) {
 	          // do something with the results
 	      } );
 
@@ -89,15 +89,15 @@ server.people.clear()
 
 All ranges supported by IDBKeyRange can be used.
 
-	server.people.query( 'indexName' )
-	      .only( 'firstName', 'Aaron' )
-	      .done( function ( results ) {
+	server.people.query( 'firstName' )
+	      .only( 'Aaron' )
+	      .then( function ( results ) {
 	          //do something with the results
 	      } );
 
 	server.people.query( 'indexName' )
 	      .bound( 'answer', 30, 50 )
-	      .done( function ( results ) {
+	      .then( function ( results ) {
 	          //do something with the results
 	      } );
 
@@ -119,7 +119,7 @@ server.users.query('last_mod')
     .lowerBound(new Date().getTime() - 10000)
     .modify({last_mod: new Date.getTime()})
     .execute()
-    .done(function(results) {
+    .then(function(results) {
         // now we have a list of recently modified users
     });
 
@@ -128,7 +128,7 @@ server.users.query('changed')
     .only(true)
     .modify({changed: false})
     .execute()
-    .done(...)
+    .then(...)
 
 // use a function to update the results. the function is passed the original
 // (unmodified) record, which allows us to update the data based on the record
@@ -137,7 +137,7 @@ server.profiles.query('name')
     .lowerBound('marcy')
     .modify({views: function(profile) { return profile.views + 1; }})
     .execute()
-    .done(...)
+    .then(...)
 
 ```
 
@@ -152,8 +152,7 @@ server.profiles.query('name')
 
 db.js used the es6 Promise spec to handle asynchronous operations.
 
-All operations that are asynchronous will return an instance of the es6 Promise object that exposes a `then` method which will take up to two callbacks, `onFulfilled` and `onRejected`.
-Please refer to es6 promise spec for more information.
+All operations that are asynchronous will return an instance of the es6 Promise object that exposes a `then` method which will take up to two callbacks, `onFulfilled` and `onRejected`. Please refer to es6 promise spec for more information.
 
 As of version `0.7.0` db.js's Promise API is designed to work with es6 Promise, please polyfil it if you would like to use other promise library.
 
