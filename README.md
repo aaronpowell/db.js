@@ -158,9 +158,11 @@ As of version `0.7.0` db.js's Promise API is designed to work with es6 Promise, 
 
 # Contribute Note
 
-`npm install` to install all the dependency
-`grunt jasmine-sever` to run jasmine server
-`open localhost:9999` to run the jasmine test
+- `npm install` to install all the dependency
+
+- `grunt jasmine-sever` to run jasmine server
+
+- `open localhost:9999` to run the jasmine test
 
 The MIT License
 
