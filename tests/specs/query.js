@@ -230,6 +230,28 @@
                 return done;
             } , 1000 , 'timed out running expects' );
         });
+        it( 'should query using a filter object' , function () {
+            var done;
+            runs( function () {
+                var spec = this;
+                this.server
+                    .query( 'test' )
+                    .filter( {firstName: 'John', lastName: 'Smith'})
+                    .execute()
+                    .then(function ( results ) {
+                        expect( results ).toBeDefined();
+                        expect( results.length ).toEqual( 1 );
+                        expect( results[0].firstName ).toEqual( spec.item2.firstName );
+                        expect( results[0].firstName ).toEqual( spec.item2.firstName );
+
+                        done = true;
+                    });
+            });
+
+            waitsFor( function () {
+                return done;
+            } , 1000 , 'timed out running expects' );
+        });
 
         describe( 'index range query' , function () {
             it( 'should allow matching exact values' , function () {

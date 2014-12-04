@@ -85,6 +85,8 @@ server.people.clear()
 	          // do something with the results
 	      } );
 
+filter accepts `key,value`, `function` and `object` 
+
 ### Querying using indexes
 
 All ranges supported by IDBKeyRange can be used.
