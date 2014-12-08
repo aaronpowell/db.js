@@ -7,7 +7,7 @@
             readonly: 'readonly',
             readwrite: 'readwrite'
         };
-        
+
     var hasOwn = Object.prototype.hasOwnProperty;
 
     if ( !indexedDB ) {
@@ -79,7 +79,7 @@
 
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table );
-            
+
             return new Promise(function(resolve, reject){
               records.forEach( function ( record ) {
                   var req;
@@ -103,7 +103,7 @@
                       });
                   };
               } );
-              
+
               transaction.oncomplete = function () {
                   resolve( records , that );
               };
@@ -158,16 +158,16 @@
                   reject( records , e );
               };
             });
-            
+
         };
-        
+
         this.remove = function ( table , key ) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table , transactionModes.readwrite ),
                 store = transaction.objectStore( table );
-            
+
             return new Promise(function(resolve, reject){
               var req = store.delete( key );
               transaction.oncomplete = function ( ) {
@@ -196,7 +196,7 @@
               };
             });
         };
-        
+
         this.close = function ( ) {
             if ( closed ) {
                 throw 'Database has been closed';
@@ -445,7 +445,7 @@
                 map: map
             };
         };
-        
+
         'only bound upperBound lowerBound'.split(' ').forEach(function (name) {
             that[name] = function () {
                 return new Query( name , arguments );
@@ -461,12 +461,12 @@
             return this.filter();
         };
     };
-    
+
     var createSchema = function ( e , schema , db ) {
         if ( typeof schema === 'function' ) {
             schema = schema();
         }
-        
+
         for ( var tableName in schema ) {
             var table = schema[ tableName ];
             var store;
@@ -477,16 +477,16 @@
             }
 
             for ( var indexKey in table.indexes ) {
-                if (store.indexNames.contains(indexKey)) {
-                    continue;
-                }
-                
                 var index = table.indexes[ indexKey ];
-                store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
+                try {
+                    store.index(indexKey)
+                } catch (e) {
+                    store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
+                }
             }
         }
     };
-    
+
     var open = function ( e , server , version , schema ) {
         var db = e.target.result;
         var s = new Server( db , server );
@@ -514,12 +514,12 @@
                   .then(resolve, reject)
               } else {
                   request = indexedDB.open( options.server , options.version );
-                              
+
                   request.onsuccess = function ( e ) {
                       open( e , options.server , options.version , options.schema )
                           .then(resolve, reject)
                   };
-              
+
                   request.onupgradeneeded = function ( e ) {
                       createSchema( e , options.schema , e.target.result );
                   };
