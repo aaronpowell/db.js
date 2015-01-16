@@ -1,7 +1,7 @@
 (function ( window , undefined ) {
     'use strict';
 
-    var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB,
+    var indexedDB,
         IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
         transactionModes = {
             readonly: 'readonly',
@@ -10,9 +10,16 @@
 
     var hasOwn = Object.prototype.hasOwnProperty;
 
-    if ( !indexedDB ) {
-        throw 'IndexedDB required';
-    }
+    var getIndexedDB = function() {
+      if ( !indexedDB ) {
+        indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+
+        if ( !indexedDB ) {
+          throw 'IndexedDB required';
+        }
+      }
+      return indexedDB;
+    };
 
     var defaultMapper = function (value) {
         return value;
@@ -513,7 +520,7 @@
                   } , options.server , options.version , options.schema )
                   .then(resolve, reject)
               } else {
-                  request = indexedDB.open( options.server , options.version );
+                  request = getIndexedDB().open( options.server , options.version );
 
                   request.onsuccess = function ( e ) {
                       open( e , options.server , options.version , options.schema )
