@@ -115,10 +115,10 @@
                   resolve( records , that );
               };
               transaction.onerror = function ( e ) {
-                  reject( records , e );
+                  reject( e );
               };
               transaction.onabort = function ( e ) {
-                  reject( records , e );
+                  reject( e );
               };
 
             });
@@ -159,10 +159,10 @@
                   resolve( records , that );
               };
               transaction.onerror = function ( e ) {
-                  reject( records , e );
+                  reject( e );
               };
               transaction.onabort = function ( e ) {
-                  reject( records , e );
+                  reject( e );
               };
             });
 
