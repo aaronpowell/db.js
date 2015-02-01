@@ -572,9 +572,9 @@
                     key: key
                 } ).then( function ( records ) {
                     //done = true;
-                }).catch( function ( items , e ) {
-                    done = true;
+                }).catch( function ( e ) {
                     expect( e.target.error.name ).toBe( 'ConstraintError' );
+                    done = true;
                 });
             });
 
