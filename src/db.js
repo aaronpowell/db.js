@@ -176,7 +176,7 @@
                 store = transaction.objectStore( table );
 
             return new Promise(function(resolve, reject){
-              var req = store.delete( key );
+              var req = store['delete']( key );
               transaction.oncomplete = function ( ) {
                   resolve( key );
               };
@@ -321,7 +321,7 @@
                                 cursor.update(result);
                             }
                         }
-                        cursor.continue();
+                        cursor['continue']();
                     }
                 }
             };
