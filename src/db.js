@@ -381,7 +381,29 @@
                 };
             };
             var filter = function ( ) {
-                filters.push( Array.prototype.slice.call( arguments , 0 , 2 ) );
+                
+                var filterObject = typeof arguments[0] === 'object' ? arguments[0] : false;
+                
+                if(filterObject) {
+                    var f = function(x){
+                        var hasAllProps = true;
+                        for (var key in filterObject) {
+                            // Explicitly check that prop is not on filter-objects prototype
+                            if (hasOwn.call(filterObject,key)) {
+                                // Return false if prop does not exist or do not match on record
+                                if(!hasOwn.call(x,key) || x[key] !== filterObject[key]) {
+                                    hasAllProps = false;
+                                }
+                            }
+                        }
+                        return hasAllProps;
+                    }
+
+                    filters.push([f]);
+                    
+                } else {
+                    filters.push( Array.prototype.slice.call( arguments , 0 , 2 ) );
+                }
 
                 return {
                     keys: keys,
