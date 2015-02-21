@@ -1,3 +1,10 @@
+var global = null;
+if (self) {
+    global = self;
+} else {
+    global = window;
+}
+
 (function ( window , undefined ) {
     'use strict';
 
@@ -545,4 +552,4 @@
     } else {
         window.db = db;
     }
-})( window );
+})( global );
