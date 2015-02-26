@@ -85,6 +85,14 @@ server.people.clear()
 	          // do something with the results
 	      } );
 
+### Filter with function
+	server.people.query()
+	      .filter( function(person){ return person.group == 'hipster' } )
+	      .execute()
+	      .then( function ( results ) {
+	          // do something with the results
+	      } );
+
 ### Querying using indexes
 
 All ranges supported by IDBKeyRange can be used.
