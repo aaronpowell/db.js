@@ -12,7 +12,7 @@
 
     var getIndexedDB = function() {
       if ( !indexedDB ) {
-        indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
 
         if ( !indexedDB ) {
           throw 'IndexedDB required';
