@@ -355,6 +355,7 @@
             });
         });
 
+        /* TODO: cause db can not close */
         it( 'should should error when adding an item with an existing key' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
