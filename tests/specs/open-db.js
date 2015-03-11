@@ -1,106 +1,108 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
+(function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
     describe( 'db.open' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-        
-        beforeEach( function () {
-            var done = false;
 
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'error deleting db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked on delete' , arguments );
-                };
-            });
+        beforeEach( function (done) {
+
+            var req = indexedDB.deleteDatabase( dbName );
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
+            req.onsuccess = function () {
+                done();
+            };
+            
+            req.onerror = function (e) {
+                console.log( 'error deleting db' , arguments );
+                done(e);
+            };
+            
+            req.onblocked = function (e) {
+                console.log( 'db blocked on delete' , arguments );
+                done(e);
+            };
+        }, 10000);
+        
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }                
+            var req = indexedDB.deleteDatabase( dbName );
+            
+            req.onsuccess = function (e) {
+              done();
+            };
+            
+            req.onerror = function (e) {
+                console.log( 'failed to delete db' , arguments );
+                done(e);
+            };
+            
+            req.onblocked = function (e) {
+                console.log( 'db blocked' , arguments );
+                done(e);
+            };
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
-            });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-        });
-        
-        it( 'should open a new instance successfully' , function () {
+        it( 'should open a new instance successfully' , function (done) {
             var spec = this;
-            runs( function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1
-                }).then( function ( s ) {
-                    spec.server = s;
-                });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-            
-            runs( function () {
-               expect( spec.server ).toBeDefined(); 
+            db.open( {
+                server: dbName ,
+                version: 1
+            }).then( function ( s ) {
+                spec.server = s;
+                expect( spec.server ).toBeDefined(); 
+                done();
             });
         });
         
-        it( 'should use the provided schema' , function () {
-            var done = false;
+        it( 'should use the provided schema' , function (done) {
             var spec = this;
 
-            runs( function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1,
-                    schema: { 
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: true
-                            }
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {
+                        key: {
+                            keyPath: 'id',
+                            autoIncrement: true
+                        },
+                        indexes: {
+                          x: {},
                         }
                     }
-                }).then(function ( s ) {
-                    spec.server = s;
-                });
+                }
+            }).then(function ( s ) {
+              s.close();
+              var req = indexedDB.open( dbName );
+              req.onsuccess = function ( e ) {
+                var db = e.target.result;
+                
+                expect( db.objectStoreNames.length ).toEqual( 1 );
+                expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
+                
+                db.close();
+                done();
+              };
+            },function (err) {
+              console.log(err);
+              done(err);
             });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-            
-            runs( function () {
+        });
+
+        it( 'should allow schemas without keypaths' , function (done) {
+            var spec = this;
+
+            db.open( {
+                server: dbName ,
+                version: 1,
+                schema: { 
+                    test: {
+                    }
+                }
+            }).then(function ( s ) {
+                s.close();
                 var req = indexedDB.open( dbName );
                 req.onsuccess = function ( e ) {
                     var db = e.target.result;
@@ -109,90 +111,44 @@
                     expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
                     
                     db.close();
-                    done = true;
+                    done();
                 };
+            },function (err) {
+              done(err);
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timed out on expectations' , 1000 );
         });
 
-        it( 'should allow schemas without keypaths' , function () {
-            var done = false;
-            var spec = this;
-
-            runs( function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1,
-                    schema: { 
-                        test: {
-                        }
-                    }
-                }).then(function ( s ) {
-                    spec.server = s;
-                });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-            
-            runs( function () {
-                var req = indexedDB.open( dbName );
-                req.onsuccess = function ( e ) {
-                    var db = e.target.result;
-                    
-                    expect( db.objectStoreNames.length ).toEqual( 1 );
-                    expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
-                    
-                    db.close();
-                    done = true;
-                };
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timed out on expectations' , 1000 );
-        });
-
-        it( 'should skip creating existing object stores when migrating schema' , function () {
+        it( 'should skip creating existing object stores when migrating schema' , function (done) {
             var migrated = undefined;
 
-            runs( function () {
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {}
+                }
+            }).then(function ( s ) {
+                s.close();
+                function migrated(ret) {
+                  expect(ret).toBe(true, 'schema migration failed');
+                  done();
+                }
                 db.open( {
                     server: dbName,
-                    version: 1,
+                    version: 2,
                     schema: { 
-                        test: {}
+                        test: {},
+                        extra: {}
                     }
                 }).then(function ( s ) {
                     s.close();
-
-                    db.open( {
-                        server: dbName,
-                        version: 2,
-                        schema: { 
-                            test: {},
-                            extra: {}
-                        }
-                    }).then(function ( s ) {
-                        s.close();
-                        migrated = true;
-                    },function () {
-                        migrated = false;
-                    });
+                    migrated(true);
+                },function (err) {
+                    migrated(false);
                 });
+            },function (err) {
+              done(err);
             });
-
-            waitsFor( function () {
-                return migrated !== undefined;
-            } , 'timed out on expectations' , 1000 );
-
-            runs( function () {
-              expect(migrated).toBe(true, 'schema migration failed');
-            })
         });
     });
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
+})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );

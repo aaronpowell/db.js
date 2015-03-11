@@ -238,6 +238,14 @@
             return new IndexQuery( table , db , index );
         };
 
+        this.count = function (table , key) {
+            if ( closed ) {
+                throw 'Database has been closed';
+            }
+            var transaction = db.transaction( table ),
+                store = transaction.objectStore( table );
+        }
+
         for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
             (function ( storeName ) {
                 that[ storeName ] = { };

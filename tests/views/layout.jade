@@ -1,7 +1,7 @@
 !!! 5
 html
   head
-    link(type='text/css', rel='stylesheet', href='lib/jasmine.css')
+    link(type='text/css', rel='stylesheet', href='../bower/jasmine/lib/jasmine-core/jasmine.css')
     block css
     title IndexedDB Playground
   body
@@ -10,8 +10,10 @@ html
     block content
 
     block scripts
-        script(src='lib/jasmine.js')
-        script(src='lib/jasmine-html.js')
-        script(src='lib/jasmine-jsreporter.js')
-        script(src='lib/jquery-1.8.2.min.js')
-        script(src='/src/db.js')
+        script(src='../bower/jasmine/lib/jasmine-core/jasmine.js')
+        script(src='../bower/jasmine/lib/jasmine-core/jasmine-html.js')
+        script(src='../bower/jasmine/lib/jasmine-core/boot.js')
+        script(src='../bower/jasmine-jsreporter/jasmine-jsreporter.js')
+        script(src='../src/db.js')
+        script
+            jasmine.getEnv().addReporter(new jasmine.JSReporter2())

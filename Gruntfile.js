@@ -1,10 +1,7 @@
 /* global module:false */
 module.exports = function(grunt){
 	// Project configuration.
-	var saucekey = null;
-	if (process.env.TRAVIS_SECURE_ENV_VARS) {
-		saucekey = process.env.saucekey;
-	}
+	var saucekey = 'auzcE6Esp+TT6vpQHUyWf9jpvYpEO1iHWiMfkZTxo+MsJcETw1qaAakAgyE8jwPFHSPPT6wDzt+rLUOd6FkwqSgm3lLuP9wKgikXzgYSpNg+EfHrF1rep+BVZFkbs3uk6NetezlALVPOMq+4O54TbtOiLF9KurjkM5YkryExCmc=';
 
 	if (!saucekey) {
 		console.warn('Unable to load saurcelabs key');

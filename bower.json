@@ -19,8 +19,12 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
+    "bower",
     "test",
     "tests"
-  ]
+  ],
+  "devDependencies": {
+    "jasmine": "~2.2.1",
+    "jasmine-jsreporter": "git@github.com:detro/jasmine-jsreporter.git"
+  }
 }
