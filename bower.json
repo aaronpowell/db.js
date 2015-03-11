@@ -24,6 +24,7 @@
     "tests"
   ],
   "devDependencies": {
-    "jasmine": "~2.2.1"
+    "jasmine": "~2.2.1",
+    "jasmine-jsreporter": "git@github.com:detro/jasmine-jsreporter.git"
   }
 }
