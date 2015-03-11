@@ -512,10 +512,12 @@
         return Promise.resolve(s)
     };
 
+    indexedDB = getIndexedDB();
     var dbCache = {};
-
     var db = {
         version: '0.9.2',
+        indexedDB: indexedDB,
+
         open: function ( options ) {
             var request;
 
@@ -528,7 +530,7 @@
                   } , options.server , options.version , options.schema )
                   .then(resolve, reject)
               } else {
-                  request = getIndexedDB().open( options.server , options.version );
+                  request = indexedDB.open( options.server , options.version );
 
                   request.onsuccess = function ( e ) {
                       open( e , options.server , options.version , options.schema )
@@ -543,7 +545,24 @@
                   };
               }
             });
-        }
+        },
+
+        remove: function (dbName) {
+          return new Promise(function(resolve, reject) {
+            var req = indexedDB.deleteDatabase( dbName );
+            req.onsuccess = function (e) {
+                resolve(e);
+            };
+
+            req.onerror = function (e) {
+                reject(e);
+            };
+
+            req.onblocked = function (e) {
+                reject(e);
+            };
+          });
+        },
     };
 
     if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {

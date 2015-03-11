@@ -1,37 +1,21 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
+(function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
     
     describe( 'server.add' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
-       beforeEach( function () {
-            var done = false;
+          indexedDB = db.indexedDB;
+
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -45,42 +29,24 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-        });
+            }
+        }, 10000);
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(function(){
+                done();
+            }, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
            
-        it( 'should insert a new item into the object store' , function () {
+        it( 'should insert a new item into the object store' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -88,23 +54,21 @@
             
             var spec = this;
             
-            runs( function () {
-                spec.server.add( 'test' , item ).then( function ( records ) {
-                    item = records[0];
-                });
+            spec.server.add( 'test' , item ).then( function ( records ) {
+                item = records[0];
+                next();
+            }, function(err) {
+                done(err);
             });
-            
-            waitsFor( function () {
-                return typeof item.id !== 'undefined';
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+
+            function next(){
                 expect( item.id ).toBeDefined();
                 expect( item.id ).toEqual( 1 );
-            });
+                done();
+            };
         });
         
-        it( 'should insert multiple records' , function () {
+        it( 'should insert multiple records' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -116,54 +80,32 @@
             
             var spec = this;
             
-            runs( function () {
-                spec.server.add( 'test' , item1 , item2 );
-            });
-            
-            waitsFor( function () {
-                return typeof item2.id !== 'undefined';
-            } , 'timed out waiting for items to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , item1 , item2 ).then(next);
+            function next() {
                 expect( item1.id ).toBeDefined();
                 expect( item1.id ).toEqual( 1 );
                 expect( item2.id ).toBeDefined();
                 expect( item2.id ).toEqual( 2 );
-            });
+                done();
+            }
         });
     });
 
     describe( 'server.add-non-autoincrement key' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+            indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+       beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+
+            function next(){
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -177,42 +119,22 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should insert a new item into the object store' , function () {
+        it( 'should insert a new item into the object store' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell',
@@ -220,57 +142,35 @@
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , item ).then( function ( records ) {
-                    done = true;
-                    item = records[0];
-                });
+            spec.server.add( 'test' , item ).then( function ( records ) {
+                item = records[0];
+                next();
             });
             
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            function next() {
                 expect( item.id ).toBeDefined();
                 expect( item.id ).toEqual( 'abcd' );
-            });
+                done();
+            };
         });
     });
 
-    describe( 'server.add no keyPath' , function () {
+    describe( 'server.add no keyPath' , function (done) {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+            indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -283,68 +183,42 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-        });
+            }
+        }, 10000);
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should insert a new item into the object store' , function () {
+        it( 'should insert a new item into the object store' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
-            
+
             var spec = this;
-            var done;
-            
-            runs( function () {
-                spec.server.add( 'test' , item ).then( function ( records ) {
-                    done = true;
-                    item = records[0];
-                });
+
+            spec.server.add( 'test' , item ).then( function ( records ) {
+                item = records[0];
+                next();
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+
+            function next(){
                 expect( item.__id__ ).toBeDefined();
                 expect( item.__id__ ).toEqual( 1 );
-            });
+                done();
+            }
         });
 
-        it( 'should insert multiple items into the object store' , function () {
+        it( 'should insert multiple items into the object store' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -355,27 +229,17 @@
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , item1 , item2 ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , item1 , item2 ).then( function ( records ) {
                 expect( item1.__id__ ).toBeDefined();
                 expect( item1.__id__ ).toEqual( 1 );
                 expect( item2.__id__ ).toBeDefined();
                 expect( item2.__id__ ).toEqual( 2 );
+                done();
             });
         });
 
-        it( 'should insert multiple items into the object store, using an array' , function () {
+        it( 'should insert multiple items into the object store, using an array' , function (done) {
             var items = [
                 {
                     firstName: 'Aaron',
@@ -388,83 +252,53 @@
             ];
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , items ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , items ).then( function ( records ) {
                 expect( items[0].__id__ ).toBeDefined();
                 expect( items[0].__id__ ).toEqual( 1 );
                 expect( items[1].__id__ ).toBeDefined();
                 expect( items[1].__id__ ).toEqual( 2 );
+                done();
             });
         });
 
-        it( 'should insert an item with a provided key into the object store' , function () {
+        it( 'should insert an item with a provided key into the object store' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , {
-                    item: item1,
-                    key: 1.001
-                } ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , {
+                item: item1,
+                key: 1.001
+            } ).then( function ( records ) {
                 expect( item1.__id__ ).toBeDefined();
                 expect( item1.__id__ ).toEqual( 1.001 );
+                done();
             });
         });
 
-        it( 'should insert an item with a provided string key into the object store' , function () {
+        it( 'should insert an item with a provided string key into the object store' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
             
             var spec = this;
-            var done;
-            
-            runs( function () {
-                spec.server.add( 'test' , {
-                    item: item1,
-                    key: 'key'
-                } ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+
+            spec.server.add( 'test' , {
+                item: item1,
+                key: 'key'
+            } ).then( function ( records ) {
                 expect( item1.__id__ ).toBeDefined();
                 expect( item1.__id__ ).toEqual( 'key' );
+                done();
             });
         });
 
-        it( 'should insert multiple items with the provided keys into the object store' , function () {
+        it( 'should insert multiple items with the provided keys into the object store' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -475,33 +309,23 @@
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , {
-                    item: item1,
-                    key: 'key'
-                } , {
-                    item: item2,
-                    key: 5
-                } ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , {
+                item: item1,
+                key: 'key'
+            } , {
+                item: item2,
+                key: 5
+            } ).then( function ( records ) {
                 expect( item1.__id__ ).toBeDefined();
                 expect( item1.__id__ ).toEqual( 'key' );
                 expect( item2.__id__ ).toBeDefined();
                 expect( item2.__id__ ).toEqual( 5 );
+                done();
             });
         });
 
-        it( 'should insert multiple items with mixed key generation' , function () {
+        it( 'should insert multiple items with mixed key generation' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -516,32 +340,22 @@
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , item1 , {
-                    item: item2,
-                    key: 5
-                } , item3 ).then( function ( records ) {
-                    done = true;
-                });
-            });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
+            spec.server.add( 'test' , item1 , {
+                item: item2,
+                key: 5
+            } , item3 ).then( function ( records ) {
                 expect( item1.__id__ ).toBeDefined();
                 expect( item1.__id__ ).toEqual( 1 );
                 expect( item2.__id__ ).toBeDefined();
                 expect( item2.__id__ ).toEqual( 5 );
                 expect( item3.__id__ ).toBeDefined();
                 expect( item3.__id__ ).toEqual( 6 );
+                done();
             });
         });
 
-        it( 'should should error when adding an item with an existing key' , function () {
+        it( 'should should error when adding an item with an existing key' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -549,39 +363,26 @@
             var key = 'key';
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , {
-                    item: item1,
-                    key: key
-                } ).then( function ( records ) {
-                    done = true;
-                });
+            spec.server.add( 'test' , {
+                item: item1,
+                key: key
+            } ).then( function ( records ) {
+              next();
             });
             
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
-                done = false;
-
+            function next() {
                 spec.server.add( 'test' , {
                     item: item1,
                     key: key
                 } ).then( function ( records ) {
-                    //done = true;
+                    done(records);
                 }).catch( function ( e ) {
                     expect( e.target.error.name ).toBe( 'ConstraintError' );
-                    done = true;
+                    done();
                 });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item add to fail' , 1000 );
+            };
         });
     });
 
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
+})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );
