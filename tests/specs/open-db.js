@@ -2,7 +2,7 @@
     'use strict';
     describe( 'db.open' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
 
         beforeEach( function (done) {
 

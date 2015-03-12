@@ -3,9 +3,9 @@
     
     describe( 'query' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
+        beforeEach( function () {
             var done = false;
             var spec = this;
             
@@ -906,9 +906,9 @@
 
     describe( 'index.multiEntry' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
+        beforeEach( function () {
             var done = false;
             var spec = this;
             
