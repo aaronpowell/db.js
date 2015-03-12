@@ -7,7 +7,7 @@ module.exports = function(config) {
   if (process.env.TRAVIS_SECURE_ENV_VARS) {
     process.env.SAUCE_USERNAME = 'aaronpowell';
     process.env.SAUCE_ACCESS_KEY = process.env.saucekey;
-  }  
+  }
 
   var sauceEnalbe = true;
   if (!process.env.SAUCE_ACCESS_KEY) {
