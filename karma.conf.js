@@ -1,26 +1,38 @@
 // Karma configuration
 var fs = require('fs');
 
+// Project configuration.
 module.exports = function(config) {
+  // Use ENV vars on Travis and sauce.js locally to get credentials
+  if (process.env.TRAVIS_SECURE_ENV_VARS) {
+    process.env.SAUCE_USERNAME = 'aaronpowell';
+    process.env.SAUCE_ACCESS_KEY = process.env.saucekey;
+  }  
 
   var sauceEnalbe = true;
-  // Use ENV vars on Travis and sauce.json locally to get credentials
   if (!process.env.SAUCE_ACCESS_KEY) {
-    if (process.env.SAUCE_ENABLE) {
-      if (!fs.existsSync('sauce.json')) {
-        console.log('Create a sauce.json with your credentials based on the sauce-sample.json file.');
+    console.warn('Unable to load saurcelabs key');
+    if (!process.env.SAUCE_DISABLE) {
+      if (!fs.existsSync('sauce.js')) {
+        console.log('Create a sauce.js with your credentials with username, accessKey export');
         process.exit(1);
       }
+      process.env.SAUCE_USERNAME = require('./sauce').username;
+      process.env.SAUCE_ACCESS_KEY = require('./sauce').accessKey;
+      console.log('We have SAUCE_ACCESS_KEY from sauce.js.');
     } else {
       sauceEnalbe = false;
     }
+  } else {
+    console.log('We have SAUCE_ACCESS_KEY from TRAVIS_SECURE_ENV_VARS.');
   }
 
   // Browsers to run on Sauce Labs
   var customLaunchers = {
     'SL_Chrome': {
       base: 'SauceLabs',
-      browserName: 'chrome'
+      browserName: 'chrome',
+      platform: 'Windows 2008'
     }
   };
 
@@ -42,7 +54,7 @@ module.exports = function(config) {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  var reporters = sauceEnalbe ? ['progress'] : ['dots', 'saucelabs'];
+  var reporters = sauceEnalbe ? ['dots', 'saucelabs'] : ['progress'];
 
   config.set({
 

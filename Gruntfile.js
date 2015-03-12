@@ -1,17 +1,5 @@
 /* global module:false */
 module.exports = function(grunt){
-  // Project configuration.
-  var saucekey = null;
-  if (process.env.TRAVIS_SECURE_ENV_VARS) {
-    process.env.SAUCE_ENABLE = true;
-    process.env.SAUCE_USERNAME = 'aaronpowell';
-    process.env.SAUCE_ACCESS_KEY = process.env.saucekey;
-
-    if (!process.env.SAUCE_ACCESS_KEY) {
-      console.warn('Unable to load saurcelabs key');
-    }
-  }
-
   grunt.initConfig({
     jade: {
       release: {

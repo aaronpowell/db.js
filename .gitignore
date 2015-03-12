@@ -24,4 +24,4 @@ sauce_connect.log*
 .project
 tests/index.html
 bower
-sauce.json
+sauce.js
