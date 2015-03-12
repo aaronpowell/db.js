@@ -44,7 +44,7 @@ module.exports = function(config) {
   // - Safari (only Mac)
   // - PhantomJS
   // - IE (only Windows)
-  var browsers = ['Chrome'];
+  var browsers = ['Firefox', 'IE', 'Chrome'];
   if (sauceEnalbe) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
@@ -69,6 +69,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'bower/es5-shim/es5-shim.js',
+      'bower/es5-shim/es5-sham.js',
+      'bower/es6-shim/es6-shim.js',
+      'bower/es6-shim/es6-sham.js',
+      'bower/es6-shim/es6-sham.js',
+      'bower/bowser/src/bowser.js',
       'bower/jquery/dist/jquery.min.js',
       'src/*.js',
       //'tests/specs/indexes.js',

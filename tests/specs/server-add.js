@@ -1,4 +1,4 @@
-(function ( db , describe , it , expect , beforeEach , afterEach ) {
+(function ( db , describe , it , xit, expect , beforeEach , afterEach ) {
     'use strict';
     
     describe( 'server.add' , function () {
@@ -353,8 +353,11 @@
             });
         });
 
-        /* TODO: cause db can not close */
-        it( 'should should error when adding an item with an existing key' , function (done) {
+        var mit = bowser.test(['gecko']) ? xit : it;
+        /* FIXME: Firefox 36 have an issue that when insert to the same table
+           with two element with same key, then the raised ConstraintError can not
+           be catch. */
+        mit( 'should should error when adding an item with an existing key' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -384,4 +387,4 @@
         });
     });
 
-})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );
+})( window.db , window.describe , window.it , window.xit, window.expect , window.beforeEach , window.afterEach );

@@ -69,7 +69,6 @@
                     });
             };
 
-            /* TODO: cause db can not close */
             function next1(){
                 spec.server
                     .test

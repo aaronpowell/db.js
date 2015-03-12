@@ -24,6 +24,9 @@
     "tests"
   ],
   "devDependencies": {
+    "bowser": "https://github.com/lygstate/bowser.git#master",
+    "es5-shim": "~4.1.0",
+    "es6-shim": "~0.27.1",
     "jasmine": "~2.2.1",
     "jquery": "~2.1.3"
   }
