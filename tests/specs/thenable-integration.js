@@ -61,7 +61,7 @@
         it( 'should be able to work with other thenable library' , function (done) {
             var ajaxData;
             var queryData;
-            var ajaxDeferred = $.getJSON( 'foo' );
+            var ajaxDeferred = $.getJSON( '/base/tests/foo' );
             var queryDeferred = this
                 .server
                 .test
