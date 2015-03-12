@@ -114,7 +114,10 @@
               transaction.oncomplete = function () {
                   resolve( records , that );
               };
+
+              //https://bugzilla.mozilla.org/show_bug.cgi?id=872873
               transaction.onerror = function ( e ) {
+                  e.preventDefault();
                   reject( e );
               };
               transaction.onabort = function ( e ) {

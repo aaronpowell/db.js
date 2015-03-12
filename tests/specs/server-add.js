@@ -353,11 +353,7 @@
             });
         });
 
-        var mit = bowser.test(['gecko']) ? xit : it;
-        /* FIXME: Firefox 36 have an issue that when insert to the same table
-           with two element with same key, then the raised ConstraintError can not
-           be catch. */
-        mit( 'should should error when adding an item with an existing key' , function (done) {
+        it( 'should should error when adding an item with an existing key' , function (done) {
             var item1 = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
