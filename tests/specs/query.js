@@ -5,34 +5,17 @@
         var dbName = 'tests',
           indexedDB = db.indexedDB;
            
-        beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in beforeEach' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-
-            var spec = this;
-            runs( function () {
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1,
@@ -50,15 +33,11 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    next1();
                 });
-            });
+            }
 
-            waitsFor( function () {
-                return !!spec.server;
-            } , 1000 , 'timed out opening the db' );
-
-            runs( function () {
-                done = false;
+            function next1() {
                 spec.item1 = {
                     firstName: 'Aaron',
                     lastName: 'Powell',
@@ -75,66 +54,35 @@
                     age: 40
                 };
                 spec.server.add( 'test' , spec.item1 , spec.item2 , spec.item3 ).then( function () {
-                    done = true;
+                    done();
                 });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out adding entries' );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }
-
-                var spec = this;
-
-                var req = indexedDB.deleteDatabase( dbName );
-
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in afterEach' , arguments , spec );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should allow getting by id' , function () {
-            var done = false;
-            runs( function () {
-                var spec = this;
-                this.server
-                    .get( 'test' , spec.item1.id )
-                    .then( function ( x ) {
-                        expect( x ).toBeDefined();
-                        expect( x.id ).toEqual( spec.item1.id );
-                        expect( x.firstName ).toEqual( spec.item1.firstName );
-                        expect( x.lastName ).toEqual( spec.item1.lastName );
-                        done = true;
-                    });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out waiting for asserts' );
+        it( 'should allow getting by id' , function (done) {
+            var spec = this;
+            this.server
+                .get( 'test' , spec.item1.id )
+                .then( function ( x ) {
+                    expect( x ).toBeDefined();
+                    expect( x.id ).toEqual( spec.item1.id );
+                    expect( x.firstName ).toEqual( spec.item1.firstName );
+                    expect( x.lastName ).toEqual( spec.item1.lastName );
+                    done();
+                });
         });
 
-        it( 'should allow a get all operation' , function () {
+        it( 'should allow a get all operation' , function (done) {
             var done = false;
 
             runs( function () {
@@ -158,7 +106,7 @@
             } , 1000 , 'timed out running expects' );
         });
 
-        it( 'should allow a get all descending operation' , function () {
+        it( 'should allow a get all descending operation' , function (done) {
             var done = false;
 
             runs( function () {
@@ -183,7 +131,7 @@
             } , 1000 , 'timed out running expects' );
         });
 
-        it( 'should query against a single property' , function () {
+        it( 'should query against a single property' , function (done) {
             var done;
             runs( function () {
                 var spec = this;
@@ -206,7 +154,7 @@
             } , 1000 , 'timed out running expects' );
         });
 
-        it( 'should query using a function filter' , function () {
+        it( 'should query using a function filter' , function (done) {
             var done;
             runs( function () {
                 var spec = this;
@@ -232,7 +180,7 @@
         });
 
         describe( 'index range query' , function () {
-            it( 'should allow matching exact values' , function () {
+            it( 'should allow matching exact values' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -250,7 +198,7 @@
                 } , 1000 , 'timed out running specs for \'only\'' );
             });
 
-            it( 'should allow matching on a lower bound range' , function () {
+            it( 'should allow matching on a lower bound range' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -270,7 +218,7 @@
                 } , 1000 , 'timed out running specs for \'lowerBound\'' );
             });
 
-            it( 'should allow matching on an upper bound range' , function () {
+            it( 'should allow matching on an upper bound range' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -289,7 +237,7 @@
                 } , 1000 , 'timed out running specs for \'upperBound\'' );
             });
 
-            it( 'should allow matching across a whole bound range with inclusive limits', function () {
+            it( 'should allow matching across a whole bound range with inclusive limits', function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -310,7 +258,7 @@
                 } , 1000 , 'timed out running specs for \'bound\'' );
             });
 
-            it( 'should allow matching across a whole bound range with exclusive limits', function () {
+            it( 'should allow matching across a whole bound range with exclusive limits', function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -329,7 +277,7 @@
                 } , 1000 , 'timed out running specs for \'bound\'' );
             });
 
-            it( 'should allow matching across a whole bound range with mixed limits', function () {
+            it( 'should allow matching across a whole bound range with mixed limits', function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -349,7 +297,7 @@
                 } , 1000 , 'timed out running specs for \'bound\'' );
             });
 
-            it( 'should allow descending ordering of results', function () {
+            it( 'should allow descending ordering of results', function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -372,7 +320,7 @@
         });
 
         describe( 'index.query.count' , function () {
-            it( 'should allow an only query to return just a count' , function () {
+            it( 'should allow an only query to return just a count' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -391,7 +339,7 @@
                 } , 1000 , 'timed out running specs for \'count.only\'' );
             });
 
-            it( 'should allow a bound query to return just a count' , function () {
+            it( 'should allow a bound query to return just a count' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -410,7 +358,7 @@
                 } , 1000 , 'timed out running specs for \'count.bound\'' );
             });
 
-            it( 'should allow an upperBound query to return just a count' , function () {
+            it( 'should allow an upperBound query to return just a count' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -429,7 +377,7 @@
                 } , 1000 , 'timed out running specs for \'count.upperBound\'' );
             });
 
-            it( 'should allow a lowerBound query to return just a count' , function () {
+            it( 'should allow a lowerBound query to return just a count' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -450,7 +398,7 @@
         });
 
         describe( 'index.query.keys' , function () {
-            it( 'should allow an only query to return just the keys' , function () {
+            it( 'should allow an only query to return just the keys' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -471,7 +419,7 @@
                 } , 1000 , 'timed out running specs for \'only.keys\'' );
             });
 
-            it( 'should allow a bound query to return just the keys' , function () {
+            it( 'should allow a bound query to return just the keys' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -493,7 +441,7 @@
                 } , 1000 , 'timed out running specs for \'bound.keys\'' );
             });
 
-            it( 'should allow an upperBound query to return just the keys' , function () {
+            it( 'should allow an upperBound query to return just the keys' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -513,7 +461,7 @@
                 } , 1000 , 'timed out running specs for \'upperBound.keys\'' );
             });
 
-            it( 'should allow a lowerBound query to return just the keys' , function () {
+            it( 'should allow a lowerBound query to return just the keys' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -536,7 +484,7 @@
         });
 
         describe( 'index.query.filters' , function () {
-            it( 'should allow additional filter on an only query' , function () {
+            it( 'should allow additional filter on an only query' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -557,7 +505,7 @@
                 } , 1000 , 'timed out running specs for \'only.filter\'' );
             });
 
-            it( 'should allow a filter without an index' , function () {
+            it( 'should allow a filter without an index' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -577,7 +525,7 @@
                 } , 1000 , 'timed out running specs for \'filter\'' );
             });
 
-            it( 'should allow a filter without an index to do multi-field filtering' , function () {
+            it( 'should allow a filter without an index to do multi-field filtering' , function (done) {
                 var spec = this;
                 var done;
                 runs( function () {
@@ -599,7 +547,7 @@
         });
 
         describe( 'distinct querying' , function () {
-            it( 'should allow distinct querying even if the index isn\'t unique' , function () {
+            it( 'should allow distinct querying even if the index isn\'t unique' , function (done) {
                 var done;
 
                 runs(function () {
@@ -622,7 +570,7 @@
                 } , 1000 , 'timeout in distinct query' );
             });
 
-            it( 'should return the first record when distinct ascending' , function () {
+            it( 'should return the first record when distinct ascending' , function (done) {
                 var done;
 
                 runs(function () {
@@ -645,7 +593,7 @@
                 } , 1000 , 'timeout in distinct query' );
             });
 
-            it( 'should return only one record per key in a dinstinct query' , function () {
+            it( 'should return only one record per key in a dinstinct query' , function (done) {
                 var done;
 
                 runs(function () {
@@ -671,7 +619,7 @@
                 } , 1000 , 'timeout in distinct query' );
             });
 
-            it( 'should return only one record per key in a dinstinct query in descending order' , function () {
+            it( 'should return only one record per key in a dinstinct query in descending order' , function (done) {
                 var done;
 
                 runs(function () {
@@ -698,7 +646,7 @@
         });
 
         describe( 'limit' , function () {
-            it( 'should return first 2 records' , function () {
+            it( 'should return first 2 records' , function (done) {
                 var done;
 
                 runs(function () {
@@ -721,7 +669,7 @@
                     return done;
                 } , 1000 , 'timeout in limit query' );
             });
-            it( 'should return 2 records, skipping the first' , function () {
+            it( 'should return 2 records, skipping the first' , function (done) {
                 var done;
 
                 runs(function () {
@@ -745,7 +693,7 @@
                 } , 1000 , 'timeout in limit query' );
             });
 
-            it( 'should return 1 records, skipping the first' , function () {
+            it( 'should return 1 records, skipping the first' , function (done) {
                 var done;
 
                 runs(function () {
@@ -768,7 +716,7 @@
                 } , 1000 , 'timeout in limit query' );
             });
 
-            it( 'should return 1 records, skipping the first two' , function () {
+            it( 'should return 1 records, skipping the first two' , function (done) {
                 var done;
 
                 runs(function () {
@@ -794,7 +742,7 @@
         });
 
         describe( 'query mapping' , function () {
-            it( 'should allow you to transform the object being returned' , function () {
+            it( 'should allow you to transform the object being returned' , function (done) {
                 var done;
 
                 runs(function () {
@@ -823,7 +771,7 @@
         });
 
         describe( 'atomic updates' , function () {
-            it( 'should modify only data returned by query' , function () {
+            it( 'should modify only data returned by query' , function (done) {
                 var done;
 
                 runs(function () {
@@ -852,7 +800,7 @@
                 } , 1000 , 'timeout in atomic modify query' );
             });
 
-            it( 'should modify data using a function of the original data' , function () {
+            it( 'should modify data using a function of the original data' , function (done) {
                 var done;
 
                 runs(function () {
@@ -879,7 +827,7 @@
                 } , 1000 , 'timeout in atomic modify query' );
             });
 
-            it( 'should only allow `modify` from a specific query type' , function () {
+            it( 'should only allow `modify` from a specific query type' , function (done) {
                 var done;
 
                 runs(function () {
@@ -908,34 +856,17 @@
         var dbName = 'tests',
           indexedDB = db.indexedDB;
            
-        beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in beforeEach' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
 
-            var spec = this;
-            runs( function () {
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1,
@@ -956,15 +887,11 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    next1();
                 });
-            });
+            }
 
-            waitsFor( function () {
-                return !!spec.server;
-            } , 1000 , 'timed out opening the db' );
-
-            runs( function () {
-                done = false;
+            function next1() {
                 var item1 = {
                     id: 1,
                     firstName: 'Aaron',
@@ -987,85 +914,47 @@
                     tags: ['one', 'two', 'three', 'four']
                 };
                 spec.server.add( 'test' , item1 , item2 , item3 ).then( function () {
-                    done = true;
+                    done();
                 });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out adding entries' );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }
-
-                var spec = this;
-
-                var req = indexedDB.deleteDatabase( dbName );
-
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in afterEach' , arguments , spec );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it('should query for data in a multiEntry index', function () {
-            var spec = this,
-                done = false;
+        it('should query for data in a multiEntry index', function (done) {
+            var spec = this;
 
-            runs(function () {
-                spec.server.test
-                    .query( 'tags' )
-                    .only( 'one' )
-                    .execute()
-                    .then(function ( data ) {
-                        done = true;
-                        expect( data.length ).toEqual( 3 );
-                        expect( data[0].firstName ).toEqual( 'Aaron' );
-                        expect( data[2].tags ).toEqual( ['one', 'two', 'three', 'four' ] );
-                    });
-            });
-
-            waitsFor(function () {
-                return done;
-            }, 1000);
+            spec.server.test
+                .query( 'tags' )
+                .only( 'one' )
+                .execute()
+                .then(function ( data ) {
+                    expect( data.length ).toEqual( 3 );
+                    expect( data[0].firstName ).toEqual( 'Aaron' );
+                    expect( data[2].tags ).toEqual( ['one', 'two', 'three', 'four' ] );
+                    done();
+                });
         });
 
-        it('should query for all data in a multiEntry index', function () {
-            var spec = this,
-                done = false;
+        it('should query for all data in a multiEntry index', function (done) {
+            var spec = this
 
-            runs(function () {
-                spec.server.test
-                    .query( 'tags' )
-                    .all()
-                    .execute()
-                    .then(function ( data ) {
-                        done = true;
-                        expect( data.length ).toEqual( 10 );
-                    });
-            });
-
-            waitsFor(function () {
-                return done;
-            }, 1000);
+            spec.server.test
+                .query( 'tags' )
+                .all()
+                .execute()
+                .then(function ( data ) {
+                    expect( data.length ).toEqual( 10 );
+                    done();
+                });
         });
     });
 })( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
