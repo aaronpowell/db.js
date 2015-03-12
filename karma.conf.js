@@ -59,6 +59,7 @@ module.exports = function(config) {
     files: [
       'bower/jquery/dist/jquery.min.js',
       'src/*.js',
+      //'tests/specs/indexes.js',
       'tests/specs/*.js',
       {pattern: 'tests/*', watched: false, included: false, served: true},
       {pattern: 'bower/**/*', watched: false, included: false, served: true},

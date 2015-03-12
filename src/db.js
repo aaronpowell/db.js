@@ -557,10 +557,6 @@
             req.onerror = function (e) {
                 reject(e);
             };
-
-            req.onblocked = function (e) {
-                reject(e);
-            };
           });
         },
     };

@@ -50,9 +50,7 @@
             if ( this.server ) {
                 this.server.close();
             }
-            db.remove(dbName).then(function(){
-                done();
-            }, function(err) {
+            db.remove(dbName).then(done, function(err) {
                 console.log( 'failed to delete db' , arguments );
                 done(err);
             });

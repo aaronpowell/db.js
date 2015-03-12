@@ -26,22 +26,11 @@
         afterEach( function (done) {
             if ( this.server ) {
                 this.server.close();
-            }                
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function (e) {
-              done();
-            };
-            
-            req.onerror = function (e) {
+            }
+            db.remove(dbName).then(done, function(err) {
                 console.log( 'failed to delete db' , arguments );
-                done(e);
-            };
-            
-            req.onblocked = function (e) {
-                console.log( 'db blocked' , arguments );
-                done(e);
-            };
+                done(err);
+            });
         });
         
         it( 'should open a new instance successfully' , function (done) {
