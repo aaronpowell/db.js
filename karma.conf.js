@@ -74,6 +74,7 @@ module.exports = function(config) {
       'bower/es6-shim/es6-shim.js',
       'bower/es6-shim/es6-sham.js',
       'bower/es6-shim/es6-sham.js',
+      'bower/idb-iegap/idb-iegap.js',
       'bower/bowser/src/bowser.js',
       'bower/jquery/dist/jquery.min.js',
       'src/*.js',
