@@ -90,7 +90,10 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
 
     sauceLabs: {
-      testName: 'Sauce Labs test for db.js'
+      testName: 'Sauce Labs test for db.js',
+      // https://github.com/bermi/sauce-connect-launcher#advanced-usage
+      connectOptions: {
+      },
     },
     captureTimeout: 120000,
     customLaunchers: customLaunchers,
