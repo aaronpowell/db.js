@@ -1,37 +1,21 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
+(function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
     
     describe( 'server.remove' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
-            
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -45,42 +29,22 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
         
-        it( 'should remove an added item' , function () {
+        it( 'should remove an added item' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -88,33 +52,23 @@
             
             var spec = this;
             
-            runs( function () {
-                spec.server.add( 'test' , item ).then( function ( records ) {
-                    item = records[0];
-                });
+            spec.server.add( 'test' , item ).then( function ( records ) {
+                item = records[0];
+                next();
             });
-            
-            waitsFor( function () {
-                return typeof item.id !== 'undefined';
-            } , 'timeout waiting for item to be added' , 1000 );
 
-            var done = false;
-            runs( function () {
+            function next() {
                 spec.server.remove( 'test' , item.id ).then(function () {
                     spec.server.get( 'test' , item.id ).then( function ( x ) {
                         expect( x ).toEqual( undefined );
 
-                        done = true;
+                        done();
                     });
                 });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out running expects' );
+            }
         });
 
-        it( 'should remove all items from a table' , function () {
+        it( 'should remove all items from a table' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -125,33 +79,21 @@
             };
             
             var spec = this;
-            var done = false;
 
-            runs( function () {
-                spec.server.add( 'test' , item , item2 ).then( function ( records ) {
-                    done = true;
-                });
+            spec.server.add( 'test' , item , item2 ).then( function ( records ) {
+                next();
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for items to be added' , 1000 );
 
-            var done = false;
-            runs( function () {
+            function next() {
                 spec.server.clear( 'test' ).then(function () {
                     spec.server.query( 'test' ).all().execute().then( function ( r ) {
                         expect( r.length ).toEqual( 0 );
 
-                        done = true;
+                        done();
                     });
                 });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 1000 , 'timed out running expects' );
+            }
         });
     });
 
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
+})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );

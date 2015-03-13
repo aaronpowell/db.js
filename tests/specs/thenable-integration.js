@@ -1,37 +1,21 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach , $ ) {
+(function ( db , describe , it , expect , beforeEach , afterEach , $ ) {
     'use strict';
     
     describe( 'thenable library promise integration' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in beforeEach' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
 
-            runs( function () {
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -45,16 +29,11 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    next1();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
+            }
 
-            runs( function () {
-                done = false;
-
+            function next1() {
                 spec.server
                     .test
                     .add({
@@ -62,50 +41,25 @@
                         lastName: 'Powell'
                     })
                     .then(function () {
-                        done = true;
+                        done();
                     });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 'adding record' , 500 );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }
-
-                var spec = this;
-
-                var req = indexedDB.deleteDatabase( dbName );
-
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in afterEach' , arguments , spec );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should be able to work with other thenable library' , function () {
-            var done;
+        it( 'should be able to work with other thenable library' , function (done) {
             var ajaxData;
             var queryData;
-            var ajaxDeferred = $.getJSON( 'foo' );
+            var ajaxDeferred = $.getJSON( '/base/tests/foo' );
             var queryDeferred = this
                 .server
                 .test
@@ -117,19 +71,16 @@
               .then(function (resolvedArray) {
                   ajaxData = resolvedArray[0]
                   queryData = resolvedArray[1]
-                  done = true;
+                  next();
               });
 
-            waitsFor( function () {
-                return done;
-            } , 'promise to return' , 3000 );
-
-            runs(function(){
+            function next(){
                 expect( queryData ).toBeDefined();
                 expect( queryData.length ).toBe( 1 );
                 expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
                 expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
-            });
+                done();
+            }
         });
     });
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach , window.jQuery );
+})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach , window.jQuery );

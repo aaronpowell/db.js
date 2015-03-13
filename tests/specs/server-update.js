@@ -1,37 +1,21 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach ) {
+(function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
     
     describe( 'server.update' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -45,62 +29,34 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
+            }
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should update the item after it is added' , function () {
+        it( 'should update the item after it is added' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
             
             var spec = this;
-            var done;
             
-            runs( function () {
-                spec.server.add( 'test' , item ).then( function ( records ) {
-                    done = true;
-                });
+            spec.server.add( 'test' , item ).then( function ( records ) {
+                next();
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            runs( function () {
-                done = false;
+
+            function next(){
                 item.firstName = 'John';
                 item.lastName = 'Smith';
 
@@ -108,38 +64,28 @@
                     .test
                     .update( item )
                     .then( function ( records ) {
-                        done = true;
+                        expect( item.id ).toBe( 1 );
+                        next1();
                     });
-            });
+            };
 
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for update' , 1000 );
-
-            runs( function () {
-                done = false;
-
+            function next1(){
                 spec.server
                     .test
                     .get( item.id )
                     .then( function ( record ) {
-                        done = true;
-
                         expect( record ).toBeDefined();
                         expect( record.id ).toBe( item.id );
                         expect( record.firstName ).toBe( item.firstName );
                         expect( record.lastName ).toBe( item.lastName );
                         expect( record ).not.toBe( item );
+                        done();
                     });
-            });
-
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for get' , 1000 );
+            };
 
         });
 
-        it( 'should allow updating of multiple items' , function () {
+        it( 'should allow updating of multiple items' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -150,23 +96,12 @@
             };
             
             var spec = this;
-            var done;
 
-            runs( function () {
-                spec.server.add( 'test' , item , item2 ).then( function ( records ) {
-                    done = true;
-                });
+            spec.server.add( 'test' , item , item2 ).then( function ( records ) {
+                next();
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            var done;
 
-            runs( function () {
-                done = false;
-
+            function next() {
                 item.firstName = 'John';
                 item.lastName = 'Smith';
 
@@ -177,25 +112,17 @@
                     .test
                     .update( item , item2 )
                     .then( function ( records ) {
-                        done = true;
+                        next1();
                     });
-            });
+            }
 
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for update' , 1000 );
-
-            runs( function () {
-                done = false;
-
+            function next1() {
                 spec.server
                     .test
                     .query()
                     .all()
                     .execute()
                     .then( function ( records ) {
-                        done = true;
-
                         expect( records.length ).toBe( 2 );
 
                         var record = records[0];
@@ -211,47 +138,28 @@
                         expect( record.firstName ).toBe( item2.firstName );
                         expect( record.lastName ).toBe( item2.lastName );
                         expect( record ).not.toBe( item2 );
+                        done();
                     });
-            });
-
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for get' , 1000 );
+            };
         });
 
     });
 
     describe( 'server.update-custom-keys' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
            
-       beforeEach( function () {
-            var done = false;
+        beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
+            db.remove(dbName).then(next, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-            
-            runs( function () {
+            function next() {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -261,42 +169,22 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                    done();
                 });
-            });
-            
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
+            };
         });
         
-        afterEach( function () {
-            var done;
-
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }                
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
             });
-            
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
         });
 
-        it( 'should allow updating with custom keys' , function () {
+        it( 'should allow updating with custom keys' , function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -304,28 +192,16 @@
             var key = 'foo';
             
             var spec = this;
-            var done;
 
-            runs( function () {
-                spec.server
-                .add( 'test' , {
-                        item: item,
-                        key: key
-                    })
-                .then( function ( records ) {
-                    done = true;
-                });
+            spec.server
+            .add( 'test' , {
+                item: item,
+                key: key
+            }).then( function ( records ) {
+                next();
             });
-            
-            waitsFor( function () {
-                return done;
-            } , 'timeout waiting for item to be added' , 1000 );
-            
-            var done;
 
-            runs( function () {
-                done = false;
-
+            function next() {
                 item.firstName = 'John';
                 item.lastName = 'Smith';
 
@@ -336,25 +212,17 @@
                         key: key
                     } )
                     .then( function ( records ) {
-                        done = true;
+                        next1();
                     });
-            });
+            }
 
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for update' , 1000 );
-
-            runs( function () {
-                done = false;
-
+            function next1() {
                 spec.server
                     .test
                     .query()
                     .all()
                     .execute()
                     .then( function ( records ) {
-                        done = true;
-
                         expect( records.length ).toBe( 1 );
 
                         var record = records[0];
@@ -363,13 +231,10 @@
                         expect( record.firstName ).toBe( item.firstName );
                         expect( record.lastName ).toBe( item.lastName );
                         expect( record ).not.toBe( item );
+                        done();
                     });
-            });
-
-            waitsFor(function () {
-                return done;
-            } , 'timed out waiting for get' , 1000 );
+            }
         });
     });
 
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach );
+})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );

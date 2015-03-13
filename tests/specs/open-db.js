@@ -2,46 +2,23 @@
     'use strict';
     describe( 'db.open' , function () {
         var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+          indexedDB = db.indexedDB;
 
         beforeEach( function (done) {
-
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function () {
-                done();
-            };
-            
-            req.onerror = function (e) {
-                console.log( 'error deleting db' , arguments );
-                done(e);
-            };
-            
-            req.onblocked = function (e) {
-                console.log( 'db blocked on delete' , arguments );
-                done(e);
-            };
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
+            });
         }, 10000);
         
         afterEach( function (done) {
             if ( this.server ) {
                 this.server.close();
-            }                
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function (e) {
-              done();
-            };
-            
-            req.onerror = function (e) {
+            }
+            db.remove(dbName).then(done, function(err) {
                 console.log( 'failed to delete db' , arguments );
-                done(e);
-            };
-            
-            req.onblocked = function (e) {
-                console.log( 'db blocked' , arguments );
-                done(e);
-            };
+                done(err);
+            });
         });
         
         it( 'should open a new instance successfully' , function (done) {
@@ -115,6 +92,61 @@
                 };
             },function (err) {
               done(err);
+            });
+        });
+
+        it( 'should upgrade when db newly created or version changed' , function (done) {
+            var upgraded = undefined;
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {}
+                },
+                upgrade: function(e) {
+                  upgraded = true;
+                }
+            }).then(function ( s ) {
+                s.close();
+                expect(upgraded).toBe(true, 'schema migration failed');
+                upgraded = undefined;
+                next();
+            });
+            function next() {
+                db.open( {
+                  server: dbName,
+                  version: 2,
+                  schema: { 
+                      wow: {}
+                  },
+                  upgrade: function(e) {
+                    upgraded = true;
+                  }
+                }).then(function ( s ) {
+                    expect(upgraded).toBe(true, 'schema migration failed');
+                    s.close();
+                    done();
+                });
+            }
+        });
+
+        it( 'should error when delete non closed db', function(done) {
+            function removeFinish(e) {
+              expect(!!e).toBe(true, 'error expected');
+              done(e);
+            }
+            var spec = this;
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {}
+                }
+            }).then(function ( s ) {
+              spec.server = s;
+              db.remove(dbName).then(function() {
+                removeFinish();
+              }, removeFinish);
             });
         });
 

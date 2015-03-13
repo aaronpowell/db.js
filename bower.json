@@ -24,7 +24,11 @@
     "tests"
   ],
   "devDependencies": {
+    "bowser": "https://github.com/lygstate/bowser.git#master",
+    "es5-shim": "~4.1.0",
+    "es6-shim": "~0.27.1",
     "jasmine": "~2.2.1",
-    "jasmine-jsreporter": "https://github.com/detro/jasmine-jsreporter.git"
+    "jquery": "~2.1.3",
+    "idb-iegap": "https://github.com/lygstate/idb-iegap.git#master"
   }
 }
