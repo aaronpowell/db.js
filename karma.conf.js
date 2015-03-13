@@ -32,8 +32,18 @@ module.exports = function(config) {
     'SL_Chrome': {
       base: 'SauceLabs',
       browserName: 'chrome',
-      platform: 'Windows 2008'
-    }
+      platform: 'Windows 7',
+    },
+    'SL_Firefox': {
+      base: 'SauceLabs',
+      browserName: 'firefox',
+      platform: 'Linux'
+    },
+    'SL_IE': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      platform: 'Windows 7'
+    },
   };
 
   // Start these browsers, currently available:
