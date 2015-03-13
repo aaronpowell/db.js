@@ -130,6 +130,26 @@
             }
         });
 
+        it( 'should error when delete non closed db', function(done) {
+            function removeFinish(e) {
+              expect(!!e).toBe(true, 'error expected');
+              done(e);
+            }
+            var spec = this;
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {}
+                }
+            }).then(function ( s ) {
+              spec.server = s;
+              db.remove(dbName).then(function() {
+                removeFinish();
+              }, removeFinish);
+            });
+        });
+
         it( 'should skip creating existing object stores when migrating schema' , function (done) {
             var migrated = undefined;
 
