@@ -353,6 +353,35 @@
             });
         });
 
+        it( 'should count with key properly', function (done) {
+            var item1 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+            var item2 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+            var item3 = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+
+            var spec = this;
+            spec.server.add( 'test' , item1 , {
+                item: item2,
+                key: 5
+            } , item3 ).then( function ( records ) {
+                spec.server.count( 'test').then(function(count){
+                    expect( count ).toEqual( 3 );
+                    done();
+                }, function(error) {
+                    expect( error ).toBeUndefined();
+                    done(error);
+                })
+            });
+        });
+
         it( 'should error when adding an item with an existing key' , function (done) {
             var item1 = {
                 firstName: 'Aaron',

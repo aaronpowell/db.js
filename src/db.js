@@ -274,12 +274,30 @@
             return new IndexQuery( table , db , index );
         };
 
+        /* key or IDBKeyRange */
         this.count = function (table , key) {
             if ( closed ) {
                 throw 'Database has been closed';
             }
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
+            return new Promise(function(resolve, reject) {
+                var req = store.count(key);
+                var count, error;
+                req.onsuccess = function ( e ) {
+                    count = e.target.result;
+                };
+                transaction.oncomplete = function ( ) {
+                    if (error === undefined) {
+                        resolve(count);
+                    } else {
+                        reject( error );
+                    }
+                };
+                transaction.onerror = function ( e ) {
+                    error = e;
+                };
+            });
         }
 
         for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
@@ -610,16 +628,18 @@
         remove: function (dbName) {
           return new Promise(function(resolve, reject) {
             var req = indexedDB.deleteDatabase( dbName );
-            req.onsuccess = function (e) {
-                resolve(e);
-            };
-
-            req.onerror = function (e) {
-                reject(e);
-            };
-
-            req.onblocked = function (e) {
-                reject(e);
+            var callbackRun = false;
+            req.onsuccess = req.onerror = req.onblocked = function (evt) {
+                if (callbackRun) {
+                    return;
+                }
+                callbackRun = true;
+                if (evt.type !== 'success') {
+                    evt.preventDefault();
+                    reject(evt);
+                    return;
+                }
+                resolve();
             };
           });
         },
