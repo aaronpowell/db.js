@@ -282,7 +282,7 @@
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
             return new Promise(function(resolve, reject) {
-                var req = store.count(key);
+                var req = key === undefined ? store.count() : store.count(key);
                 var count, error;
                 req.onsuccess = function ( e ) {
                     count = e.target.result;
