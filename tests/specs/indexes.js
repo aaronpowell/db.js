@@ -61,9 +61,10 @@
                     expect( indexNames.length ).toEqual( 2 );
                     expect( indexNames ).toContain( 'firstName' );
                     expect( indexNames ).toContain( 'age' );
-
-                    spec.server = res;
-                    done();
+                    transaction.oncomplete = function(event) {
+                      spec.server = res;
+                      done();
+                    }
                 };
             }
         });
@@ -119,8 +120,10 @@
                     expect( indexNames ).toContain( 'firstName' );
                     expect( indexNames ).toContain( 'age' );
 
-                    spec.server = res;
-                    done();
+                    transaction.oncomplete = function(event) {
+                      spec.server = res;
+                      done();
+                    }
                 };
             }
         });
@@ -180,8 +183,10 @@
                     expect( indexNames ).toContain( 'firstName' );
                     expect( indexNames ).toContain( 'age' );
 
-                    spec.server = res;
-                    done();
+                    transaction.oncomplete = function(event) {
+                      spec.server = res;
+                      done();
+                    }
                 };
             }
         });

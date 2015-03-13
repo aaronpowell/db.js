@@ -111,19 +111,24 @@
                   };
               } );
 
+              var err = undefined;
               transaction.oncomplete = function () {
-                  resolve( records , that );
+                  if (err !== undefined) {
+                      reject(err);
+                  } else {
+                      resolve( records , that );
+                  }
               };
 
               //https://bugzilla.mozilla.org/show_bug.cgi?id=872873
               transaction.onerror = function ( e ) {
                   e.preventDefault();
-                  reject( e );
+                  err = e;
               };
+              /* TODO: testing abort */
               transaction.onabort = function ( e ) {
-                  reject( e );
+                  err = e;
               };
-
             });
         };
 
@@ -158,14 +163,23 @@
                   };
               } );
 
+              /* TODO: merge duplicated code */
+              var err = undefined;
               transaction.oncomplete = function () {
-                  resolve( records , that );
+                  if (err !== undefined) {
+                      reject(err);
+                  } else {
+                      resolve( records , that );
+                  }
               };
+
+              //https://bugzilla.mozilla.org/show_bug.cgi?id=872873
               transaction.onerror = function ( e ) {
-                  reject( e );
+                  e.preventDefault();
+                  err = e;
               };
               transaction.onabort = function ( e ) {
-                  reject( e );
+                  err = e;
               };
             });
 
@@ -180,11 +194,16 @@
 
             return new Promise(function(resolve, reject){
               var req = store['delete']( key );
+              var error = undefined;
               transaction.oncomplete = function ( ) {
-                  resolve( key );
+                  if (error === undefined) {
+                      resolve( key );
+                  } else {
+                      reject( error );
+                  }
               };
               transaction.onerror = function ( e ) {
-                  reject( e );
+                  error = e;
               };
             });
         };
@@ -198,11 +217,16 @@
 
             var req = store.clear();
             return new Promise(function(resolve, reject){
+              var error = undefined;
               transaction.oncomplete = function ( ) {
-                  resolve( );
+                  if (error === undefined) {
+                      resolve();
+                  } else {
+                      reject( error );
+                  }
               };
               transaction.onerror = function ( e ) {
-                  reject( e );
+                  error = e;
               };
             });
         };
@@ -225,11 +249,20 @@
 
             var req = store.get( id );
             return new Promise(function(resolve, reject){
+              var result;
+              var error;
               req.onsuccess = function ( e ) {
-                  resolve( e.target.result );
+                  result = e.target.result;
+              };
+              transaction.oncomplete = function ( ) {
+                  if (error === undefined) {
+                      resolve(result);
+                  } else {
+                      reject( error );
+                  }
               };
               transaction.onerror = function ( e ) {
-                  reject( e );
+                  error = e;
               };
             });
         };

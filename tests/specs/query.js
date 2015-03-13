@@ -587,7 +587,6 @@
             it( 'should only allow `modify` from a specific query type' , function (done) {
                 var spec = this;
 
-                expect(spec.server.test.get('id').modify).toBeUndefined();
                 expect(spec.server.test.query().modify).toBeUndefined();
                 expect(spec.server.test.query().all().modify instanceof Function).toEqual(true);
                 expect(spec.server.test.query().filter({my:'filter'}).modify instanceof Function).toEqual(true);
@@ -596,7 +595,12 @@
                 expect(spec.server.test.query('age').lowerBound(1).modify instanceof Function).toEqual(true);
                 expect(spec.server.test.query('age').upperBound(3).modify instanceof Function).toEqual(true);
                 expect(spec.server.test.query('age').upperBound(3).desc().modify instanceof Function).toEqual(true);
-                done();
+
+                spec.server.test.get('id').then(function(v){
+                    expect(v).toBeUndefined();
+                    done();
+                });
+
             });
         });
     });
