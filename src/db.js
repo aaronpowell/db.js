@@ -508,7 +508,6 @@
     var open = function ( e , server , version , schema ) {
         var db = e.target.result;
         var s = new Server( db , server );
-        var upgrade;
 
         dbCache[ server ] = db;
 
@@ -521,6 +520,30 @@
         version: '0.9.2',
         indexedDB: indexedDB,
 
+        /*
+          The options:
+          {
+            server, // The name of DB
+            version, // The DB version
+            schema: {
+              tableNameA: {
+                key: { keyPath: 'id' , autoIncrement: true },
+                indexes: {
+                  firstName: { },
+                  answer: { unique: true },
+                  secondName: {
+                    key: KeyPathString, 
+                    unique: true,
+                    multiEntry: false
+                  },
+                }
+              },
+              tableNameB: {
+              }
+            },
+            upgrade: function, // When onupgradeneeded event happened, call this function
+          }
+        */
         open: function ( options ) {
             var request;
 
@@ -542,6 +565,7 @@
 
                   request.onupgradeneeded = function ( e ) {
                       createSchema( e , options.schema , e.target.result );
+                      options.upgrade && options.upgrade(e);
                   };
                   request.onerror = function ( e ) {
                       reject( e );

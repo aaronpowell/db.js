@@ -5,22 +5,10 @@
           indexedDB = db.indexedDB;
 
         beforeEach( function (done) {
-
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function () {
-                done();
-            };
-            
-            req.onerror = function (e) {
-                console.log( 'error deleting db' , arguments );
-                done(e);
-            };
-            
-            req.onblocked = function (e) {
-                console.log( 'db blocked on delete' , arguments );
-                done(e);
-            };
+            db.remove(dbName).then(done, function(err) {
+                console.log( 'failed to delete db' , arguments );
+                done(err);
+            });
         }, 10000);
         
         afterEach( function (done) {
@@ -105,6 +93,41 @@
             },function (err) {
               done(err);
             });
+        });
+
+        it( 'should upgrade when db newly created or version changed' , function (done) {
+            var upgraded = undefined;
+            db.open( {
+                server: dbName,
+                version: 1,
+                schema: { 
+                    test: {}
+                },
+                upgrade: function(e) {
+                  upgraded = true;
+                }
+            }).then(function ( s ) {
+                s.close();
+                expect(upgraded).toBe(true, 'schema migration failed');
+                upgraded = undefined;
+                next();
+            });
+            function next() {
+                db.open( {
+                  server: dbName,
+                  version: 2,
+                  schema: { 
+                      wow: {}
+                  },
+                  upgrade: function(e) {
+                    upgraded = true;
+                  }
+                }).then(function ( s ) {
+                    expect(upgraded).toBe(true, 'schema migration failed');
+                    s.close();
+                    done();
+                });
+            }
         });
 
         it( 'should skip creating existing object stores when migrating schema' , function (done) {

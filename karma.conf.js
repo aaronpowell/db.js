@@ -12,7 +12,7 @@ module.exports = function(config) {
   var sauceEnalbe = true;
   if (!process.env.SAUCE_ACCESS_KEY) {
     console.warn('Unable to load saurcelabs key');
-    if (!process.env.SAUCE_DISABLE) {
+    if (!process.env.SAUCE_DISABLED) {
       if (!fs.existsSync('sauce.js')) {
         console.log('Create a sauce.js with your credentials with username, accessKey export');
         process.exit(1);
