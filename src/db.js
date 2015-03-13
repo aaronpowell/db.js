@@ -304,9 +304,9 @@
                 if ( typeof cursor === typeof 0 ) {
                     results = cursor;
                 } else if ( cursor ) {
-                	if ( limitRange !== null && limitRange[0] > counter) {
-                    	counter = limitRange[0];
-                    	cursor.advance(limitRange[0]);
+                    if ( limitRange !== null && limitRange[0] > counter) {
+                        counter = limitRange[0];
+                        cursor.advance(limitRange[0]);
                     } else if ( limitRange !== null && counter >= (limitRange[0] + limitRange[1]) ) {
                         //out of limit range... skip
                     } else {
