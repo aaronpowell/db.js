@@ -64,6 +64,10 @@
         var that = this,
             closed = false;
 
+		this.getIndexedDB = function () {
+			return db;
+		};
+
         this.add = function( table ) {
             if ( closed ) {
                 throw 'Database has been closed';
