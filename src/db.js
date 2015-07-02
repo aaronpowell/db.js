@@ -119,6 +119,9 @@
                   resolve( records , that );
               };
               transaction.onerror = function ( e ) {
+                  // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                  // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                  e.preventDefault();
                   reject( e );
               };
               transaction.onabort = function ( e ) {
