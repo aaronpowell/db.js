@@ -522,7 +522,7 @@
     var dbCache = {};
 
     var db = {
-        version: '0.9.2',
+        version: '0.10.2',
         open: function ( options ) {
             var request;
 
