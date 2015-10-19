@@ -2,7 +2,8 @@
 
 # db.js
 
-db.js is a wrapper for [IndexedDB](http://www.w3.org/TR/IndexedDB/) to make it easier to work against, making it look more like a queryable API.
+db.js is a wrapper for [IndexedDB](http://www.w3.org/TR/IndexedDB/) to
+make it easier to work against, making it look more like a queryable API.
 
 # Usage
 
@@ -12,9 +13,12 @@ Add a reference to db.js in your application before you want to use IndexedDB:
 	<script src='/scripts/db.js'></script>
 ```
 
-Alternatively, db.js includes an optional `define` call, and can be loaded as module using the [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) loader of your choice.
+Alternatively, db.js includes an optional `define` call, and can be loaded
+as module using the [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD)
+loader of your choice.
 
-Once you have the script included you can then open connections to each different database within your application:
+Once you have the script included you can then open connections to each
+different database within your application:
 
 ```js
 	var server;
@@ -36,11 +40,15 @@ Once you have the script included you can then open connections to each differen
 	} );
 ```
 
-A connection is intended to be persisted and you can perform multiple operations while it's kept open. Check out the `/tests/specs` folder for more examples.
+A connection is intended to be persisted and you can perform multiple
+operations while it's kept open. Check out the `/tests/specs` folder
+for more examples.
 
 ## General
 
-Note that the methods below can be called either as `server.people.xxx( arg1, arg2, ... )` or `server.xxx( 'people', arg1, arg2, ... )`.
+Note that the methods below can be called either as
+`server.people.xxx( arg1, arg2, ... )` or
+`server.xxx( 'people', arg1, arg2, ... )`.
 
 ## Adding items
 
@@ -173,19 +181,24 @@ server.profiles.query('name')
 	server.close();
 ```
 
-# Deferred/ Promise notes
+# Deferred/Promise notes
 
 db.js used the es6 Promise spec to handle asynchronous operations.
 
-All operations that are asynchronous will return an instance of the es6 Promise object that exposes a `then` method which will take up to two callbacks, `onFulfilled` and `onRejected`. Please refer to es6 promise spec for more information.
+All operations that are asynchronous will return an instance of the
+es6 Promise object that exposes a `then` method which will take up
+to two callbacks, `onFulfilled` and `onRejected`. Please refer to
+es6 promise spec for more information.
 
-As of version `0.7.0` db.js's Promise API is designed to work with es6 Promise, please polyfil it if you would like to use other promise library.
+As of version `0.7.0` db.js's Promise API is designed to work with
+es6 Promise, please polyfil it if you would like to use other promise
+library.
 
 # Contribute Note
 
 - `npm install` to install all the dependency
 
-- `grunt jasmine-sever` to run jasmine server
+- `grunt jasmine-server` to run jasmine server
 
 - `open localhost:9999` to run the jasmine test
 
