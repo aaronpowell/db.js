@@ -40,7 +40,7 @@ different database within your application:
 	} );
 ```
 
-A connection is intended to be persisted and you can perform multiple
+A connection is intended to be persisted, and you can perform multiple
 operations while it's kept open. Check out the `/tests/specs` folder
 for more examples.
 
@@ -135,7 +135,7 @@ All ranges supported by IDBKeyRange can be used.
 ### Atomic updates
 
 Any query that returns a range of results can also be set to modify the returned
-records atomically. This is done by adding `.modify()` at the end of the query
+records automatically. This is done by adding `.modify()` at the end of the query
 (right before `.execute()`).
 
 `modify` only runs updates on objects matched by the query, and still returns
@@ -191,16 +191,16 @@ to two callbacks, `onFulfilled` and `onRejected`. Please refer to
 es6 promise spec for more information.
 
 As of version `0.7.0` db.js's Promise API is designed to work with
-es6 Promise, please polyfil it if you would like to use other promise
+es6 Promises, please polyfill it if you would like to use other promise
 library.
 
-# Contribute Note
+# Contributor notes
 
-- `npm install` to install all the dependency
+- `npm install` to install all the dependencies
 
-- `grunt jasmine-server` to run jasmine server
+- `grunt jasmine-server` to run the jasmine server
 
-- `open localhost:9999` to run the jasmine test
+- Open `http://localhost:9999/tests` to run the jasmine tests
 
 The MIT License
 
