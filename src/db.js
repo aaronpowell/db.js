@@ -550,6 +550,23 @@
                   };
               }
             });
+        },
+        'delete': function (dbName) {
+            var request;
+
+            return new Promise(function(resolve, reject){
+                request = indexedDB.deleteDatabase( dbName );
+
+                request.onsuccess = function () {
+                    resolve();
+                };
+                request.onerror = function ( e ) {
+                    reject( e );
+                };
+                request.onblocked = function ( e ) {
+                    reject( e );
+                };
+            });
         }
     };
 
