@@ -16,7 +16,8 @@
     "node": ">=0.8"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "prepublish": "bower install"
   },
   "devDependencies": {
     "express": "*",

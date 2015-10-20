@@ -1,11 +1,13 @@
+/*global require, module, __dirname, process*/
+'use strict';
 var express = require('express');
 var app = module.exports = express();
 var fs = require('fs');
 var path = require('path');
 
 app.set('views', path.join(__dirname, 'views'));
-app.use('/lib', express.static(path.join(__dirname, 'lib')));
-app.use('/specs', express.static(path.join(__dirname, 'specs')));
+app.use('/lib', express['static'](path.join(__dirname, 'lib')));
+app.use('/specs', express['static'](path.join(__dirname, 'specs')));
 app.set('view engine', 'jade');
 app.use(express.bodyParser());
 app.use(express.methodOverride());
