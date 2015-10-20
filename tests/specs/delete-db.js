@@ -4,7 +4,19 @@
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
+        beforeEach(function (done) {
+            var request = indexedDB.deleteDatabase( dbName );
 
+            request.onsuccess = function () {
+                done();
+            };
+            request.onerror = function ( e ) {
+                done( e );
+            };
+            request.onblocked = function ( e ) {
+                done( e );
+            };
+        });
         it( 'should delete a created db' , function (done) {
             db.open( {
                 server: dbName ,
