@@ -66,6 +66,7 @@ var module;
     };
 
     var dbCache = {};
+    var isArray = Array.isArray;
 
     var Server = function ( db , name ) {
         var that = this,
@@ -84,11 +85,10 @@ var module;
             var counter = 0;
 
             var i, alm;
-            var isArray = Array.isArray;
             for (i = 0, alm = arguments.length - 1; i < alm; i++) {
                 var aip = arguments[i + 1];
                 if (isArray(aip)) {
-                    var j, alp, aipl = aip.length;
+                    var j, aipl = aip.length;
                     for (j = 0; j < aipl; j++) {
                         records[counter] = aip[j];
                         counter++;
@@ -148,9 +148,21 @@ var module;
             }
 
             var records = [];
-            var i;
-            for ( i = 0 ; i < arguments.length - 1 ; i++ ) {
-                records[ i ] = arguments[ i + 1 ];
+            var counter = 0;
+
+            var i, alm;
+            for (i = 0, alm = arguments.length - 1; i < alm ; i++) {
+                var aip = arguments[i + 1];
+                if (isArray(aip)) {
+                    var j, aipl = aip.length;
+                    for (j = 0; j < aipl; j++) {
+                        records[counter] = aip[j];
+                        counter++;
+                    }
+                } else {
+                    records[counter] = aip;
+                    counter++;
+                }
             }
 
             var transaction = db.transaction( table , transactionModes.readwrite ),

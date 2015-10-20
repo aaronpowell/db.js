@@ -6,7 +6,7 @@
     describe( 'server.update' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
+
        beforeEach( function (done) {
             var spec = this;
             
@@ -66,9 +66,9 @@
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
-            
+
             var spec = this;
-            
+
             spec.server.add( 'test' , item ).then( function ( /*records*/ ) {
                 item.firstName = 'John';
                 item.lastName = 'Smith';
@@ -77,6 +77,47 @@
                     .test
                     .update( item )
                     .then( function ( /*records*/ ) {
+                        spec.server
+                            .test
+                            .get( item.id )
+                            .then( function ( record ) {
+                                expect( record ).toBeDefined();
+                                expect( record.id ).toBe( item.id );
+                                expect( record.firstName ).toBe( item.firstName );
+                                expect( record.lastName ).toBe( item.lastName );
+                                expect( record ).not.toBe( item );
+                                done();
+                            });
+                    });
+            });
+        });
+
+        it( 'should update an array of items after it is added' , function (done) {
+            var items = [{
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            }, {
+                firstName: 'Brett',
+                lastName: 'Zamir'
+            }];
+
+            var spec = this;
+            spec.server.add( 'test' , items ).then( function ( /*records*/ ) {
+                var newItems = [{
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    id: items[0].id
+                }, {
+                    firstName: 'James',
+                    lastName: 'Doe',
+                    id: items[1].id
+                }];
+
+                spec.server
+                    .test
+                    .update( newItems )
+                    .then( function ( /*records*/ ) {
+                        var item = newItems[1];
                         spec.server
                             .test
                             .get( item.id )
