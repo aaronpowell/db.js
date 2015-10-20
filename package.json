@@ -10,18 +10,14 @@
   "bugs": {
     "url": "https://github.com/aaronpowell/db.js/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/aaronpowell/db.js/blob/master/LICENSE.md"
-    }
-  ],
+  "license": "MIT",
   "main": "src/db.js",
   "engines": {
     "node": ">=0.8"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "prepublish": "bower install"
   },
   "devDependencies": {
     "express": "*",
