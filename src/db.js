@@ -28,43 +28,6 @@ var module;
         return value;
     };
 
-    var CallbackList = function () {
-        var state,
-            list = [];
-
-        var exec = function ( context , args ) {
-            if ( list ) {
-                args = args || [];
-                state = state || [ context , args ];
-
-                var i, il;
-                for ( i = 0 , il = list.length ; i < il ; i++ ) {
-                    list[ i ].apply( state[ 0 ] , state[ 1 ] );
-                }
-
-                list = [];
-            }
-        };
-
-        this.add = function () {
-            var i, il;
-            for ( i = 0 , il = arguments.length ; i < il ; i ++ ) {
-                list.push( arguments[ i ] );
-            }
-
-            if ( state ) {
-                exec();
-            }
-
-            return this;
-        };
-
-        this.execute = function () {
-            exec( this , arguments );
-            return this;
-        };
-    };
-
     var dbCache = {};
 
     var Server = function ( db , name ) {
