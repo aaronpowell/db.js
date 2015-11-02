@@ -1,4 +1,7 @@
-(function ( window , undefined ) {
+/*global Promise, define, window*/
+/*jslint vars:true, continue:true*/
+var module;
+(function ( window ) {
     'use strict';
 
     var indexedDB,
@@ -34,7 +37,8 @@
                 args = args || [];
                 state = state || [ context , args ];
 
-                for ( var i = 0 , il = list.length ; i < il ; i++ ) {
+                var i, il;
+                for ( i = 0 , il = list.length ; i < il ; i++ ) {
                     list[ i ].apply( state[ 0 ] , state[ 1 ] );
                 }
 
@@ -43,7 +47,8 @@
         };
 
         this.add = function () {
-            for ( var i = 0 , il = arguments.length ; i < il ; i ++ ) {
+            var i, il;
+            for ( i = 0 , il = arguments.length ; i < il ; i ++ ) {
                 list.push( arguments[ i ] );
             }
 
@@ -60,13 +65,15 @@
         };
     };
 
+    var dbCache = {};
+
     var Server = function ( db , name ) {
         var that = this,
             closed = false;
 
-		this.getIndexedDB = function () {
-			return db;
-		};
+        this.getIndexedDB = function () {
+            return db;
+        };
 
         this.add = function( table ) {
             if ( closed ) {
@@ -76,14 +83,18 @@
             var records = [];
             var counter = 0;
 
-            for (var i = 0; i < arguments.length - 1; i++) {
-                if (Array.isArray(arguments[i + 1])) {
-                    for (var j = 0; j < (arguments[i + 1]).length; j++) {
-                        records[counter] = (arguments[i + 1])[j];
+            var i, alm;
+            var isArray = Array.isArray;
+            for (i = 0, alm = arguments.length - 1; i < alm; i++) {
+                var aip = arguments[i + 1];
+                if (isArray(aip)) {
+                    var j, alp, aipl = aip.length;
+                    for (j = 0; j < aipl; j++) {
+                        records[counter] = aip[j];
                         counter++;
                     }
                 } else {
-                    records[counter] = arguments[i + 1];
+                    records[counter] = aip;
                     counter++;
                 }
             }
@@ -137,7 +148,8 @@
             }
 
             var records = [];
-            for ( var i = 0 ; i < arguments.length - 1 ; i++ ) {
+            var i;
+            for ( i = 0 ; i < arguments.length - 1 ; i++ ) {
                 records[ i ] = arguments[ i + 1 ];
             }
 
@@ -251,12 +263,14 @@
             }
             var transaction = db.transaction( table ),
                 store = transaction.objectStore( table );
-        }
+        };
 
-        for ( var i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
+        var i, il;
+        for ( i = 0 , il = db.objectStoreNames.length ; i < il ; i++ ) {
             (function ( storeName ) {
                 that[ storeName ] = { };
-                for ( var i in that ) {
+                var i;
+                for ( i in that ) {
                     if ( !hasOwn.call( that , i ) || i === 'close' ) {
                         continue;
                     }
@@ -265,9 +279,9 @@
                             var args = [ storeName ].concat( [].slice.call( arguments , 0 ) );
                             return that[ i ].apply( that , args );
                         };
-                    })( i );
+                    }( i ));
                 }
-            })( db.objectStoreNames[ i ] );
+            }( db.objectStoreNames[ i ] ));
         }
     };
 
@@ -282,22 +296,23 @@
                 keyRange = type ? IDBKeyRange[ type ].apply( null, args ) : null,
                 results = [],
                 indexArgs = [ keyRange ],
-                limitRange = limitRange ? limitRange : null,
-                filters = filters ? filters : [],
                 counter = 0;
 
+            limitRange = limitRange || null;
+            filters = filters || [];
             if ( cursorType !== 'count' ) {
                 indexArgs.push( direction || 'next' );
-            };
+            }
 
             // create a function that will set in the modifyObj properties into
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
             var modifyRecord = function(record) {
-                for(var i = 0; i < modifyKeys.length; i++) {
+                var i;
+                for(i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
-                    if(val instanceof Function) val = val(record);
+                    if(val instanceof Function) {val = val(record);}
                     record[key] = val;
                 }
                 return record;
@@ -305,12 +320,12 @@
 
             index[cursorType].apply( index , indexArgs ).onsuccess = function ( e ) {
                 var cursor = e.target.result;
-                if ( typeof cursor === typeof 0 ) {
+                if ( typeof cursor === 'number' ) {
                     results = cursor;
                 } else if ( cursor ) {
-                	if ( limitRange !== null && limitRange[0] > counter) {
-                    	counter = limitRange[0];
-                    	cursor.advance(limitRange[0]);
+                    if ( limitRange !== null && limitRange[0] > counter) {
+                        counter = limitRange[0];
+                        cursor.advance(limitRange[0]);
                     } else if ( limitRange !== null && counter >= (limitRange[0] + limitRange[1]) ) {
                         //out of limit range... skip
                     } else {
@@ -321,7 +336,7 @@
                             if ( !filter || !filter.length ) {
                                 //Invalid filter do nothing
                             } else if ( filter.length === 2 ) {
-                                matchFilter = matchFilter && (result[filter[0]] === filter[1])
+                                matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
                                 matchFilter = matchFilter && filter[0].apply(undefined,[result]);
                             }
@@ -367,9 +382,9 @@
             };
 
             var limit = function () {
-                limitRange = Array.prototype.slice.call( arguments , 0 , 2 )
-                if (limitRange.length == 1) {
-                    limitRange.unshift(0)
+                limitRange = Array.prototype.slice.call( arguments , 0 , 2 );
+                if (limitRange.length === 1) {
+                    limitRange.unshift(0);
                 }
 
                 return {
@@ -384,6 +399,8 @@
                     execute: execute
                 };
             };
+            
+            var filter, desc, distinct, modify, map;
             var keys = function () {
                 cursorType = 'openKeyCursor';
 
@@ -395,7 +412,7 @@
                     map: map
                 };
             };
-            var filter = function ( ) {
+            filter = function ( ) {
                 filters.push( Array.prototype.slice.call( arguments , 0 , 2 ) );
 
                 return {
@@ -409,7 +426,7 @@
                     map: map
                 };
             };
-            var desc = function () {
+            desc = function () {
                 direction = 'prev';
 
                 return {
@@ -421,7 +438,7 @@
                     map: map
                 };
             };
-            var distinct = function () {
+            distinct = function () {
                 unique = true;
                 return {
                     keys: keys,
@@ -433,13 +450,13 @@
                     map: map
                 };
             };
-            var modify = function(update) {
+            modify = function(update) {
                 modifyObj = update;
                 return {
                     execute: execute
                 };
             };
-            var map = function (fn) {
+            map = function (fn) {
                 mapper = fn;
 
                 return {
@@ -468,7 +485,7 @@
             };
         };
 
-        'only bound upperBound lowerBound'.split(' ').forEach(function (name) {
+        ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
             that[name] = function () {
                 return new Query( name , arguments );
             };
@@ -489,7 +506,8 @@
             schema = schema();
         }
 
-        for ( var tableName in schema ) {
+        var tableName;
+        for ( tableName in schema ) {
             var table = schema[ tableName ];
             var store;
             if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
@@ -498,11 +516,12 @@
                 store = db.createObjectStore(tableName, table.key);
             }
 
-            for ( var indexKey in table.indexes ) {
+            var indexKey;
+            for ( indexKey in table.indexes ) {
                 var index = table.indexes[ indexKey ];
                 try {
-                    store.index(indexKey)
-                } catch (e) {
+                    store.index(indexKey);
+                } catch (err) {
                     store.createIndex( indexKey , index.key || indexKey , Object.keys(index).length ? index : { unique: false } );
                 }
             }
@@ -516,10 +535,8 @@
 
         dbCache[ server ] = db;
 
-        return Promise.resolve(s)
+        return Promise.resolve(s);
     };
-
-    var dbCache = {};
 
     var db = {
         version: '0.10.2',
@@ -533,13 +550,13 @@
                           result: dbCache[ options.server ]
                       }
                   } , options.server , options.version , options.schema )
-                  .then(resolve, reject)
+                  .then(resolve, reject);
               } else {
                   request = getIndexedDB().open( options.server , options.version );
 
                   request.onsuccess = function ( e ) {
                       open( e , options.server , options.version , options.schema )
-                          .then(resolve, reject)
+                          .then(resolve, reject);
                   };
 
                   request.onupgradeneeded = function ( e ) {
@@ -553,11 +570,11 @@
         }
     };
 
-    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    if (module !== undefined && module.exports !== undefined) {
         module.exports = db;
     } else if ( typeof define === 'function' && define.amd ) {
         define( function() { return db; } );
     } else {
         window.db = db;
     }
-})( window );
+}( window ));

@@ -1,3 +1,4 @@
+/*global window, console*/
 (function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
     describe( 'db.open' , function () {
@@ -29,8 +30,8 @@
             }                
             var req = indexedDB.deleteDatabase( dbName );
             
-            req.onsuccess = function (e) {
-              done();
+            req.onsuccess = function (/*e*/) {
+                done();
             };
             
             req.onerror = function (e) {
@@ -57,8 +58,6 @@
         });
         
         it( 'should use the provided schema' , function (done) {
-            var spec = this;
-
             db.open( {
                 server: dbName,
                 version: 1,
@@ -69,37 +68,34 @@
                             autoIncrement: true
                         },
                         indexes: {
-                          x: {},
+                          x: {}
                         }
                     }
                 }
             }).then(function ( s ) {
-              s.close();
-              var req = indexedDB.open( dbName );
-              req.onsuccess = function ( e ) {
-                var db = e.target.result;
+                s.close();
+                var req = indexedDB.open( dbName );
+                req.onsuccess = function ( e ) {
+                    var db = e.target.result;
                 
-                expect( db.objectStoreNames.length ).toEqual( 1 );
-                expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
+                    expect( db.objectStoreNames.length ).toEqual( 1 );
+                    expect( db.objectStoreNames[ 0 ] ).toEqual( 'test' );
                 
-                db.close();
-                done();
-              };
+                    db.close();
+                    done();
+                };
             },function (err) {
-              console.log(err);
-              done(err);
+                console.log(err);
+                done(err);
             });
         });
 
         it( 'should allow schemas without keypaths' , function (done) {
-            var spec = this;
-
             db.open( {
                 server: dbName ,
                 version: 1,
                 schema: { 
-                    test: {
-                    }
+                    test: {}
                 }
             }).then(function ( s ) {
                 s.close();
@@ -119,8 +115,6 @@
         });
 
         it( 'should skip creating existing object stores when migrating schema' , function (done) {
-            var migrated = undefined;
-
             db.open( {
                 server: dbName,
                 version: 1,
@@ -130,8 +124,8 @@
             }).then(function ( s ) {
                 s.close();
                 function migrated(ret) {
-                  expect(ret).toBe(true, 'schema migration failed');
-                  done();
+                    expect(ret).toBe(true, 'schema migration failed');
+                    done();
                 }
                 db.open( {
                     server: dbName,
@@ -143,12 +137,12 @@
                 }).then(function ( s ) {
                     s.close();
                     migrated(true);
-                },function (err) {
+                },function (/*err*/) {
                     migrated(false);
                 });
             },function (err) {
-              done(err);
+                done(err);
             });
         });
     });
-})( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach );
+}( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach ));

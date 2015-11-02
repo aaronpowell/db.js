@@ -1,37 +1,20 @@
-(function ( db , describe , it , runs , expect , waitsFor , beforeEach , afterEach , $ ) {
+/*global window, console, Promise*/
+/*jslint vars:true*/
+(function ( db , describe , it , expect , beforeEach , afterEach , $ ) {
     'use strict';
     
     describe( 'thenable library promise integration' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
            
-       beforeEach( function () {
-            var done = false;
+       beforeEach( function (done) {
             var spec = this;
             
             spec.server = undefined;
             
-            runs( function () {
-                var req = indexedDB.deleteDatabase( dbName );
-                
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in beforeEach' , arguments );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments , spec );
-                };
-            });
+            var req = indexedDB.deleteDatabase( dbName );
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
-
-            runs( function () {
+            req.onsuccess = function () {
                 db.open( {
                     server: dbName ,
                     version: 1 ,
@@ -45,64 +28,51 @@
                     }
                 }).then(function ( s ) {
                     spec.server = s;
+                }).then(function () {
+                    spec.server
+                        .test
+                        .add({
+                            firstName: 'Aaron',
+                            lastName: 'Powell'
+                        })
+                        .then(function () {
+                            done();
+                        });
                 });
-            });
+            };
             
-            waitsFor( function () { 
-                return !!spec.server;
-            } , 'wait on db' , 500 );
-
-            runs( function () {
-                done = false;
-
-                spec.server
-                    .test
-                    .add({
-                        firstName: 'Aaron',
-                        lastName: 'Powell'
-                    })
-                    .then(function () {
-                        done = true;
-                    });
-            });
-
-            waitsFor( function () {
-                return done;
-            } , 'adding record' , 500 );
+            req.onerror = function () {
+                console.log( 'failed to delete db in beforeEach' , arguments );
+            };
+            
+            req.onblocked = function () {
+                console.log( 'db blocked' , arguments , spec );
+            };
         });
         
-        afterEach( function () {
-            var done;
+        afterEach( function (done) {
+            if ( this.server ) {
+                this.server.close();
+            }
 
-            runs( function () {
-                if ( this.server ) {
-                    this.server.close();
-                }
+            var spec = this;
 
-                var spec = this;
+            var req = indexedDB.deleteDatabase( dbName );
 
-                var req = indexedDB.deleteDatabase( dbName );
-
-                req.onsuccess = function () {
-                    done = true;
-                };
-                
-                req.onerror = function () {
-                    console.log( 'failed to delete db in afterEach' , arguments , spec );
-                };
-                
-                req.onblocked = function () {
-                    console.log( 'db blocked' , arguments );
-                };
-            });
+            req.onsuccess = function () {
+                done();
+            };
             
-            waitsFor( function () {
-                 return done;
-            }, 'timed out deleting the database', 1000);
+            req.onerror = function () {
+                console.log( 'failed to delete db in afterEach' , arguments , spec );
+            };
+            
+            req.onblocked = function () {
+                console.log( 'db blocked' , arguments );
+            };
         });
 
-        it( 'should be able to work with other thenable library' , function () {
-            var done;
+        it( 'should be able to work with other thenable library' , function (done) {
             var ajaxData;
             var queryData;
             var ajaxDeferred = $.getJSON( 'foo' );
@@ -115,21 +85,14 @@
 
             Promise.all([Promise.resolve(ajaxDeferred), queryDeferred])
               .then(function (resolvedArray) {
-                  ajaxData = resolvedArray[0]
-                  queryData = resolvedArray[1]
-                  done = true;
+                  ajaxData = resolvedArray[0];
+                  queryData = resolvedArray[1];
+                  expect( queryData ).toBeDefined();
+                  expect( queryData.length ).toBe( 1 );
+                  expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
+                  expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
+                  done();
               });
-
-            waitsFor( function () {
-                return done;
-            } , 'promise to return' , 3000 );
-
-            runs(function(){
-                expect( queryData ).toBeDefined();
-                expect( queryData.length ).toBe( 1 );
-                expect( queryData[ 0 ].firstName ).toBe( 'Aaron' );
-                expect( queryData[ 0 ].lastName ).toBe( 'Powell' );
-            });
         });
     });
-})( window.db , window.describe , window.it , window.runs , window.expect , window.waitsFor , window.beforeEach , window.afterEach , window.jQuery );
+}( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach , window.jQuery ));

@@ -1,5 +1,6 @@
-/* global module:false */
-module.exports = function(grunt){
+/*global module:false, require, console */
+/*jslint vars:true*/
+module.exports = function(grunt) { 'use strict';
 	// Project configuration.
 	var saucekey = 'auzcE6Esp+TT6vpQHUyWf9jpvYpEO1iHWiMfkZTxo+MsJcETw1qaAakAgyE8jwPFHSPPT6wDzt+rLUOd6FkwqSgm3lLuP9wKgikXzgYSpNg+EfHrF1rep+BVZFkbs3uk6NetezlALVPOMq+4O54TbtOiLF9KurjkM5YkryExCmc=';
 
@@ -22,7 +23,7 @@ module.exports = function(grunt){
 			server: {
 				options: {
 					base: ".",
-					port: 9999,
+					port: 9999
 				}
 			}
 		},
@@ -68,7 +69,7 @@ module.exports = function(grunt){
 	grunt.registerTask('test', testJobs);
 	grunt.registerTask('default', 'test');
   grunt.registerTask('jasmine-server',function(){
-    grunt.task.run(devJobs)
+    grunt.task.run(devJobs);
     grunt.task.run('connect:server:keepalive');
   });
 };
