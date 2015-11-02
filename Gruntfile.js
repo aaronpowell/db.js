@@ -50,6 +50,17 @@ module.exports = function(grunt) { 'use strict';
                     }]
                 }
             }
+        },
+
+        "babel": {
+            options: {
+                sourceMap: true
+            },
+            dist: {
+                files: {
+                    "dist/db.js": "src/db.js"
+                  }
+            }
         }
     });
 
@@ -60,8 +71,8 @@ module.exports = function(grunt) { 'use strict';
         this.async();
     });
 
-    var testJobs = ["clean", "jade", "connect"];
-    var devJobs = ["clean", "jade"];
+    var testJobs = ["babel", "clean", "jade", "connect"];
+    var devJobs = ["babel", "clean", "jade"];
     if (saucekey !== null) {
         testJobs.push("saucelabs-jasmine");
     }
@@ -69,8 +80,8 @@ module.exports = function(grunt) { 'use strict';
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
     grunt.registerTask('jasmine-server',function(){
-    grunt.task.run(devJobs);
-    grunt.task.run('connect:server:keepalive');
-  });
+        grunt.task.run(devJobs);
+        grunt.task.run('connect:server:keepalive');
+    });
 };
 
