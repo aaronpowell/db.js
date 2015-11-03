@@ -27,25 +27,20 @@
 
         this.getIndexedDB = () => db;
 
-        this.add = function (table) {
+        this.add = function (table, ...args) {
             if (closed) {
                 throw new Error('Database has been closed');
             }
 
             var records = [];
-            var counter = 0;
 
             var isArray = Array.isArray;
-            for (var i = 0, alm = arguments.length - 1; i < alm; i++) {
-                var aip = arguments[i + 1];
+            for (var i = 0, alm = args.length; i < alm; i++) {
+                var aip = args[i];
                 if (isArray(aip)) {
-                    aip.map(x => {
-                        records[counter] = x;
-                        counter++;
-                    });
+                    records = records.concat(aip);
                 } else {
-                    records[counter] = aip;
-                    counter++;
+                    records.push(aip);
                 }
             }
 
@@ -78,26 +73,19 @@
 
                 transaction.oncomplete = () => resolve(records, this);
 
-                transaction.onerror = function (e) {
+                transaction.onerror = e => {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
                     e.preventDefault();
                     reject(e);
                 };
-                transaction.onabort = function (e) {
-                    reject(e);
-                };
+                transaction.onabort = e => reject(e);
             });
         };
 
-        this.update = function (table) {
+        this.update = function (table, ...records) {
             if (closed) {
                 throw new Error('Database has been closed');
-            }
-
-            var records = [];
-            for (var i = 0; i < arguments.length - 1; i++) {
-                records[i] = arguments[i + 1];
             }
 
             var transaction = db.transaction(table, transactionModes.readwrite);
@@ -105,27 +93,18 @@
 
             return new Promise(function (resolve, reject) {
                 records.forEach(function (record) {
-                    var req;
                     if (record.item && record.key) {
                         var key = record.key;
                         record = record.item;
-                        req = store.put(record, key);
+                        store.put(record, key);
                     } else {
-                        req = store.put(record);
+                        store.put(record);
                     }
-
-                    req.onsuccess = function (e) {
-                        // deferred.notify(); es6 promise can't notify
-                    };
                 });
 
                 transaction.oncomplete = () => resolve(records, this);
-                transaction.onerror = function (e) {
-                    reject(e);
-                };
-                transaction.onabort = function (e) {
-                    reject(e);
-                };
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -138,12 +117,8 @@
 
             return new Promise(function (resolve, reject) {
                 store['delete'](key);
-                transaction.oncomplete = function () {
-                    resolve(key);
-                };
-                transaction.onerror = function (e) {
-                    reject(e);
-                };
+                transaction.oncomplete = () => resolve(key);
+                transaction.onerror = e => reject(e);
             });
         };
 
@@ -156,12 +131,8 @@
 
             store.clear();
             return new Promise(function (resolve, reject) {
-                transaction.oncomplete = function () {
-                    resolve();
-                };
-                transaction.onerror = function (e) {
-                    reject(e);
-                };
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = e => reject(e);
             });
         };
 
@@ -183,12 +154,8 @@
 
             var req = store.get(id);
             return new Promise(function (resolve, reject) {
-                req.onsuccess = function (e) {
-                    resolve(e.target.result);
-                };
-                transaction.onerror = function (e) {
-                    reject(e);
-                };
+                req.onsuccess = e => resolve(e.target.result);
+                transaction.onerror = e => reject(e);
             });
         };
 
@@ -213,13 +180,13 @@
             });
         };
 
-        db.objectStoreNames.map(storeName => {
+        [].map.call(db.objectStoreNames, storeName => {
             this[storeName] = {};
             var keys = Object.keys(this);
             keys.filter(key => key !== 'close').map(key => {
-                this[storeName][key] = () => function () {
-                    this[key].apply(this, [storeName].concat([].slice.call(arguments, 0)));
-                };
+                this[storeName][key] = function (...args) {
+                    return this[key].apply(this, [storeName].concat(args));
+                }.bind(this);
             });
         });
     };
@@ -294,15 +261,9 @@
             };
 
             return new Promise(function (resolve, reject) {
-                transaction.oncomplete = function () {
-                    resolve(results);
-                };
-                transaction.onerror = function (e) {
-                    reject(e);
-                };
-                transaction.onabort = function (e) {
-                    reject(e);
-                };
+                transaction.oncomplete = () => resolve(results);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -424,12 +385,12 @@
 
         ['only', 'bound', 'upperBound', 'lowerBound'].forEach((name) => {
             this[name] = function () {
-                return new Query(name, arguments);
+                return Query(name, arguments);
             };
         });
 
         this.filter = function () {
-            var query = new Query(null, null);
+            var query = Query(null, null);
             return query.filter.apply(query, arguments);
         };
 
@@ -477,8 +438,6 @@
     var db = {
         version: '0.10.2',
         open: function (options) {
-            var request;
-
             return new Promise(function (resolve, reject) {
                 if (dbCache[options.server]) {
                     open({
@@ -486,45 +445,29 @@
                             result: dbCache[options.server]
                         }
                     }, options.server, options.version, options.schema)
-                        .then(resolve, reject);
+                    .then(resolve, reject);
                 } else {
-                    request = indexedDB.open(options.server, options.version);
+                    let request = indexedDB.open(options.server, options.version);
 
-                    request.onsuccess = function (e) {
-                        open(e, options.server, options.version, options.schema)
-                            .then(resolve, reject);
-                    };
-
-                    request.onupgradeneeded = function (e) {
-                        createSchema(e, options.schema, e.target.result);
-                    };
-                    request.onerror = function (e) {
-                        reject(e);
-                    };
+                    request.onsuccess = e => open(e, options.server, options.version, options.schema).then(resolve, reject);
+                    request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
+                    request.onerror = e => reject(e);
                 }
             });
         },
 
         'delete': function (dbName) {
-            var request;
-
             return new Promise(function (resolve, reject) {
-                request = indexedDB.deleteDatabase(dbName);
+                var request = indexedDB.deleteDatabase(dbName);
 
-                request.onsuccess = function () {
-                    resolve();
-                };
-                request.onerror = function (e) {
-                    reject(e);
-                };
-                request.onblocked = function (e) {
-                    reject(e);
-                };
+                request.onsuccess = () => resolve();
+                request.onerror = e => reject(e);
+                request.onblocked = e => reject(e);
             });
         }
     };
 
-    if (module !== undefined && module.exports !== undefined) {
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         module.exports = db;
     } else if (typeof define === 'function' && define.amd) {
         define(function () { return db; });
