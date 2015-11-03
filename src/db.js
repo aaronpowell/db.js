@@ -183,11 +183,10 @@
         [].map.call(db.objectStoreNames, storeName => {
             this[storeName] = {};
             var keys = Object.keys(this);
-            keys.filter(key => key !== 'close').map(key => {
-                this[storeName][key] = function (...args) {
-                    return this[key].apply(this, [storeName].concat(args));
-                }.bind(this);
-            });
+            keys.filter(key => key !== 'close')
+                .map(key =>
+                    this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
+                );
         });
     };
 

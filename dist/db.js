@@ -235,13 +235,13 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
             keys.filter(function (key) {
                 return key !== 'close';
             }).map(function (key) {
-                _this3[storeName][key] = (function () {
+                return _this3[storeName][key] = function () {
                     for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
                         args[_key3] = arguments[_key3];
                     }
 
-                    return this[key].apply(this, [storeName].concat(args));
-                }).bind(_this3);
+                    return _this3[key].apply(_this3, [storeName].concat(args));
+                };
             });
         });
     };
@@ -501,7 +501,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
     };
 
     var db = {
-        version: '0.10.2',
+        version: '0.11.0',
         open: function open(options) {
             return new Promise(function (resolve, reject) {
                 if (dbCache[options.server]) {
