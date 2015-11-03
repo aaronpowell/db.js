@@ -1,6 +1,3 @@
-/*global Promise, define, window*/
-/*jslint vars:true, continue:true*/
-var module;
 (function ( window ) {
     'use strict';
 
@@ -362,7 +359,7 @@ var module;
                     execute: execute
                 };
             };
-            
+
             var filter, desc, distinct, modify, map;
             var keys = function () {
                 cursorType = 'openKeyCursor';

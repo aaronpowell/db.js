@@ -61,22 +61,27 @@ module.exports = function(grunt) { 'use strict';
                     "dist/db.js": "src/db.js"
                   }
             }
+        },
+
+        "eslint": {
+            target: ['src/db.js']
         }
     });
 
-  // load all grunt tasks
-  require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
+    // load all grunt tasks
+    require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
     grunt.registerTask("forever", function(){
         this.async();
     });
 
-    var testJobs = ["babel", "clean", "jade", "connect"];
-    var devJobs = ["babel", "clean", "jade"];
+    var devJobs = ["eslint", "babel", "clean", "jade"];
+    var testJobs = devJobs.concat("connect");
     if (saucekey !== null) {
         testJobs.push("saucelabs-jasmine");
     }
 
+    grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
     grunt.registerTask('jasmine-server',function(){
