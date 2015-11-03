@@ -1,66 +1,56 @@
 (function (window) {
     'use strict';
 
-    var indexedDB,
-        IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange,
-        transactionModes = {
-            readonly: 'readonly',
-            readwrite: 'readwrite'
-        };
+    const IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    const transactionModes = {
+        readonly: 'readonly',
+        readwrite: 'readwrite'
+    };
+    const hasOwn = Object.prototype.hasOwnProperty;
+    const defaultMapper = x => x;
 
-    var hasOwn = Object.prototype.hasOwnProperty;
-
-    var getIndexedDB = function () {
+    let indexedDB = (function () {
         if (!indexedDB) {
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
 
             if (!indexedDB) {
-                throw 'IndexedDB required';
+                throw new Error('IndexedDB required');
             }
         }
         return indexedDB;
-    };
+    })();
 
-    var defaultMapper = function (value) {
-        return value;
-    };
-
-    var dbCache = {};
+    let dbCache = {};
 
     var Server = function (db, name) {
-        var that = this,
-            closed = false;
+        var closed = false;
 
-        this.getIndexedDB = function () {
-            return db;
-        };
+        this.getIndexedDB = () => db;
 
         this.add = function (table) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
 
             var records = [];
             var counter = 0;
 
-            var i, alm;
             var isArray = Array.isArray;
-            for (i = 0, alm = arguments.length - 1; i < alm; i++) {
+            for (var i = 0, alm = arguments.length - 1; i < alm; i++) {
                 var aip = arguments[i + 1];
                 if (isArray(aip)) {
-                    var j, alp, aipl = aip.length;
-                    for (j = 0; j < aipl; j++) {
-                        records[counter] = aip[j];
+                    aip.map(x => {
+                        records[counter] = x;
                         counter++;
-                    }
+                    });
                 } else {
                     records[counter] = aip;
                     counter++;
                 }
             }
 
-            var transaction = db.transaction(table, transactionModes.readwrite),
-                store = transaction.objectStore(table);
+            var transaction = db.transaction(table, transactionModes.readwrite);
+            var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
                 records.forEach(function (record) {
@@ -86,9 +76,8 @@
                     };
                 });
 
-                transaction.oncomplete = function () {
-                    resolve(records, that);
-                };
+                transaction.oncomplete = () => resolve(records, this);
+
                 transaction.onerror = function (e) {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
@@ -98,29 +87,25 @@
                 transaction.onabort = function (e) {
                     reject(e);
                 };
-
             });
         };
 
         this.update = function (table) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
 
             var records = [];
-            var i;
-            for (i = 0; i < arguments.length - 1; i++) {
+            for (var i = 0; i < arguments.length - 1; i++) {
                 records[i] = arguments[i + 1];
             }
 
-            var transaction = db.transaction(table, transactionModes.readwrite),
-                store = transaction.objectStore(table),
-                keyPath = store.keyPath;
+            var transaction = db.transaction(table, transactionModes.readwrite);
+            var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
                 records.forEach(function (record) {
                     var req;
-                    var count;
                     if (record.item && record.key) {
                         var key = record.key;
                         record = record.item;
@@ -134,9 +119,7 @@
                     };
                 });
 
-                transaction.oncomplete = function () {
-                    resolve(records, that);
-                };
+                transaction.oncomplete = () => resolve(records, this);
                 transaction.onerror = function (e) {
                     reject(e);
                 };
@@ -144,18 +127,17 @@
                     reject(e);
                 };
             });
-
         };
 
         this.remove = function (table, key) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
-            var transaction = db.transaction(table, transactionModes.readwrite),
-                store = transaction.objectStore(table);
+            var transaction = db.transaction(table, transactionModes.readwrite);
+            var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
-                var req = store['delete'](key);
+                store['delete'](key);
                 transaction.oncomplete = function () {
                     resolve(key);
                 };
@@ -167,12 +149,12 @@
 
         this.clear = function (table) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
-            var transaction = db.transaction(table, transactionModes.readwrite),
-                store = transaction.objectStore(table);
+            var transaction = db.transaction(table, transactionModes.readwrite);
+            var store = transaction.objectStore(table);
 
-            var req = store.clear();
+            store.clear();
             return new Promise(function (resolve, reject) {
                 transaction.oncomplete = function () {
                     resolve();
@@ -185,7 +167,7 @@
 
         this.close = function () {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
             db.close();
             closed = true;
@@ -194,10 +176,10 @@
 
         this.get = function (table, id) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
-            var transaction = db.transaction(table),
-                store = transaction.objectStore(table);
+            var transaction = db.transaction(table);
+            var store = transaction.objectStore(table);
 
             var req = store.get(id);
             return new Promise(function (resolve, reject) {
@@ -212,51 +194,47 @@
 
         this.query = function (table, index) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
             return new IndexQuery(table, db, index);
         };
 
         this.count = function (table, key) {
             if (closed) {
-                throw 'Database has been closed';
+                throw new Error('Database has been closed');
             }
-            var transaction = db.transaction(table),
-                store = transaction.objectStore(table);
+            var transaction = db.transaction(table);
+            var store = transaction.objectStore(table);
+
+            return new Promise((resolve, reject) => {
+                var req = store.count();
+                req.onsuccess = e => resolve(e.target.result);
+                transaction.onerror = e => reject(e);
+            });
         };
 
-        var i, il;
-        for (i = 0, il = db.objectStoreNames.length; i < il; i++) {
-            (function (storeName) {
-                that[storeName] = {};
-                var i;
-                for (i in that) {
-                    if (!hasOwn.call(that, i) || i === 'close') {
-                        continue;
-                    }
-                    that[storeName][i] = (function (i) {
-                        return function () {
-                            var args = [storeName].concat([].slice.call(arguments, 0));
-                            return that[i].apply(that, args);
-                        };
-                    } (i));
-                }
-            } (db.objectStoreNames[i]));
-        }
+        db.objectStoreNames.map(storeName => {
+            this[storeName] = {};
+            var keys = Object.keys(this);
+            keys.filter(key => key !== 'close').map(key => {
+                this[storeName][key] = () => function () {
+                    this[key].apply(this, [storeName].concat([].slice.call(arguments, 0)));
+                };
+            });
+        });
     };
 
     var IndexQuery = function (table, db, indexName) {
-        var that = this;
         var modifyObj = false;
 
         var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
-            var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly),
-                store = transaction.objectStore(table),
-                index = indexName ? store.index(indexName) : store,
-                keyRange = type ? IDBKeyRange[type].apply(null, args) : null,
-                results = [],
-                indexArgs = [keyRange],
-                counter = 0;
+            var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
+            var store = transaction.objectStore(table);
+            var index = indexName ? store.index(indexName) : store;
+            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+            var results = [];
+            var indexArgs = [keyRange];
+            var counter = 0;
 
             limitRange = limitRange || null;
             filters = filters || [];
@@ -268,8 +246,7 @@
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
             var modifyRecord = function (record) {
-                var i;
-                for (i = 0; i < modifyKeys.length; i++) {
+                for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
                     if (val instanceof Function) { val = val(record); }
@@ -287,14 +264,14 @@
                         counter = limitRange[0];
                         cursor.advance(limitRange[0]);
                     } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
-                        //out of limit range... skip
+                        // out of limit range... skip
                     } else {
                         var matchFilter = true;
                         var result = 'value' in cursor ? cursor.value : cursor.key;
 
                         filters.forEach(function (filter) {
                             if (!filter || !filter.length) {
-                                //Invalid filter do nothing
+                                // Invalid filter do nothing
                             } else if (filter.length === 2) {
                                 matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
@@ -330,12 +307,12 @@
         };
 
         var Query = function (type, args) {
-            var direction = 'next',
-                cursorType = 'openCursor',
-                filters = [],
-                limitRange = null,
-                mapper = defaultMapper,
-                unique = false;
+            var direction = 'next';
+            var cursorType = 'openCursor';
+            var filters = [];
+            var limitRange = null;
+            var mapper = defaultMapper;
+            var unique = false;
 
             var execute = function () {
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
@@ -445,8 +422,8 @@
             };
         };
 
-        ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
-            that[name] = function () {
+        ['only', 'bound', 'upperBound', 'lowerBound'].forEach((name) => {
+            this[name] = function () {
                 return new Query(name, arguments);
             };
         });
@@ -491,7 +468,6 @@
     var open = function (e, server, version, schema) {
         var db = e.target.result;
         var s = new Server(db, server);
-        var upgrade;
 
         dbCache[server] = db;
 
@@ -512,7 +488,7 @@
                     }, options.server, options.version, options.schema)
                         .then(resolve, reject);
                 } else {
-                    request = getIndexedDB().open(options.server, options.version);
+                    request = indexedDB.open(options.server, options.version);
 
                     request.onsuccess = function (e) {
                         open(e, options.server, options.version, options.schema)
@@ -528,6 +504,7 @@
                 }
             });
         },
+
         'delete': function (dbName) {
             var request;
 
@@ -554,4 +531,4 @@
     } else {
         window.db = db;
     }
-} (window));
+})(window);
