@@ -436,7 +436,7 @@
     };
 
     var db = {
-        version: '0.10.2',
+        version: '0.11.0',
         open: function (options) {
             return new Promise(function (resolve, reject) {
                 if (dbCache[options.server]) {
