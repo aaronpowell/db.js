@@ -65,6 +65,19 @@ module.exports = function(grunt) { 'use strict';
 
         "eslint": {
             target: ['src/db.js']
+        },
+
+        uglify: {
+            options: {
+                sourceMap: true,
+                sourceMapIncludeSources: true,
+                sourceMapIn: 'dist/db.js.map' // input sourcemap from a previous compilation
+            },
+            dist: {
+                files: {
+                    'dist/db.min.js': ['dist/db.js']
+                }
+            }
         }
     });
 
@@ -75,7 +88,7 @@ module.exports = function(grunt) { 'use strict';
         this.async();
     });
 
-    var devJobs = ["eslint", "babel", "clean", "jade"];
+    var devJobs = ["eslint", "babel", "uglify", "clean", "jade"];
     var testJobs = devJobs.concat("connect");
     if (saucekey !== null) {
         testJobs.push("saucelabs-jasmine");
