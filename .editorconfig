@@ -1,0 +1,9 @@
+; editor configuration powered by http://editorconfig.org/
+; Top-most EditorConfig file
+root = true
+
+; Windows newlines
+[*]
+end_of_line = crlf
+indent_style = space
+indent_size = 4

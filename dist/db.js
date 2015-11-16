@@ -1,17 +1,23 @@
+'use strict';
+
+function _instanceof(left, right) { if (right != null && right[Symbol.hasInstance]) { return right[Symbol.hasInstance](left); } else { return left instanceof right; } }
+
 (function (window) {
     'use strict';
 
-    const IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
-    const transactionModes = {
+    var IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    var transactionModes = {
         readonly: 'readonly',
         readwrite: 'readwrite'
     };
-    const hasOwn = Object.prototype.hasOwnProperty;
-    const defaultMapper = x => x;
+    var hasOwn = Object.prototype.hasOwnProperty;
+    var defaultMapper = function defaultMapper(x) {
+        return x;
+    };
 
-    let indexedDB = (function () {
+    var indexedDB = (function () {
         if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || (window.indexedDB === null && window.shimIndexedDB ? window.shimIndexedDB : undefined);
 
             if (!indexedDB) {
                 throw new Error('IndexedDB required');
@@ -20,14 +26,18 @@
         return indexedDB;
     })();
 
-    let dbCache = {};
+    var dbCache = {};
 
-    var Server = function (db, name) {
+    var Server = function Server(db, name) {
+        var _this3 = this;
+
         var closed = false;
 
-        this.getIndexedDB = () => db;
+        this.getIndexedDB = function () {
+            return db;
+        };
 
-        this.add = function (table, ...args) {
+        this.add = function (table) {
             if (closed) {
                 throw new Error('Database has been closed');
             }
@@ -35,6 +45,11 @@
             var records = [];
 
             var isArray = Array.isArray;
+
+            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                args[_key - 1] = arguments[_key];
+            }
+
             for (var i = 0, alm = args.length; i < alm; i++) {
                 var aip = args[i];
                 if (isArray(aip)) {
@@ -48,6 +63,8 @@
             var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
+                var _this = this;
+
                 records.forEach(function (record) {
                     var req;
                     if (record.item && record.key) {
@@ -71,19 +88,27 @@
                     };
                 });
 
-                transaction.oncomplete = () => resolve(records, this);
+                transaction.oncomplete = function () {
+                    return resolve(records, _this);
+                };
 
-                transaction.onerror = e => {
+                transaction.onerror = function (e) {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
                     e.preventDefault();
                     reject(e);
                 };
-                transaction.onabort = e => reject(e);
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
             });
         };
 
-        this.update = function (table, ...records) {
+        this.update = function (table) {
+            for (var _len2 = arguments.length, records = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                records[_key2 - 1] = arguments[_key2];
+            }
+
             if (closed) {
                 throw new Error('Database has been closed');
             }
@@ -92,6 +117,8 @@
             var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
+                var _this2 = this;
+
                 records.forEach(function (record) {
                     if (record.item && record.key) {
                         var key = record.key;
@@ -102,9 +129,15 @@
                     }
                 });
 
-                transaction.oncomplete = () => resolve(records, this);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
+                transaction.oncomplete = function () {
+                    return resolve(records, _this2);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
             });
         };
 
@@ -117,8 +150,12 @@
 
             return new Promise(function (resolve, reject) {
                 store['delete'](key);
-                transaction.oncomplete = () => resolve(key);
-                transaction.onerror = e => reject(e);
+                transaction.oncomplete = function () {
+                    return resolve(key);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
             });
         };
 
@@ -131,8 +168,12 @@
 
             store.clear();
             return new Promise(function (resolve, reject) {
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = e => reject(e);
+                transaction.oncomplete = function () {
+                    return resolve();
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
             });
         };
 
@@ -154,8 +195,12 @@
 
             var req = store.get(id);
             return new Promise(function (resolve, reject) {
-                req.onsuccess = e => resolve(e.target.result);
-                transaction.onerror = e => reject(e);
+                req.onsuccess = function (e) {
+                    return resolve(e.target.result);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
             });
         };
 
@@ -173,27 +218,40 @@
             var transaction = db.transaction(table);
             var store = transaction.objectStore(table);
 
-            return new Promise((resolve, reject) => {
+            return new Promise(function (resolve, reject) {
                 var req = store.count();
-                req.onsuccess = e => resolve(e.target.result);
-                transaction.onerror = e => reject(e);
+                req.onsuccess = function (e) {
+                    return resolve(e.target.result);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
             });
         };
 
-        [].map.call(db.objectStoreNames, storeName => {
-            this[storeName] = {};
-            var keys = Object.keys(this);
-            keys.filter(key => key !== 'close')
-                .map(key =>
-                    this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
-                );
+        [].map.call(db.objectStoreNames, function (storeName) {
+            _this3[storeName] = {};
+            var keys = Object.keys(_this3);
+            keys.filter(function (key) {
+                return key !== 'close';
+            }).map(function (key) {
+                return _this3[storeName][key] = function () {
+                    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+                        args[_key3] = arguments[_key3];
+                    }
+
+                    return _this3[key].apply(_this3, [storeName].concat(args));
+                };
+            });
         });
     };
 
-    var IndexQuery = function (table, db, indexName) {
+    var IndexQuery = function IndexQuery(table, db, indexName) {
+        var _this4 = this;
+
         var modifyObj = false;
 
-        var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
+        var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
             var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
             var store = transaction.objectStore(table);
             var index = indexName ? store.index(indexName) : store;
@@ -211,11 +269,13 @@
             // create a function that will set in the modifyObj properties into
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
-            var modifyRecord = function (record) {
+            var modifyRecord = function modifyRecord(record) {
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
-                    if (val instanceof Function) { val = val(record); }
+                    if (_instanceof(val, Function)) {
+                        val = val(record);
+                    }
                     record[key] = val;
                 }
                 return record;
@@ -229,44 +289,50 @@
                     if (limitRange !== null && limitRange[0] > counter) {
                         counter = limitRange[0];
                         cursor.advance(limitRange[0]);
-                    } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
+                    } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
                         // out of limit range... skip
                     } else {
-                        var matchFilter = true;
-                        var result = 'value' in cursor ? cursor.value : cursor.key;
+                            var matchFilter = true;
+                            var result = 'value' in cursor ? cursor.value : cursor.key;
 
-                        filters.forEach(function (filter) {
-                            if (!filter || !filter.length) {
-                                // Invalid filter do nothing
-                            } else if (filter.length === 2) {
-                                matchFilter = matchFilter && (result[filter[0]] === filter[1]);
-                            } else {
-                                matchFilter = matchFilter && filter[0].apply(undefined, [result]);
-                            }
-                        });
+                            filters.forEach(function (filter) {
+                                if (!filter || !filter.length) {
+                                    // Invalid filter do nothing
+                                } else if (filter.length === 2) {
+                                        matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                    } else {
+                                        matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                                    }
+                            });
 
-                        if (matchFilter) {
-                            counter++;
-                            results.push(mapper(result));
-                            // if we're doing a modify, run it now
-                            if (modifyObj) {
-                                result = modifyRecord(result);
-                                cursor.update(result);
+                            if (matchFilter) {
+                                counter++;
+                                results.push(mapper(result));
+                                // if we're doing a modify, run it now
+                                if (modifyObj) {
+                                    result = modifyRecord(result);
+                                    cursor.update(result);
+                                }
                             }
+                            cursor['continue']();
                         }
-                        cursor['continue']();
-                    }
                 }
             };
 
             return new Promise(function (resolve, reject) {
-                transaction.oncomplete = () => resolve(results);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
+                transaction.oncomplete = function () {
+                    return resolve(results);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
             });
         };
 
-        var Query = function (type, args) {
+        var Query = function Query(type, args) {
             var direction = 'next';
             var cursorType = 'openCursor';
             var filters = [];
@@ -274,11 +340,11 @@
             var mapper = defaultMapper;
             var unique = false;
 
-            var execute = function () {
+            var execute = function execute() {
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function () {
+            var limit = function limit() {
                 limitRange = Array.prototype.slice.call(arguments, 0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
@@ -288,7 +354,7 @@
                     execute: execute
                 };
             };
-            var count = function () {
+            var count = function count() {
                 direction = null;
                 cursorType = 'count';
 
@@ -298,7 +364,7 @@
             };
 
             var filter, desc, distinct, modify, map;
-            var keys = function () {
+            var keys = function keys() {
                 cursorType = 'openKeyCursor';
 
                 return {
@@ -382,8 +448,8 @@
             };
         };
 
-        ['only', 'bound', 'upperBound', 'lowerBound'].forEach((name) => {
-            this[name] = function () {
+        ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
+            _this4[name] = function () {
                 return Query(name, arguments);
             };
         });
@@ -398,7 +464,7 @@
         };
     };
 
-    var createSchema = function (e, schema, db) {
+    var createSchema = function createSchema(e, schema, db) {
         if (typeof schema === 'function') {
             schema = schema();
         }
@@ -425,7 +491,7 @@
         }
     };
 
-    var open = function (e, server, version, schema) {
+    var _open = function _open(e, server, version, schema) {
         var db = e.target.result;
         var s = new Server(db, server);
 
@@ -436,32 +502,43 @@
 
     var db = {
         version: '0.11.0',
-        open: function (options) {
+        open: function open(options) {
             return new Promise(function (resolve, reject) {
                 if (dbCache[options.server]) {
-                    open({
+                    _open({
                         target: {
                             result: dbCache[options.server]
                         }
-                    }, options.server, options.version, options.schema)
-                    .then(resolve, reject);
+                    }, options.server, options.version, options.schema).then(resolve, reject);
                 } else {
-                    let request = indexedDB.open(options.server, options.version);
+                    var request = indexedDB.open(options.server, options.version);
 
-                    request.onsuccess = e => open(e, options.server, options.version, options.schema).then(resolve, reject);
-                    request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
-                    request.onerror = e => reject(e);
+                    request.onsuccess = function (e) {
+                        return _open(e, options.server, options.version, options.schema).then(resolve, reject);
+                    };
+                    request.onupgradeneeded = function (e) {
+                        return createSchema(e, options.schema, e.target.result);
+                    };
+                    request.onerror = function (e) {
+                        return reject(e);
+                    };
                 }
             });
         },
 
-        'delete': function (dbName) {
+        'delete': function _delete(dbName) {
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
-                request.onsuccess = () => resolve();
-                request.onerror = e => reject(e);
-                request.onblocked = e => reject(e);
+                request.onsuccess = function () {
+                    return resolve();
+                };
+                request.onerror = function (e) {
+                    return reject(e);
+                };
+                request.onblocked = function (e) {
+                    return reject(e);
+                };
             });
         }
     };
@@ -469,8 +546,11 @@
     if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         module.exports = db;
     } else if (typeof define === 'function' && define.amd) {
-        define(function () { return db; });
+        define(function () {
+            return db;
+        });
     } else {
         window.db = db;
     }
 })(window);
+//# sourceMappingURL=db.js.map

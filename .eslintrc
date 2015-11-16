@@ -1,0 +1,13 @@
+{
+  "extends": "standard",
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "indent": [2, 4],
+    "semi": [2, "always"]
+  },
+  "globals": {
+    "define": true
+  }
+}

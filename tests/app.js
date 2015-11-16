@@ -31,8 +31,8 @@ app.get('/', function (req, res) {
     res.render('index');
 });
 
-app.get('/src/db.js', function (req, res) {
-	fs.readFile(__dirname + '/../src/db.js', function ( err , data ) {
+app.get('/dist/db.js', function (req, res) {
+	fs.readFile(__dirname + '/../dist/db.js', function ( err , data ) {
 		res.type( 'application/javascript' );
 		res.send( 200 , data );
 	});
