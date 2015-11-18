@@ -1,24 +1,22 @@
-/*global window, console*/
-/*jslint vars:true*/
-(function ( db , describe , it , expect , beforeEach , afterEach ) {
+(function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
-    
-    describe( 'server.update' , function () {
-        var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
-       beforeEach( function (done) {
+
+    describe('server.update', function () {
+        var dbName = 'tests';
+        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+
+        beforeEach(function (done) {
             var spec = this;
-            
+
             spec.server = undefined;
-            
-            var req = indexedDB.deleteDatabase( dbName );
-            
+
+            var req = indexedDB.deleteDatabase(dbName);
+
             req.onsuccess = function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1 ,
-                    schema: { 
+                db.open({
+                    server: dbName,
+                    version: 1,
+                    schema: {
                         test: {
                             key: {
                                 keyPath: 'id',
@@ -26,73 +24,73 @@
                             }
                         }
                     }
-                }).then(function ( s ) {
+                }).then(function (s) {
                     spec.server = s;
                     expect(spec.server).toBeTruthy();
                     done();
                 });
             };
-            
+
             req.onerror = function () {
-                console.log( 'failed to delete db' , arguments );
+                console.log('failed to delete db', arguments);
             };
-            
+
             req.onblocked = function () {
-                console.log( 'db blocked' , arguments , spec );
-            };
-        });
-        
-        afterEach( function (done) {
-            if ( this.server ) {
-                this.server.close();
-            }
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function () {
-                done();
-            };
-            
-            req.onerror = function () {
-                console.log( 'failed to delete db' , arguments );
-            };
-            
-            req.onblocked = function () {
-                console.log( 'db blocked' , arguments );
+                console.log('db blocked', arguments, spec);
             };
         });
 
-        it( 'should update the item after it is added' , function (done) {
+        afterEach(function (done) {
+            if (this.server) {
+                this.server.close();
+            }
+            var req = indexedDB.deleteDatabase(dbName);
+
+            req.onsuccess = function () {
+                done();
+            };
+
+            req.onerror = function () {
+                console.log('failed to delete db', arguments);
+            };
+
+            req.onblocked = function () {
+                console.log('db blocked', arguments);
+            };
+        });
+
+        it('should update the item after it is added', function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
-            
+
             var spec = this;
-            
-            spec.server.add( 'test' , item ).then( function ( /*records*/ ) {
+
+            spec.server.add('test', item).then(function (/* records */) {
                 item.firstName = 'John';
                 item.lastName = 'Smith';
 
                 spec.server
                     .test
-                    .update( item )
-                    .then( function ( /*records*/ ) {
+                    .update(item)
+                    .then(function (/* records */) {
                         spec.server
                             .test
-                            .get( item.id )
-                            .then( function ( record ) {
-                                expect( record ).toBeDefined();
-                                expect( record.id ).toBe( item.id );
-                                expect( record.firstName ).toBe( item.firstName );
-                                expect( record.lastName ).toBe( item.lastName );
-                                expect( record ).not.toBe( item );
+                            .get(item.id)
+                            .then(function (record) {
+                                expect(record).toBeDefined();
+                                expect(record.id).toBe(item.id);
+                                expect(record.firstName).toBe(item.firstName);
+                                expect(record.lastName).toBe(item.lastName);
+                                expect(record).not.toBe(item);
                                 done();
                             });
                     });
             });
         });
 
-        it( 'should allow updating of multiple items' , function (done) {
+        it('should allow updating of multiple items', function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
@@ -101,9 +99,9 @@
                 firstName: 'Bob',
                 lastName: 'Down'
             };
-            
+
             var spec = this;
-            spec.server.add( 'test' , item , item2 ).then( function ( /*records*/ ) {
+            spec.server.add('test', item, item2).then(function (/* records */) {
                 item.firstName = 'John';
                 item.lastName = 'Smith';
 
@@ -112,29 +110,29 @@
 
                 spec.server
                     .test
-                    .update( item , item2 )
-                    .then( function ( /*records*/ ) {
+                    .update(item, item2)
+                    .then(function (/* records */) {
                         spec.server
                             .test
                             .query()
                             .all()
                             .execute()
-                            .then( function ( records ) {
-                                expect( records.length ).toBe( 2 );
+                            .then(function (records) {
+                                expect(records.length).toBe(2);
 
                                 var record = records[0];
-                                expect( record ).toBeDefined();
-                                expect( record.id ).toBe( item.id );
-                                expect( record.firstName ).toBe( item.firstName );
-                                expect( record.lastName ).toBe( item.lastName );
-                                expect( record ).not.toBe( item );
+                                expect(record).toBeDefined();
+                                expect(record.id).toBe(item.id);
+                                expect(record.firstName).toBe(item.firstName);
+                                expect(record.lastName).toBe(item.lastName);
+                                expect(record).not.toBe(item);
 
                                 record = records[1];
-                                expect( record ).toBeDefined();
-                                expect( record.id ).toBe( item2.id );
-                                expect( record.firstName ).toBe( item2.firstName );
-                                expect( record.lastName ).toBe( item2.lastName );
-                                expect( record ).not.toBe( item2 );
+                                expect(record).toBeDefined();
+                                expect(record.id).toBe(item2.id);
+                                expect(record.firstName).toBe(item2.firstName);
+                                expect(record.lastName).toBe(item2.lastName);
+                                expect(record).not.toBe(item2);
                                 done();
                             });
                     });
@@ -142,105 +140,104 @@
         });
     });
 
-    describe( 'server.update-custom-keys' , function () {
-        var dbName = 'tests',
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
-       beforeEach( function (done) {
+    describe('server.update-custom-keys', function () {
+        var dbName = 'tests';
+        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+
+        beforeEach(function (done) {
             var spec = this;
-            
+
             spec.server = undefined;
-            
-            var req = indexedDB.deleteDatabase( dbName );
-            
+
+            var req = indexedDB.deleteDatabase(dbName);
+
             req.onsuccess = function () {
-                db.open( {
-                    server: dbName ,
-                    version: 1 ,
-                    schema: { 
+                db.open({
+                    server: dbName,
+                    version: 1,
+                    schema: {
                         test: {
                         }
                     }
-                }).then(function ( s ) {
+                }).then(function (s) {
                     spec.server = s;
                     expect(spec.server).toBeTruthy();
                     done();
                 });
             };
-            
+
             req.onerror = function () {
-                console.log( 'failed to delete db' , arguments );
+                console.log('failed to delete db', arguments);
             };
-            
+
             req.onblocked = function () {
-                console.log( 'db blocked' , arguments , spec );
-            };
-        });
-        
-        afterEach( function (done) {
-            if ( this.server ) {
-                this.server.close();
-            }
-            var req = indexedDB.deleteDatabase( dbName );
-            
-            req.onsuccess = function () {
-                done();
-            };
-            
-            req.onerror = function () {
-                console.log( 'failed to delete db' , arguments );
-            };
-            
-            req.onblocked = function () {
-                console.log( 'db blocked' , arguments );
+                console.log('db blocked', arguments, spec);
             };
         });
 
-        it( 'should allow updating with custom keys' , function (done) {
+        afterEach(function (done) {
+            if (this.server) {
+                this.server.close();
+            }
+            var req = indexedDB.deleteDatabase(dbName);
+
+            req.onsuccess = function () {
+                done();
+            };
+
+            req.onerror = function () {
+                console.log('failed to delete db', arguments);
+            };
+
+            req.onblocked = function () {
+                console.log('db blocked', arguments);
+            };
+        });
+
+        it('should allow updating with custom keys', function (done) {
             var item = {
                 firstName: 'Aaron',
                 lastName: 'Powell'
             };
             var key = 'foo';
-            
+
             var spec = this;
             spec.server
-                .add( 'test' , {
-                        item: item,
-                        key: key
-                    })
-                .then( function ( /*records*/ ) {
+                .add('test', {
+                    item: item,
+                    key: key
+                })
+                .then(function (/* records */) {
                     item.firstName = 'John';
                     item.lastName = 'Smith';
 
                     spec.server
                         .test
-                        .update( {
+                        .update({
                             item: item,
                             key: key
-                        } )
-                        .then( function ( /*records*/ ) {
+                        })
+                        .then(function (/* records */) {
                             spec.server
                                 .test
                                 .query()
                                 .all()
                                 .execute()
-                                .then( function ( records ) {
+                                .then(function (records) {
                                     done = true;
 
-                                    expect( records.length ).toBe( 1 );
+                                    expect(records.length).toBe(1);
 
                                     var record = records[0];
-                                    expect( record ).toBeDefined();
-                                    expect( record.__id__ ).toBe( key );
-                                    expect( record.firstName ).toBe( item.firstName );
-                                    expect( record.lastName ).toBe( item.lastName );
-                                    expect( record ).not.toBe( item );
+                                    expect(record).toBeDefined();
+                                    expect(record.__id__).toBe(key);
+                                    expect(record.firstName).toBe(item.firstName);
+                                    expect(record.lastName).toBe(item.lastName);
+                                    expect(record).not.toBe(item);
                                 });
                             done();
                         });
                 });
         });
     });
-
-}( window.db , window.describe , window.it , window.expect , window.beforeEach , window.afterEach ));
+}(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));
