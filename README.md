@@ -10,7 +10,7 @@ make it easier to work against, making it look more like a queryable API.
 Add a reference to db.js in your application before you want to use IndexedDB:
 
 ```html
-	<script src='/scripts/db.js'></script>
+    <script src='/src/db.js'></script>
 ```
 
 Alternatively, db.js includes an optional `define` call, and can be loaded
@@ -21,23 +21,23 @@ Once you have the script included you can then open connections to each
 different database within your application:
 
 ```js
-	var server;
-	db.open( {
-	    server: 'my-app',
-	    version: 1,
-	    schema: {
-	        people: {
-	            key: { keyPath: 'id' , autoIncrement: true },
-	            // Optionally add indexes
-	            indexes: {
-	                firstName: { },
-	                answer: { unique: true }
-	            }
-	        }
-	    }
-	} ).then( function ( s ) {
-	    server = s
-	} );
+    var server;
+    db.open({
+        server: 'my-app',
+        version: 1,
+        schema: {
+            people: {
+                key: {keyPath: 'id', autoIncrement: true},
+                // Optionally add indexes
+                indexes: {
+                    firstName: {},
+                    answer: {unique: true}
+                }
+            }
+        }
+    }).then(function (s) {
+        server = s;
+    });
 ```
 
 A connection is intended to be persisted, and you can perform multiple
@@ -53,31 +53,32 @@ Note that the methods below can be called either as
 ## Adding items
 
 ```js
-	server.people.add( {
-	    firstName: 'Aaron',
-	    lastName: 'Powell',
-	    answer: 42
-	} ).then( function ( item ) {
-	    // item stored
-	} );
+    server.people.add({
+        firstName: 'Aaron',
+        lastName: 'Powell',
+        answer: 42
+    }).then(function (item) {
+        // item stored
+    });
 ```
 
 ## Removing
 
 ```js
-	server.people.remove( 1 ).then( function ( key ) {
-	    // item removed
-	} );
+    server.people.remove(1).then(function (key) {
+        // item removed
+    });
 ```
 
 ### Clearing
+
 This allows removing all items in a table/collection:
 
 ```js
-server.people.clear()
-    .then(function() {
-        // all table data is gone.
-    })
+    server.people.clear()
+        .then(function() {
+            // all table data is gone.
+        });
 ```
 
 ## Fetching
@@ -85,51 +86,51 @@ server.people.clear()
 ### Getting a single object by ID
 
 ```js
-	server.people.query( 'firstName' , 'Aaron' )
-	      .execute()
-	      .then( function ( results ) {
-	          // do something with the results
-	      } );
+    server.people.get(5)
+        .execute()
+        .then(function (results) {
+            // do something with the results
+        });
 ```
 
 ### Querying all objects, with optional filtering
 
 ```js
-	server.people.query()
-	      .filter( 'firstName', 'Aaron' )
-	      .execute()
-	      .then( function ( results ) {
-	          // do something with the results
-	      } );
+    server.people.query()
+        .filter('firstName', 'Aaron')
+        .execute()
+        .then(function (results) {
+            // do something with the results
+        });
 ```
 
 ### Filter with function
 
 ```js
-	server.people.query()
-	      .filter( function(person){ return person.group == 'hipster' } )
-	      .execute()
-	      .then( function ( results ) {
-	          // do something with the results
-	      } );
+    server.people.query()
+        .filter(function(person) {return person.group == 'hipster';})
+        .execute()
+        .then(function (results) {
+            // do something with the results
+        });
 ```
 
 ### Querying using indexes
 
-All ranges supported by IDBKeyRange can be used.
+All ranges supported by `IDBKeyRange` can be used.
 
 ```js
-	server.people.query( 'firstName' )
-	      .only( 'Aaron' )
-	      .then( function ( results ) {
-	          //do something with the results
-	      } );
+    server.people.query('firstName')
+        .only('Aaron')
+        .then(function (results) {
+            // do something with the results
+        });
 
-	server.people.query( 'indexName' )
-	      .bound( 'answer', 30, 50 )
-	      .then( function ( results ) {
-	          //do something with the results
-	      } );
+    server.people.query('answer')
+        .bound(30, 50)
+        .then(function (results) {
+            // do something with the results
+        });
 ```
 
 ### Atomic updates
@@ -145,31 +146,30 @@ modifications applied to them).
 Examples:
 
 ```js
-// grab all users modified in the last 10 seconds,
-server.users.query('last_mod')
-    .lowerBound(new Date().getTime() - 10000)
-    .modify({last_mod: new Date.getTime()})
-    .execute()
-    .then(function(results) {
-        // now we have a list of recently modified users
-    });
+    // grab all users modified in the last 10 seconds,
+    server.users.query('last_mod')
+        .lowerBound(new Date().getTime() - 10000)
+        .modify({last_mod: new Date.getTime()})
+        .execute()
+        .then(function(results) {
+            // now we have a list of recently modified users
+        });
 
-// grab all changed records and atomically set them as unchanged
-server.users.query('changed')
-    .only(true)
-    .modify({changed: false})
-    .execute()
-    .then(...)
+    // grab all changed records and atomically set them as unchanged
+    server.users.query('changed')
+        .only(true)
+        .modify({changed: false})
+        .execute()
+        .then(...)
 
-// use a function to update the results. the function is passed the original
-// (unmodified) record, which allows us to update the data based on the record
-// itself.
-server.profiles.query('name')
-    .lowerBound('marcy')
-    .modify({views: function(profile) { return profile.views + 1; }})
-    .execute()
-    .then(...)
-
+    // use a function to update the results. the function is passed the original
+    // (unmodified) record, which allows us to update the data based on the record
+    // itself.
+    server.profiles.query('name')
+        .lowerBound('marcy')
+        .modify({views: function(profile) { return profile.views + 1; }})
+        .execute()
+        .then(...)
 ```
 
 `modify` can be used after: `all`, `filter`, `desc`, `distinct`, `only`,
@@ -178,7 +178,7 @@ server.profiles.query('name')
 ## Closing connection
 
 ```js
-	server.close();
+    server.close();
 ```
 
 # Deferred/Promise notes
