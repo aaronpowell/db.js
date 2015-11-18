@@ -1,7 +1,5 @@
 'use strict';
 
-function _instanceof(left, right) { if (right != null && right[Symbol.hasInstance]) { return right[Symbol.hasInstance](left); } else { return left instanceof right; } }
-
 (function (window) {
     'use strict';
 
@@ -149,7 +147,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
             var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
-                store['delete'](key);
+                store.delete(key);
                 transaction.oncomplete = function () {
                     return resolve(key);
                 };
@@ -273,7 +271,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
-                    if (_instanceof(val, Function)) {
+                    if (val instanceof Function) {
                         val = val(record);
                     }
                     record[key] = val;
@@ -314,7 +312,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
                                     cursor.update(result);
                                 }
                             }
-                            cursor['continue']();
+                            cursor.continue();
                         }
                 }
             };
