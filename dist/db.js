@@ -1,7 +1,5 @@
 'use strict';
 
-function _instanceof(left, right) { if (right != null && right[Symbol.hasInstance]) { return right[Symbol.hasInstance](left); } else { return left instanceof right; } }
-
 (function (window) {
     'use strict';
 
@@ -27,6 +25,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
     })();
 
     var dbCache = {};
+    var isArray = Array.isArray;
 
     var Server = function Server(db, name) {
         var _this3 = this;
@@ -44,20 +43,17 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
 
             var records = [];
 
-            var isArray = Array.isArray;
-
             for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
                 args[_key - 1] = arguments[_key];
             }
 
-            for (var i = 0, alm = args.length; i < alm; i++) {
-                var aip = args[i];
+            args.forEach(function (aip) {
                 if (isArray(aip)) {
                     records = records.concat(aip);
                 } else {
                     records.push(aip);
                 }
-            }
+            });
 
             var transaction = db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
@@ -105,17 +101,25 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
         };
 
         this.update = function (table) {
-            for (var _len2 = arguments.length, records = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                records[_key2 - 1] = arguments[_key2];
-            }
-
             if (closed) {
                 throw new Error('Database has been closed');
             }
 
             var transaction = db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
+            var records = [];
 
+            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                args[_key2 - 1] = arguments[_key2];
+            }
+
+            args.forEach(function (aip) {
+                if (isArray(aip)) {
+                    records = records.concat(aip);
+                } else {
+                    records.push(aip);
+                }
+            });
             return new Promise(function (resolve, reject) {
                 var _this2 = this;
 
@@ -273,7 +277,7 @@ function _instanceof(left, right) { if (right != null && right[Symbol.hasInstanc
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
                     var val = modifyObj[key];
-                    if (_instanceof(val, Function)) {
+                    if (val instanceof Function) {
                         val = val(record);
                     }
                     record[key] = val;
