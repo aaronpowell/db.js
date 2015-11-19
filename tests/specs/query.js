@@ -2,18 +2,18 @@
 /*jslint vars:true*/
 (function ( db , describe , it , expect , beforeEach , afterEach ) {
     'use strict';
-    
+
     describe( 'query' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
+
        beforeEach( function (done) {
             var spec = this;
-            
+
             spec.server = undefined;
-            
+
             var req = indexedDB.deleteDatabase( dbName );
-            
+
             req.onsuccess = function () {
                 db.open( {
                     server: dbName ,
@@ -53,16 +53,16 @@
                     });
                 });
             };
-            
+
             req.onerror = function () {
                 console.log( 'failed to delete db in beforeEach' , arguments );
             };
-            
+
             req.onblocked = function () {
                 console.log( 'db blocked' , arguments , spec );
             };
         });
-        
+
         afterEach( function (done) {
             if ( this.server ) {
                 this.server.close();
@@ -75,11 +75,11 @@
             req.onsuccess = function () {
                 done();
             };
-            
+
             req.onerror = function () {
                 console.log( 'failed to delete db in afterEach' , arguments , spec );
             };
-            
+
             req.onblocked = function () {
                 console.log( 'db blocked' , arguments );
             };
@@ -163,6 +163,90 @@
 
                     done();
                 });
+        });
+
+        describe('index range query (range method)', function () {
+            it('should allow matching exact values', function (done) {
+                this.server.query('test', 'firstName')
+                    .range({eq: 'Aaron'})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(2);
+                        done();
+                    });
+            });
+
+            it('should allow matching on a lower bound range', function (done) {
+                this.server.query('test', 'age')
+                    .range({gte: 30})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(2);
+                        expect(results[0].age).toEqual(30);
+                        expect(results[1].age).toEqual(40);
+                        done();
+                    });
+            });
+
+            it('should allow matching on an upper bound range', function (done) {
+                this.server.query('test', 'age')
+                    .range({lt: 30})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(1);
+                        expect(results[0].age).toEqual(20);
+                        done();
+                    });
+            });
+
+            it('should allow matching across a whole bound range with inclusive limits', function (done) {
+                this.server.query('test', 'age')
+                    .range({gte: 20, lte: 40})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(3);
+                        expect(results[0].age).toEqual(20);
+                        expect(results[1].age).toEqual(30);
+                        expect(results[2].age).toEqual(40);
+                        done();
+                    });
+            });
+
+            it('should allow matching across a whole bound range with exclusive limits', function (done) {
+                this.server.query('test', 'age')
+                    .range({gt: 20, lt: 40})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(1);
+                        expect(results[0].age).toEqual(30);
+                        done();
+                    });
+            });
+
+            it('should allow matching across a whole bound range with mixed limits', function (done) {
+                this.server.query('test', 'age')
+                    .range({gte: 20, lt: 40})
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(2);
+                        expect(results[0].age).toEqual(20);
+                        expect(results[1].age).toEqual(30);
+                        done();
+                    });
+            });
+
+            it('should allow descending ordering of results', function (done) {
+                this.server.query('test', 'age')
+                    .range({gte: 20, lt: 40})
+                    .desc()
+                    .execute()
+                    .then(function (results) {
+                        expect(results.length).toEqual(2);
+                        expect(results[0].age).toEqual(30);
+                        expect(results[1].age).toEqual(20);
+                        done();
+                    });
+            });
         });
 
         describe( 'index range query' , function () {
@@ -602,14 +686,14 @@
     describe( 'index.multiEntry' , function () {
         var dbName = 'tests',
             indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
-           
+
        beforeEach( function (done) {
             var spec = this;
-            
+
             spec.server = undefined;
-            
+
             var req = indexedDB.deleteDatabase( dbName );
-            
+
             req.onsuccess = function () {
                 db.open( {
                     server: dbName ,
@@ -658,16 +742,16 @@
                     });
                 });
             };
-            
+
             req.onerror = function () {
                 console.log( 'failed to delete db in beforeEach' , arguments );
             };
-            
+
             req.onblocked = function () {
                 console.log( 'db blocked' , arguments , spec );
             };
         });
-        
+
         afterEach( function (done) {
             if ( this.server ) {
                 this.server.close();
@@ -680,11 +764,11 @@
             req.onsuccess = function () {
                 done();
             };
-            
+
             req.onerror = function () {
                 console.log( 'failed to delete db in afterEach' , arguments , spec );
             };
-            
+
             req.onblocked = function () {
                 console.log( 'db blocked' , arguments );
             };

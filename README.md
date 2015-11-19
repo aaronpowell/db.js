@@ -132,6 +132,24 @@ All ranges supported by IDBKeyRange can be used.
 	      } );
 ```
 
+MongoDB-style ranges (as implemented in
+[idb-range](https://github.com/treojs/idb-range)-driven libraries)
+are also supported:
+
+```js
+    server.people.query('firstName')
+	    .range({eq: 'Aaron'})
+	    .then(function (results) {
+	        // do something with the results
+	    });
+
+    server.people.query('answer')
+	    .range({gte: 30, lte: 50})
+	    .then(function (results) {
+	        // do something with the results
+	    });
+```
+
 ### Atomic updates
 
 Any query that returns a range of results can also be set to modify the returned
