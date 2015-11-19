@@ -153,7 +153,7 @@
             var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
-                store['delete'](key);
+                store.delete(key);
                 transaction.oncomplete = function () {
                     return resolve(key);
                 };
@@ -318,7 +318,7 @@
                                     cursor.update(result);
                                 }
                             }
-                            cursor['continue']();
+                            cursor.continue();
                         }
                 }
             };
@@ -457,6 +457,44 @@
                 return Query(name, arguments);
             };
         });
+
+        this.range = function (opts) {
+            var keys = Object.keys(opts).sort();
+            if (keys.length === 1) {
+                var key = keys[0];
+                var val = opts[key];
+                var name, inclusive;
+                switch (key) {
+                    case 'eq':
+                        name = 'only';break;
+                    case 'gt':
+                        name = 'lowerBound';
+                        inclusive = true;
+                        break;
+                    case 'lt':
+                        name = 'upperBound';
+                        inclusive = true;
+                        break;
+                    case 'gte':
+                        name = 'lowerBound';break;
+                    case 'lte':
+                        name = 'upperBound';break;
+                    default:
+                        throw new TypeError('`' + key + '` is not valid key');
+                }
+                return new Query(name, [val, inclusive]);
+            }
+            var x = opts[keys[0]];
+            var y = opts[keys[1]];
+            var pattern = keys.join('-');
+
+            switch (pattern) {
+                case 'gt-lt':case 'gt-lte':case 'gte-lt':case 'gte-lte':
+                    return new Query('bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
+                default:
+                    throw new TypeError('`' + pattern + '` are conflicted keys');
+            }
+        };
 
         this.filter = function () {
             var query = Query(null, null);

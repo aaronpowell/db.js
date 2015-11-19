@@ -1,6 +1,5 @@
-/*global module:false, require, console */
-/*jslint vars:true*/
-module.exports = function(grunt) { 'use strict';
+module.exports = function (grunt) {
+    'use strict';
     // Project configuration.
     var saucekey = 'auzcE6Esp+TT6vpQHUyWf9jpvYpEO1iHWiMfkZTxo+MsJcETw1qaAakAgyE8jwPFHSPPT6wDzt+rLUOd6FkwqSgm3lLuP9wKgikXzgYSpNg+EfHrF1rep+BVZFkbs3uk6NetezlALVPOMq+4O54TbtOiLF9KurjkM5YkryExCmc=';
 
@@ -12,17 +11,17 @@ module.exports = function(grunt) { 'use strict';
         jade: {
             release: {
                 files: {
-                    "tests/index.html": ["tests/views/index.jade"]
+                    'tests/index.html': ['tests/views/index.jade']
                 }
             }
         },
 
-        clean: ["tests/index.html"],
+        clean: ['tests/index.html'],
 
         connect: {
             server: {
                 options: {
-                    base: ".",
+                    base: '.',
                     port: 9999
                 }
             }
@@ -36,7 +35,7 @@ module.exports = function(grunt) { 'use strict';
                     testname: 'db.js',
                     tags: ['master'],
                     urls: ['http://127.0.0.1:9999/tests/index.html'],
-                    browsers: [/*{
+                    browsers: [/* {
                         browserName: 'firefox',
                         platform: 'Windows 2012',
                         version: '17'
@@ -44,26 +43,27 @@ module.exports = function(grunt) { 'use strict';
                         browserName: 'internet explorer',
                         platform: 'Windows 2012',
                         version: '10'
-                    }, */{
-                        browserName: 'chrome',
-                        platform: 'Windows 2008'
-                    }]
+                    }, */
+                        {
+                            browserName: 'chrome',
+                            platform: 'Windows 2008'
+                        }]
                 }
             }
         },
 
-        "babel": {
+        'babel': {
             options: {
                 sourceMap: true
             },
             dist: {
                 files: {
-                    "dist/db.js": "src/db.js"
-                  }
+                    'dist/db.js': 'src/db.js'
+                }
             }
         },
 
-        "eslint": {
+        'eslint': {
             target: ['src/db.js']
         },
 
@@ -84,22 +84,21 @@ module.exports = function(grunt) { 'use strict';
     // load all grunt tasks
     require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
-    grunt.registerTask("forever", function(){
+    grunt.registerTask('forever', function () {
         this.async();
     });
 
-    var devJobs = ["eslint", "babel", "uglify", "clean", "jade"];
-    var testJobs = devJobs.concat("connect");
+    var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
+    var testJobs = devJobs.concat('connect');
     if (saucekey !== null) {
-        testJobs.push("saucelabs-jasmine");
+        testJobs.push('saucelabs-jasmine');
     }
 
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
-    grunt.registerTask('jasmine-server',function(){
+    grunt.registerTask('jasmine-server', function () {
         grunt.task.run(devJobs);
         grunt.task.run('connect:server:keepalive');
     });
 };
-
