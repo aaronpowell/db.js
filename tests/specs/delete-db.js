@@ -21,7 +21,7 @@
             db.open( {
                 server: dbName ,
                 version: 1,
-                schema: { 
+                schema: {
                     test: {
                     }
                 }

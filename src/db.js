@@ -21,6 +21,7 @@
     })();
 
     let dbCache = {};
+    var isArray = Array.isArray;
 
     var Server = function (db, name) {
         var closed = false;
@@ -34,15 +35,13 @@
 
             var records = [];
 
-            var isArray = Array.isArray;
-            for (var i = 0, alm = args.length; i < alm; i++) {
-                var aip = args[i];
+            args.forEach(function (aip) {
                 if (isArray(aip)) {
                     records = records.concat(aip);
                 } else {
                     records.push(aip);
                 }
-            }
+            });
 
             var transaction = db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
@@ -83,14 +82,22 @@
             });
         };
 
-        this.update = function (table, ...records) {
+        this.update = function (table, ...args) {
             if (closed) {
                 throw new Error('Database has been closed');
             }
 
             var transaction = db.transaction(table, transactionModes.readwrite);
             var store = transaction.objectStore(table);
+            var records = [];
 
+            args.forEach(function (aip) {
+                if (isArray(aip)) {
+                    records = records.concat(aip);
+                } else {
+                    records.push(aip);
+                }
+            });
             return new Promise(function (resolve, reject) {
                 records.forEach(function (record) {
                     if (record.item && record.key) {
