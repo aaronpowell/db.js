@@ -6,25 +6,25 @@ var fs = require('fs');
 var path = require('path');
 
 app.set('views', path.join(__dirname, 'views'));
-app.use('/lib', express['static'](path.join(__dirname, 'lib')));
-app.use('/specs', express['static'](path.join(__dirname, 'specs')));
+app.use('/lib', express.static(path.join(__dirname, 'lib')));
+app.use('/specs', express.static(path.join(__dirname, 'specs')));
 app.set('view engine', 'jade');
 app.use(express.bodyParser());
 app.use(express.methodOverride());
 app.use(app.router);
 
-app.configure('development', function(){
+app.configure('development', function () {
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
-app.configure('production', function(){
+app.configure('production', function () {
     app.use(express.errorHandler());
 });
 
 app.get('/foo', function (req, res) {
-  res.json({
-    firstName: 'John',
-    lastName: 'Smith'
-  });
+    res.json({
+        firstName: 'John',
+        lastName: 'Smith'
+    });
 });
 
 app.get('/', function (req, res) {
@@ -32,10 +32,14 @@ app.get('/', function (req, res) {
 });
 
 app.get('/dist/db.js', function (req, res) {
-	fs.readFile(__dirname + '/../dist/db.js', function ( err , data ) {
-		res.type( 'application/javascript' );
-		res.send( 200 , data );
-	});
+    fs.readFile(__dirname + '/../dist/db.js', function (err, data) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        res.type('application/javascript');
+        res.send(200, data);
+    });
 });
 
 app.listen(process.env.PORT || 3000);

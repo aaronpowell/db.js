@@ -123,7 +123,7 @@
             var store = transaction.objectStore(table);
 
             return new Promise(function (resolve, reject) {
-                store['delete'](key);
+                store.delete(key);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
             });
@@ -261,7 +261,7 @@
                                 cursor.update(result);
                             }
                         }
-                        cursor['continue']();
+                        cursor.continue();
                     }
                 }
             };
