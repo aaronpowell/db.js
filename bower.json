@@ -1,6 +1,5 @@
 {
   "name": "db.js",
-  "version": "0.11.0",
   "main": "dist/db.min.js",
   "homepage": "https://github.com/aaronpowell/db.js",
   "authors": [
