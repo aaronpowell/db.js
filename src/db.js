@@ -23,10 +23,10 @@
     let dbCache = {};
     var isArray = Array.isArray;
 
+    var serverVars = new WeakMap();
+
     var Server = function (db, name) {
-        this.db = db;
-        this.name = name;
-        this.closed = false;
+        serverVars.set(this, {db: db, name: name, closed: false});
 
         [].map.call(db.objectStoreNames, storeName => {
             this[storeName] = {};
@@ -38,11 +38,12 @@
     };
 
     Server.prototype.getIndexedDB = function () {
-        return this.db;
+        return serverVars.get(this).db;
     };
 
     Server.prototype.add = function (table, ...args) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
 
@@ -56,7 +57,7 @@
             }
         });
 
-        var transaction = this.db.transaction(table, transactionModes.readwrite);
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
         var store = transaction.objectStore(table);
 
         return new Promise((resolve, reject) => {
@@ -96,11 +97,12 @@
     };
 
     Server.prototype.update = function (table, ...args) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
 
-        var transaction = this.db.transaction(table, transactionModes.readwrite);
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
         var store = transaction.objectStore(table);
         var records = [];
 
@@ -129,10 +131,11 @@
     };
 
     Server.prototype.remove = function (table, key) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        var transaction = this.db.transaction(table, transactionModes.readwrite);
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
         var store = transaction.objectStore(table);
 
         return new Promise(function (resolve, reject) {
@@ -143,10 +146,11 @@
     };
 
     Server.prototype.clear = function (table) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        var transaction = this.db.transaction(table, transactionModes.readwrite);
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
         var store = transaction.objectStore(table);
 
         store.clear();
@@ -157,19 +161,22 @@
     };
 
     Server.prototype.close = function () {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        this.db.close();
-        this.closed = true;
-        delete dbCache[this.name];
+        vars.db.close();
+        vars.closed = true;
+        serverVars.set(this, vars);
+        delete dbCache[vars.name];
     };
 
     Server.prototype.get = function (table, id) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        var transaction = this.db.transaction(table);
+        var transaction = vars.db.transaction(table);
         var store = transaction.objectStore(table);
 
         var req = store.get(id);
@@ -180,17 +187,19 @@
     };
 
     Server.prototype.query = function (table, index) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        return new IndexQuery(table, this.db, index);
+        return new IndexQuery(table, vars.db, index);
     };
 
     Server.prototype.count = function (table/*, key*/) {
-        if (this.closed) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
             throw new Error('Database has been closed');
         }
-        var transaction = this.db.transaction(table);
+        var transaction = vars.db.transaction(table);
         var store = transaction.objectStore(table);
 
         return new Promise((resolve, reject) => {
