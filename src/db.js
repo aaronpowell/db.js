@@ -11,7 +11,7 @@
 
     let indexedDB = (function () {
         if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
             if (!indexedDB) {
                 throw new Error('IndexedDB required');
@@ -23,421 +23,387 @@
     let dbCache = {};
     var isArray = Array.isArray;
 
+    var serverVars = new WeakMap();
+
     var Server = function (db, name) {
-        var closed = false;
-
-        this.getIndexedDB = () => db;
-
-        this.add = function (table, ...args) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var records = [];
-
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            return new Promise(function (resolve, reject) {
-                records.forEach(function (record) {
-                    var req;
-                    if (record.item && record.key) {
-                        var key = record.key;
-                        record = record.item;
-                        req = store.add(record, key);
-                    } else {
-                        req = store.add(record);
-                    }
-
-                    req.onsuccess = function (e) {
-                        var target = e.target;
-                        var keyPath = target.source.keyPath;
-                        if (keyPath === null) {
-                            keyPath = '__id__';
-                        }
-                        Object.defineProperty(record, keyPath, {
-                            value: target.result,
-                            enumerable: true
-                        });
-                    };
-                });
-
-                transaction.oncomplete = () => resolve(records, this);
-
-                transaction.onerror = e => {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
-                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                    e.preventDefault();
-                    reject(e);
-                };
-                transaction.onabort = e => reject(e);
-            });
-        };
-
-        this.update = function (table, ...args) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-            var records = [];
-
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
-            return new Promise(function (resolve, reject) {
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        var key = record.key;
-                        record = record.item;
-                        store.put(record, key);
-                    } else {
-                        store.put(record);
-                    }
-                });
-
-                transaction.oncomplete = () => resolve(records, this);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-            });
-        };
-
-        this.remove = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            return new Promise(function (resolve, reject) {
-                store.delete(key);
-                transaction.oncomplete = () => resolve(key);
-                transaction.onerror = e => reject(e);
-            });
-        };
-
-        this.clear = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            store.clear();
-            return new Promise(function (resolve, reject) {
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = e => reject(e);
-            });
-        };
-
-        this.close = function () {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            db.close();
-            closed = true;
-            delete dbCache[name];
-        };
-
-        this.get = function (table, id) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
-            var req = store.get(id);
-            return new Promise(function (resolve, reject) {
-                req.onsuccess = e => resolve(e.target.result);
-                transaction.onerror = e => reject(e);
-            });
-        };
-
-        this.query = function (table, index) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            return new IndexQuery(table, db, index);
-        };
-
-        this.count = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
-            return new Promise((resolve, reject) => {
-                var req = store.count();
-                req.onsuccess = e => resolve(e.target.result);
-                transaction.onerror = e => reject(e);
-            });
-        };
+        serverVars.set(this, {db: db, name: name, closed: false});
 
         [].map.call(db.objectStoreNames, storeName => {
             this[storeName] = {};
-            var keys = Object.keys(this);
-            keys.filter(key => key !== 'close')
-                .map(key =>
-                    this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
-                );
+            var keys = Object.keys(Server.prototype);
+            keys.filter(key => key !== 'close').forEach(key =>
+                this[storeName][key] = this[key].bind(this, storeName)
+            );
         });
     };
 
-    var IndexQuery = function (table, db, indexName) {
-        var modifyObj = false;
+    Server.prototype.getIndexedDB = function () {
+        return serverVars.get(this).db;
+    };
 
-        var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
-            var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-            var store = transaction.objectStore(table);
-            var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
-            var results = [];
-            var indexArgs = [keyRange];
-            var counter = 0;
+    Server.prototype.add = function (table, ...args) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
 
-            limitRange = limitRange || null;
-            filters = filters || [];
-            if (cursorType !== 'count') {
-                indexArgs.push(direction || 'next');
+        var records = [];
+
+        args.forEach(function (arg) {
+            if (isArray(arg)) {
+                records = records.concat(arg);
+            } else {
+                records.push(arg);
             }
-
-            // create a function that will set in the modifyObj properties into
-            // the passed record.
-            var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
-            var modifyRecord = function (record) {
-                for (var i = 0; i < modifyKeys.length; i++) {
-                    var key = modifyKeys[i];
-                    var val = modifyObj[key];
-                    if (val instanceof Function) { val = val(record); }
-                    record[key] = val;
-                }
-                return record;
-            };
-
-            index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
-                var cursor = e.target.result;
-                if (typeof cursor === 'number') {
-                    results = cursor;
-                } else if (cursor) {
-                    if (limitRange !== null && limitRange[0] > counter) {
-                        counter = limitRange[0];
-                        cursor.advance(limitRange[0]);
-                    } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
-                        // out of limit range... skip
-                    } else {
-                        var matchFilter = true;
-                        var result = 'value' in cursor ? cursor.value : cursor.key;
-
-                        filters.forEach(function (filter) {
-                            if (!filter || !filter.length) {
-                                // Invalid filter do nothing
-                            } else if (filter.length === 2) {
-                                matchFilter = matchFilter && (result[filter[0]] === filter[1]);
-                            } else {
-                                matchFilter = matchFilter && filter[0].apply(undefined, [result]);
-                            }
-                        });
-
-                        if (matchFilter) {
-                            counter++;
-                            results.push(mapper(result));
-                            // if we're doing a modify, run it now
-                            if (modifyObj) {
-                                result = modifyRecord(result);
-                                cursor.update(result);
-                            }
-                        }
-                        cursor.continue();
-                    }
-                }
-            };
-
-            return new Promise(function (resolve, reject) {
-                transaction.oncomplete = () => resolve(results);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-            });
-        };
-
-        var Query = function (type, args) {
-            var direction = 'next';
-            var cursorType = 'openCursor';
-            var filters = [];
-            var limitRange = null;
-            var mapper = defaultMapper;
-            var unique = false;
-
-            var execute = function () {
-                return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
-            };
-
-            var limit = function () {
-                limitRange = Array.prototype.slice.call(arguments, 0, 2);
-                if (limitRange.length === 1) {
-                    limitRange.unshift(0);
-                }
-
-                return {
-                    execute: execute
-                };
-            };
-            var count = function () {
-                direction = null;
-                cursorType = 'count';
-
-                return {
-                    execute: execute
-                };
-            };
-
-            var filter, desc, distinct, modify, map;
-            var keys = function () {
-                cursorType = 'openKeyCursor';
-
-                return {
-                    desc: desc,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    map: map
-                };
-            };
-            filter = function () {
-                filters.push(Array.prototype.slice.call(arguments, 0, 2));
-
-                return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
-                };
-            };
-            desc = function () {
-                direction = 'prev';
-
-                return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    modify: modify,
-                    map: map
-                };
-            };
-            distinct = function () {
-                unique = true;
-                return {
-                    keys: keys,
-                    count: count,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    modify: modify,
-                    map: map
-                };
-            };
-            modify = function (update) {
-                modifyObj = update;
-                return {
-                    execute: execute
-                };
-            };
-            map = function (fn) {
-                mapper = fn;
-
-                return {
-                    execute: execute,
-                    count: count,
-                    keys: keys,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
-                };
-            };
-
-            return {
-                execute: execute,
-                count: count,
-                keys: keys,
-                filter: filter,
-                desc: desc,
-                distinct: distinct,
-                modify: modify,
-                limit: limit,
-                map: map
-            };
-        };
-
-        ['only', 'bound', 'upperBound', 'lowerBound'].forEach((name) => {
-            this[name] = function () {
-                return Query(name, arguments);
-            };
         });
 
-        this.range = function (opts) {
-            var keys = Object.keys(opts).sort();
-            if (keys.length === 1) {
-                var key = keys[0];
-                var val = opts[key];
-                var name, inclusive;
-                switch (key) {
-                case 'eq': name = 'only'; break;
-                case 'gt':
-                    name = 'lowerBound';
-                    inclusive = true;
-                    break;
-                case 'lt':
-                    name = 'upperBound';
-                    inclusive = true;
-                    break;
-                case 'gte': name = 'lowerBound'; break;
-                case 'lte': name = 'upperBound'; break;
-                default: throw new TypeError('`' + key + '` is not valid key');
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
+        var store = transaction.objectStore(table);
+
+        return new Promise((resolve, reject) => {
+            records.forEach(function (record) {
+                var req;
+                if (record.item && record.key) {
+                    var key = record.key;
+                    record = record.item;
+                    req = store.add(record, key);
+                } else {
+                    req = store.add(record);
                 }
-                return new Query(name, [val, inclusive]);
+
+                req.onsuccess = function (e) {
+                    var target = e.target;
+                    var keyPath = target.source.keyPath;
+                    if (keyPath === null) {
+                        keyPath = '__id__';
+                    }
+                    Object.defineProperty(record, keyPath, {
+                        value: target.result,
+                        enumerable: true
+                    });
+                };
+            });
+
+            transaction.oncomplete = () => resolve(records, this);
+
+            transaction.onerror = e => {
+                // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                e.preventDefault();
+                reject(e);
+            };
+            transaction.onabort = e => reject(e);
+        });
+    };
+
+    Server.prototype.update = function (table, ...args) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
+        var store = transaction.objectStore(table);
+        var records = [];
+
+        args.forEach(function (arg) {
+            if (isArray(arg)) {
+                records = records.concat(arg);
+            } else {
+                records.push(arg);
             }
-            var x = opts[keys[0]];
-            var y = opts[keys[1]];
-            var pattern = keys.join('-');
+        });
+        return new Promise((resolve, reject) => {
+            records.forEach(function (record) {
+                if (record.item && record.key) {
+                    var key = record.key;
+                    record = record.item;
+                    store.put(record, key);
+                } else {
+                    store.put(record);
+                }
+            });
 
-            switch (pattern) {
-            case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
-                return new Query('bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
-            default: throw new TypeError(
-              '`' + pattern + '` are conflicted keys'
-            );
+            transaction.oncomplete = () => resolve(records, this);
+            transaction.onerror = e => reject(e);
+            transaction.onabort = e => reject(e);
+        });
+    };
+
+    Server.prototype.remove = function (table, key) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
+        var store = transaction.objectStore(table);
+
+        return new Promise(function (resolve, reject) {
+            store.delete(key);
+            transaction.oncomplete = () => resolve(key);
+            transaction.onerror = e => reject(e);
+        });
+    };
+
+    Server.prototype.clear = function (table) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        var transaction = vars.db.transaction(table, transactionModes.readwrite);
+        var store = transaction.objectStore(table);
+
+        store.clear();
+        return new Promise(function (resolve, reject) {
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = e => reject(e);
+        });
+    };
+
+    Server.prototype.close = function () {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        vars.db.close();
+        vars.closed = true;
+        serverVars.set(this, vars);
+        delete dbCache[vars.name];
+    };
+
+    Server.prototype.get = function (table, id) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        var transaction = vars.db.transaction(table);
+        var store = transaction.objectStore(table);
+
+        var req = store.get(id);
+        return new Promise(function (resolve, reject) {
+            req.onsuccess = e => resolve(e.target.result);
+            transaction.onerror = e => reject(e);
+        });
+    };
+
+    Server.prototype.query = function (table, index) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        return new IndexQuery(table, vars.db, index);
+    };
+
+    Server.prototype.count = function (table/*, key*/) {
+        var vars = serverVars.get(this);
+        if (vars.closed) {
+            throw new Error('Database has been closed');
+        }
+        var transaction = vars.db.transaction(table);
+        var store = transaction.objectStore(table);
+
+        return new Promise((resolve, reject) => {
+            var req = store.count();
+            req.onsuccess = e => resolve(e.target.result);
+            transaction.onerror = e => reject(e);
+        });
+    };
+
+    var createReturnObject = function (thisObj, methods) {
+        var retObj = {};
+        methods.forEach(function (method) {
+            retObj[method] = thisObj[method].bind(thisObj);
+        });
+        return retObj;
+    };
+
+    var Query = function (indexQueryObj, type, args) {
+        this.direction = 'next';
+        this.cursorType = 'openCursor';
+        this.filters = [];
+        this.limitRange = null;
+        this.mapper = defaultMapper;
+        this.unique = false;
+        this.indexQueryObj = indexQueryObj;
+        this.type = type;
+        this.args = args;
+    };
+    Query.prototype.execute = function () {
+        return this.indexQueryObj.runQuery(
+            this.type,
+            this.args,
+            this.cursorType,
+            this.unique ? this.direction + 'unique' : this.direction,
+            this.limitRange,
+            this.filters,
+            this.mapper
+        );
+    };
+    Query.prototype.limit = function () {
+        this.limitRange = Array.prototype.slice.call(arguments, 0, 2);
+        if (this.limitRange.length === 1) {
+            this.limitRange.unshift(0);
+        }
+        return createReturnObject(this, ['execute']);
+    };
+    Query.prototype.count = function () {
+        this.direction = null;
+        this.cursorType = 'count';
+        return createReturnObject(this, ['execute']);
+    };
+    Query.prototype.keys = function () {
+        this.cursorType = 'openKeyCursor';
+        return createReturnObject(this, ['desc', 'execute', 'filter', 'distinct', 'map']);
+    };
+    Query.prototype.filter = function () {
+        this.filters.push(Array.prototype.slice.call(arguments, 0, 2));
+        return createReturnObject(this, ['desc', 'execute', 'filter', 'distinct', 'map', 'keys', 'modify', 'limit']);
+    };
+    Query.prototype.desc = function () {
+        this.direction = 'prev';
+        return createReturnObject(this, ['execute', 'filter', 'distinct', 'map', 'keys', 'modify']);
+    };
+    Query.prototype.distinct = function () {
+        this.unique = true;
+        return createReturnObject(this, ['execute', 'filter', 'map', 'keys', 'modify', 'count', 'desc']);
+    };
+    Query.prototype.modify = function (update) {
+        this.indexQueryObj.modifyObj = update;
+        return createReturnObject(this, ['execute']);
+    };
+    Query.prototype.map = function (fn) {
+        this.mapper = fn;
+        return createReturnObject(this, ['desc', 'execute', 'filter', 'distinct', 'map', 'keys', 'modify', 'limit', 'count']);
+    };
+
+    var IndexQuery = function (table, db, indexName) {
+        this.table = table;
+        this.db = db;
+        this.indexName = indexName;
+        this.modifyObj = false;
+    };
+
+    IndexQuery.prototype.runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
+        var transaction = this.db.transaction(this.table, this.modifyObj ? transactionModes.readwrite : transactionModes.readonly);
+        var store = transaction.objectStore(this.table);
+        var index = this.indexName ? store.index(this.indexName) : store;
+        var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+        var results = [];
+        var indexArgs = [keyRange];
+        var counter = 0;
+
+        limitRange = limitRange || null;
+        filters = filters || [];
+        if (cursorType !== 'count') {
+            indexArgs.push(direction || 'next');
+        }
+
+        // create a function that will set in the modifyObj properties into
+        // the passed record.
+        var modifyKeys = this.modifyObj ? Object.keys(this.modifyObj) : false;
+        var modifyRecord = record => {
+            for (var i = 0; i < modifyKeys.length; i++) {
+                var key = modifyKeys[i];
+                var val = this.modifyObj[key];
+                if (val instanceof Function) { val = val(record); }
+                record[key] = val;
+            }
+            return record;
+        };
+
+        index[cursorType].apply(index, indexArgs).onsuccess = e => {
+            var cursor = e.target.result;
+            if (typeof cursor === 'number') {
+                results = cursor;
+            } else if (cursor) {
+                if (limitRange !== null && limitRange[0] > counter) {
+                    counter = limitRange[0];
+                    cursor.advance(limitRange[0]);
+                } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
+                    // out of limit range... skip
+                } else {
+                    var matchFilter = true;
+                    var result = 'value' in cursor ? cursor.value : cursor.key;
+
+                    filters.forEach(function (filter) {
+                        if (!filter || !filter.length) {
+                            // Invalid filter do nothing
+                        } else if (filter.length === 2) {
+                            matchFilter = matchFilter && (result[filter[0]] === filter[1]);
+                        } else {
+                            matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                        }
+                    });
+
+                    if (matchFilter) {
+                        counter++;
+                        results.push(mapper(result));
+                        // if we're doing a modify, run it now
+                        if (this.modifyObj) {
+                            result = modifyRecord(result);
+                            cursor.update(result);
+                        }
+                    }
+                    cursor.continue();
+                }
             }
         };
 
-        this.filter = function () {
-            var query = Query(null, null);
-            return query.filter.apply(query, arguments);
-        };
+        return new Promise(function (resolve, reject) {
+            transaction.oncomplete = () => resolve(results);
+            transaction.onerror = e => reject(e);
+            transaction.onabort = e => reject(e);
+        });
+    };
 
-        this.all = function () {
-            return this.filter();
+    ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
+        IndexQuery.prototype[name] = function () {
+            return new Query(this, name, arguments);
         };
+    });
+
+    IndexQuery.prototype.range = function (opts) {
+        var keys = Object.keys(opts).sort();
+        if (keys.length === 1) {
+            var key = keys[0];
+            var val = opts[key];
+            var name, inclusive;
+            switch (key) {
+            case 'eq': name = 'only'; break;
+            case 'gt':
+                name = 'lowerBound';
+                inclusive = true;
+                break;
+            case 'lt':
+                name = 'upperBound';
+                inclusive = true;
+                break;
+            case 'gte': name = 'lowerBound'; break;
+            case 'lte': name = 'upperBound'; break;
+            default: throw new TypeError('`' + key + '` is not a valid key');
+            }
+            return new Query(this, name, [val, inclusive]);
+        }
+        var x = opts[keys[0]];
+        var y = opts[keys[1]];
+        var pattern = keys.join('-');
+
+        switch (pattern) {
+        case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
+            return new Query(this, 'bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
+        default: throw new TypeError(
+          '`' + pattern + '` are conflicted keys'
+        );
+        }
+    };
+
+    IndexQuery.prototype.filter = function () {
+        var query = new Query(this, null, null);
+        return query.filter.apply(query, arguments);
+    };
+
+    IndexQuery.prototype.all = function () {
+        return this.filter();
     };
 
     var createSchema = function (e, schema, db) {
@@ -497,7 +463,7 @@
             });
         },
 
-        'delete': function (dbName) {
+        delete: function (dbName) {
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
