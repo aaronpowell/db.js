@@ -1,6 +1,7 @@
-!!! 5
+doctype html
 html
   head
+    meta(charset='utf-8')
     link(type='text/css', rel='stylesheet', href='../bower/jasmine/lib/jasmine-core/jasmine.css')
     block css
     title IndexedDB Playground
@@ -15,5 +16,5 @@ html
         script(src='../bower/jasmine/lib/jasmine-core/boot.js')
         script(src='../bower/jasmine-jsreporter/jasmine-jsreporter.js')
         script(src='../dist/db.min.js')
-        script
+        script.
             jasmine.getEnv().addReporter(new jasmine.JSReporter2())
