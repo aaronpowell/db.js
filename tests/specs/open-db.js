@@ -1,4 +1,4 @@
-/*global window, console*/
+/*global window, console, jasmine*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
@@ -52,6 +52,20 @@
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server).toBeDefined();
+                done();
+            });
+        });
+
+        it('should allow avoidance of server methods', function (done) {
+            var spec = this;
+            db.open({
+                server: 'query',
+                version: 1,
+                noServerMethods: true
+            }).then(function (s) {
+                spec.server = s;
+                expect(spec.server).toBeDefined();
+                expect(spec.server.query).toEqual(jasmine.any(Function));
                 done();
             });
         });

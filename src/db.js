@@ -23,7 +23,7 @@
     let dbCache = {};
     var isArray = Array.isArray;
 
-    var Server = function (db, name) {
+    var Server = function (db, name, noServerMethods) {
         var closed = false;
 
         this.getIndexedDB = () => db;
@@ -187,7 +187,14 @@
             });
         };
 
+        if (noServerMethods) {
+            return;
+        }
+
         [].map.call(db.objectStoreNames, storeName => {
+            if (this[storeName]) {
+                throw new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+            }
             this[storeName] = {};
             var keys = Object.keys(this);
             keys.filter(key => key !== 'close')
@@ -467,9 +474,9 @@
         }
     };
 
-    var open = function (e, server, version, schema) {
+    var open = function (e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        var s = new Server(db, server);
+        var s = new Server(db, server, noServerMethods);
 
         dbCache[server] = db;
 
@@ -485,12 +492,12 @@
                         target: {
                             result: dbCache[options.server]
                         }
-                    }, options.server, options.version, options.schema)
+                    }, options.server, options.noServerMethods, options.version, options.schema)
                     .then(resolve, reject);
                 } else {
                     let request = indexedDB.open(options.server, options.version);
 
-                    request.onsuccess = e => open(e, options.server, options.version, options.schema).then(resolve, reject);
+                    request.onsuccess = e => open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
                     request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
                     request.onerror = e => reject(e);
                 }
