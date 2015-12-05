@@ -8,7 +8,6 @@
     "semi": [2, "always"],
     "camelcase": 2,
     "no-restricted-syntax": [2, "WithStatement"],
-    "no-console": 2,
     "no-constant-condition": 2,
     "no-empty": 2,
     "no-extra-semi": 2,
