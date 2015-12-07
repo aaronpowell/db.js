@@ -35,31 +35,35 @@
         this.getIndexedDB = function () {
             return db;
         };
+        this.isClosed = function () {
+            return closed;
+        };
 
         this.add = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var records = [];
-
             for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
                 args[_key - 1] = arguments[_key];
             }
 
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
                 var _this = this;
+
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
 
                 records.forEach(function (record) {
                     var req;
@@ -101,28 +105,29 @@
         };
 
         this.update = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-            var records = [];
-
             for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
                 args[_key2 - 1] = arguments[_key2];
             }
 
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
             return new Promise(function (resolve, reject) {
                 var _this2 = this;
 
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
                 records.forEach(function (record) {
                     if (record.item && record.key) {
                         var key = record.key;
@@ -146,13 +151,14 @@
         };
 
         this.remove = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
                 store.delete(key);
                 transaction.oncomplete = function () {
                     return resolve(key);
@@ -164,14 +170,15 @@
         };
 
         this.clear = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            store.clear();
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
+                store.clear();
                 transaction.oncomplete = function () {
                     return resolve();
                 };
@@ -191,14 +198,15 @@
         };
 
         this.get = function (table, id) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
-            var req = store.get(id);
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
+
+                var req = store.get(id);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
@@ -216,13 +224,13 @@
         };
 
         this.count = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
                 var req = store.count();
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);

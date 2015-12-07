@@ -27,26 +27,28 @@
         var closed = false;
 
         this.getIndexedDB = () => db;
+        this.isClosed = () => closed;
 
         this.add = function (table, ...args) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var records = [];
-
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
                 records.forEach(function (record) {
                     var req;
                     if (record.item && record.key) {
@@ -83,22 +85,23 @@
         };
 
         this.update = function (table, ...args) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-            var records = [];
-
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
                 records.forEach(function (record) {
                     if (record.item && record.key) {
                         var key = record.key;
@@ -116,13 +119,14 @@
         };
 
         this.remove = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
                 store.delete(key);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
@@ -130,14 +134,15 @@
         };
 
         this.clear = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            store.clear();
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
+                store.clear();
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = e => reject(e);
             });
@@ -153,14 +158,15 @@
         };
 
         this.get = function (table, id) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
-            var req = store.get(id);
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
+
+                var req = store.get(id);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
             });
@@ -174,13 +180,13 @@
         };
 
         this.count = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
             return new Promise((resolve, reject) => {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
                 var req = store.count();
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
