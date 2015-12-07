@@ -11,7 +11,7 @@
 
     let indexedDB = (function () {
         if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
             if (!indexedDB) {
                 throw new Error('IndexedDB required');
@@ -497,7 +497,7 @@
             });
         },
 
-        'delete': function (dbName) {
+        delete: function (dbName) {
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
@@ -505,6 +505,10 @@
                 request.onerror = e => reject(e);
                 request.onblocked = e => reject(e);
             });
+        },
+
+        cmp: function (param1, param2) {
+            return indexedDB.cmp(param1, param2);
         }
     };
 
