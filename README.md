@@ -379,7 +379,7 @@ Examples:
 ## Deleting a database
 
 ```js
-  db.delete(dbName).then(function () {
+  db.delete(dbName).then(function (e) {
       // Should have been a successful database deletion
   }, function (err) {
       // Error during database deletion

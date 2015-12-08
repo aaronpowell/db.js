@@ -20,8 +20,8 @@
         return indexedDB;
     })();
 
-    let dbCache = {};
-    var isArray = Array.isArray;
+    const dbCache = {};
+    const isArray = Array.isArray;
 
     var Server = function (db, name) {
         var closed = false;
@@ -126,6 +126,7 @@
                 store.delete(key);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -140,6 +141,7 @@
             return new Promise(function (resolve, reject) {
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -163,6 +165,7 @@
             return new Promise(function (resolve, reject) {
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -184,6 +187,7 @@
                 var req = store.count();
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -192,7 +196,7 @@
             var keys = Object.keys(this);
             keys.filter(key => key !== 'close')
                 .map(key =>
-                    this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
+                    this[storeName][key] = (...args) => this[key](storeName, ...args)
                 );
         });
     };
@@ -228,7 +232,7 @@
                 return record;
             };
 
-            index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+            index[cursorType](...indexArgs).onsuccess = function (e) {
                 var cursor = e.target.result;
                 if (typeof cursor === 'number') {
                     results = cursor;
@@ -309,83 +313,83 @@
                 cursorType = 'openKeyCursor';
 
                 return {
-                    desc: desc,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    map: map
+                    desc,
+                    execute,
+                    filter,
+                    distinct,
+                    map
                 };
             };
             filter = function () {
                 filters.push(Array.prototype.slice.call(arguments, 0, 2));
 
                 return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
+                    keys,
+                    execute,
+                    filter,
+                    desc,
+                    distinct,
+                    modify,
+                    limit,
+                    map
                 };
             };
             desc = function () {
                 direction = 'prev';
 
                 return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    modify: modify,
-                    map: map
+                    keys,
+                    execute,
+                    filter,
+                    distinct,
+                    modify,
+                    map
                 };
             };
             distinct = function () {
                 unique = true;
                 return {
-                    keys: keys,
-                    count: count,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    modify: modify,
-                    map: map
+                    keys,
+                    count,
+                    execute,
+                    filter,
+                    desc,
+                    modify,
+                    map
                 };
             };
             modify = function (update) {
                 modifyObj = update;
                 return {
-                    execute: execute
+                    execute
                 };
             };
             map = function (fn) {
                 mapper = fn;
 
                 return {
-                    execute: execute,
-                    count: count,
-                    keys: keys,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
+                    execute,
+                    count,
+                    keys,
+                    filter,
+                    desc,
+                    distinct,
+                    modify,
+                    limit,
+                    map
                 };
             };
 
             return {
-                execute: execute,
-                count: count,
-                keys: keys,
-                filter: filter,
-                desc: desc,
-                distinct: distinct,
-                modify: modify,
-                limit: limit,
-                map: map
+                execute,
+                count,
+                keys,
+                filter,
+                desc,
+                distinct,
+                modify,
+                limit,
+                map
             };
         };
 
@@ -430,9 +434,9 @@
             }
         };
 
-        this.filter = function () {
+        this.filter = function (...args) {
             var query = Query(null, null);
-            return query.filter.apply(query, arguments);
+            return query.filter(...args);
         };
 
         this.all = function () {
@@ -501,7 +505,7 @@
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
-                request.onsuccess = () => resolve();
+                request.onsuccess = e => resolve(e);
                 request.onerror = e => reject(e);
                 request.onblocked = e => reject(e);
             });
