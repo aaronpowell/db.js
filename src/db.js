@@ -191,9 +191,12 @@
             return;
         }
 
-        [].map.call(db.objectStoreNames, storeName => {
+        var err;
+        [].some.call(db.objectStoreNames, storeName => {
             if (this[storeName]) {
-                throw new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                this.close();
+                return true;
             }
             this[storeName] = {};
             var keys = Object.keys(this);
@@ -202,6 +205,7 @@
                     this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
                 );
         });
+        return err;
     };
 
     var IndexQuery = function (table, db, indexName) {
@@ -476,11 +480,10 @@
 
     var open = function (e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        var s = new Server(db, server, noServerMethods);
-
         dbCache[server] = db;
 
-        return Promise.resolve(s);
+        var s = new Server(db, server, noServerMethods);
+        return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {

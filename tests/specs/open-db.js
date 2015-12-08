@@ -1,4 +1,4 @@
-/*global window, console, jasmine*/
+/*global window, console */
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
@@ -56,16 +56,39 @@
             });
         });
 
-        it('should allow avoidance of server methods', function (done) {
+        it('should normally reject open promise with store conflicting with Server methods', function (done) {
+            db.open({
+                server: dbName,
+                version: 1,
+                schema: {
+                    query: {
+                        key: {
+                            keyPath: 'id'
+                        }
+                    }
+                }
+            }).catch(function (err) {
+                expect(err.toString()).toContain('conflicts with db.js method');
+                done();
+            });
+        });
+
+        it('should not add store to server using noServerMethods', function (done) {
             var spec = this;
             db.open({
-                server: 'query',
+                server: dbName,
                 version: 1,
-                noServerMethods: true
+                noServerMethods: true,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id'
+                        }
+                    }
+                }
             }).then(function (s) {
                 spec.server = s;
-                expect(spec.server).toBeDefined();
-                expect(spec.server.query).toEqual(jasmine.any(Function));
+                expect(spec.server.test).toBeUndefined();
                 done();
             });
         });
