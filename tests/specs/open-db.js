@@ -1,4 +1,4 @@
-/*global window, console */
+/*global window, console, jasmine */
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
@@ -73,7 +73,7 @@
             });
         });
 
-        it('should not add store to server using noServerMethods', function (done) {
+        it('should not add stores to server using noServerMethods', function (done) {
             var spec = this;
             db.open({
                 server: dbName,
@@ -84,11 +84,17 @@
                         key: {
                             keyPath: 'id'
                         }
+                    },
+                    query: {
+                        key: {
+                            keyPath: 'id'
+                        }
                     }
                 }
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server.test).toBeUndefined();
+                expect(spec.server.query).toEqual(jasmine.any(Function));
                 done();
             });
         });
