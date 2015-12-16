@@ -70,9 +70,15 @@ for more examples.
 
 ## General server/store methods
 
-Note that the methods below can be called either as
+Note that by default the methods below can be called either as
 `server.people.xxx( arg1, arg2, ... )` or
 `server.xxx( 'people', arg1, arg2, ... )`.
+
+To reduce some memory requirements or avoid a however unlikely
+potential conflict with server method names, however, one may supply
+`noServerMethods: true` as part of options supplied to `db.open()`
+and under such conditions, only the second method signature above can be
+used.
 
 ### Store modification
 

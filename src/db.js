@@ -23,7 +23,7 @@
     const dbCache = {};
     const isArray = Array.isArray;
 
-    var Server = function (db, name) {
+    var Server = function (db, name, noServerMethods) {
         var closed = false;
 
         this.getIndexedDB = () => db;
@@ -191,7 +191,17 @@
             });
         };
 
-        [].map.call(db.objectStoreNames, storeName => {
+        if (noServerMethods) {
+            return;
+        }
+
+        var err;
+        [].some.call(db.objectStoreNames, storeName => {
+            if (this[storeName]) {
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                this.close();
+                return true;
+            }
             this[storeName] = {};
             var keys = Object.keys(this);
             keys.filter(key => key !== 'close')
@@ -199,6 +209,7 @@
                     this[storeName][key] = (...args) => this[key](storeName, ...args)
                 );
         });
+        return err;
     };
 
     var IndexQuery = function (table, db, indexName) {
@@ -471,13 +482,12 @@
         }
     };
 
-    var open = function (e, server, version, schema) {
+    var open = function (e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        var s = new Server(db, server);
-
         dbCache[server] = db;
 
-        return Promise.resolve(s);
+        var s = new Server(db, server, noServerMethods);
+        return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {
@@ -489,12 +499,12 @@
                         target: {
                             result: dbCache[options.server]
                         }
-                    }, options.server, options.version, options.schema)
+                    }, options.server, options.noServerMethods, options.version, options.schema)
                     .then(resolve, reject);
                 } else {
                     let request = indexedDB.open(options.server, options.version);
 
-                    request.onsuccess = e => open(e, options.server, options.version, options.schema).then(resolve, reject);
+                    request.onsuccess = e => open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
                     request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
                     request.onerror = e => reject(e);
                 }
