@@ -221,7 +221,7 @@
             return new Promise((resolve, reject) => {
                 if (key && typeof key === 'object' && !(key instanceof IDBKeyRange)) {
                     let [type, args] = mongoDBToKeyRangeArgs(key);
-                    key = IDBKeyRange[type].apply(null, args);
+                    key = IDBKeyRange[type](...args);
                 }
                 var req = store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
@@ -258,7 +258,7 @@
             var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
             var store = transaction.objectStore(table);
             var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+            var keyRange = type ? IDBKeyRange[type](...args) : null;
             var results = [];
             var indexArgs = [keyRange];
             var counter = 0;
@@ -302,7 +302,7 @@
                             } else if (filter.length === 2) {
                                 matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
-                                matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                                matchFilter = matchFilter && filter[0].call(undefined, result);
                             }
                         });
 
