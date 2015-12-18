@@ -302,7 +302,7 @@
                             } else if (filter.length === 2) {
                                 matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
-                                matchFilter = matchFilter && filter[0].call(undefined, result);
+                                matchFilter = matchFilter && filter[0](result);
                             }
                         });
 
