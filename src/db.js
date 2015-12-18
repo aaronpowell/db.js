@@ -57,6 +57,13 @@
         );
         }
     }
+    function mongoifyKey (key) {
+        if (key && typeof key === 'object' && !(key instanceof IDBKeyRange)) {
+            let [type, args] = mongoDBToKeyRangeArgs(key);
+            return IDBKeyRange[type](...args);
+        }
+        return key;
+    }
 
     var Server = function (db, name, noServerMethods) {
         var closed = false;
@@ -189,14 +196,15 @@
             delete dbCache[name];
         };
 
-        this.get = function (table, id) {
+        this.get = function (table, key) {
             if (closed) {
                 throw new Error('Database has been closed');
             }
             var transaction = db.transaction(table);
             var store = transaction.objectStore(table);
 
-            var req = store.get(id);
+            key = mongoifyKey(key);
+            var req = store.get(key);
             return new Promise(function (resolve, reject) {
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
@@ -219,10 +227,7 @@
             var store = transaction.objectStore(table);
 
             return new Promise((resolve, reject) => {
-                if (key && typeof key === 'object' && !(key instanceof IDBKeyRange)) {
-                    let [type, args] = mongoDBToKeyRangeArgs(key);
-                    key = IDBKeyRange[type](...args);
-                }
+                key = mongoifyKey(key);
                 var req = store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);

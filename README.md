@@ -127,10 +127,32 @@ This allows removing all items in a table/collection:
 
 ### Fetching
 
-#### Getting a single object by ID
+#### Getting a single object by key
 
 ```js
     server.people.get(5)
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+#### Getting a single object by key range
+
+If more than one match, it will retrieve the first.
+
+With a MongoDB-style range:
+
+```js
+    server.people.get({gte: 1, lt: 3})
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+With an `IDBKeyRange`:
+
+```js
+    server.people.get(IDBKeyRange.bound(1, 3, false, true))
         .then(function (results) {
             // do something with the results
         });
