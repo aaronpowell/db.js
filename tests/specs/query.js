@@ -661,6 +661,34 @@
                     });
             });
 
+            it('should not reflect mapper changes during modification but should reflect modifications during mapping', function (done) {
+                var spec = this;
+
+                spec.server.test
+                    .query()
+                    .all()
+                    .map(function (value) {
+                        return {
+                            fullName: value.firstName + ' ' + value.lastName,
+                            raw: value
+                        };
+                    })
+                    .modify({nextAge: function (item) {
+                        expect(item.fullName).toBeUndefined();
+                        return item.age + 1;
+                    }})
+                    .execute()
+                    .then(function (data) {
+                        expect(data.length).toEqual(3);
+                        var i;
+                        for (i = 0; i < data.length; i++) {
+                            var result = data[i];
+                            expect(result.raw.nextAge).toEqual(result.raw.age + 1);
+                        }
+                        done();
+                    });
+            });
+
             it('should only allow `modify` from a specific query type', function (done) {
                 var spec = this;
 

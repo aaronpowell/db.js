@@ -233,6 +233,7 @@
             // create a function that will set in the modifyObj properties into
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+
             var modifyRecord = function (record) {
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
@@ -269,12 +270,12 @@
 
                         if (matchFilter) {
                             counter++;
-                            results.push(mapper(result));
                             // if we're doing a modify, run it now
                             if (modifyObj) {
                                 result = modifyRecord(result);
                                 cursor.update(result);
                             }
+                            results.push(mapper(result));
                         }
                         cursor.continue();
                     }

@@ -295,7 +295,8 @@ Keys may be retrieved with or without an index:
 
 ##### Mapping
 
-The `map` method allows you to modify the object being returned:
+The `map` method allows you to modify the object being returned
+without correspondingly modifying the actual object stored:
 
 ```js
     server.people.
@@ -363,6 +364,8 @@ Examples:
         .execute()
         .then(...)
 ```
+
+`modify` changes will be seen by any `map` functions.
 
 `modify` can be used after: `all`, `filter`, ranges (`range`, `only`,
 `bound`, `upperBound`, and `lowerBound`), `desc`, `distinct`, and `map`.
