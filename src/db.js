@@ -344,8 +344,8 @@
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function () {
-                limitRange = Array.prototype.slice.call(arguments, 0, 2);
+            var limit = function (...args) {
+                limitRange = args.slice(0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
@@ -375,8 +375,8 @@
                     map
                 };
             };
-            filter = function () {
-                filters.push(Array.prototype.slice.call(arguments, 0, 2));
+            filter = function (...args) {
+                filters.push(args.slice(0, 2));
 
                 return {
                     keys,
