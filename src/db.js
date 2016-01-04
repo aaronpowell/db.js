@@ -461,6 +461,19 @@
             schema = schema();
         }
 
+        if (!schema || schema.length === 0) {
+            return;
+        }
+
+        for (var objectStoreKey in db.objectStoreNames) {
+            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
+                var name = db.objectStoreNames[objectStoreKey];
+                if (schema.hasOwnProperty(name) === false) {
+                    e.currentTarget.transaction.db.deleteObjectStore(name);
+                }
+            }
+        }
+
         var tableName;
         for (tableName in schema) {
             var table = schema[tableName];
