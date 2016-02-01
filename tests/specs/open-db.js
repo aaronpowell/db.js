@@ -186,5 +186,44 @@
                 done(err);
             });
         });
+        
+        it('should remove object stores no longer defined in the schema', function(done){
+            db.open({
+                server: dbName,
+                version: 1,
+                schema: {
+                    test_1: {},
+                    test_2: {}
+                }
+            }).then(function (s) {
+                s.close();
+                
+                db.open({
+                   server: dbName,
+                   version: 2,
+                   schema: {
+                        test_2: {}
+                    }
+                }).then(function(s){
+                    s.close();
+                    
+                    var req = indexedDB.open(dbName);
+                    req.onsuccess = function (e) {
+                        var db = e.target.result;
+
+                        expect(db.objectStoreNames.length).toEqual(1);
+                        expect(db.objectStoreNames[ 0 ]).toEqual('test_2');
+
+                        db.close();
+                        done();
+                    };
+                }, function (err) {
+                    done(err);
+                });
+            }, function (err) {
+                done(err);
+            });
+        });
+        
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));
