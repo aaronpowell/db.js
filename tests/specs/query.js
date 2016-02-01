@@ -83,10 +83,36 @@
             };
         });
 
-        it('should allow getting by id', function (done) {
+        it('should allow getting by key', function (done) {
             var spec = this;
             this.server
                 .get('test', spec.item1.id)
+                .then(function (x) {
+                    expect(x).toBeDefined();
+                    expect(x.id).toEqual(spec.item1.id);
+                    expect(x.firstName).toEqual(spec.item1.firstName);
+                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    done();
+                });
+        });
+
+        it('should allow getting by key range (MongoDB-style)', function (done) {
+            var spec = this;
+            this.server
+                .get('test', {gte: 1, lt: 3})
+                .then(function (x) {
+                    expect(x).toBeDefined();
+                    expect(x.id).toEqual(spec.item1.id);
+                    expect(x.firstName).toEqual(spec.item1.firstName);
+                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    done();
+                });
+        });
+
+        it('should allow getting by key range (IDBKeyRange)', function (done) {
+            var spec = this;
+            this.server
+                .get('test', IDBKeyRange.bound(1, 3, false, true))
                 .then(function (x) {
                     expect(x).toBeDefined();
                     expect(x.id).toEqual(spec.item1.id);

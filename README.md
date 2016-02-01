@@ -127,10 +127,32 @@ This allows removing all items in a table/collection:
 
 ### Fetching
 
-#### Getting a single object by ID
+#### Getting a single object by key
 
 ```js
     server.people.get(5)
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+#### Getting a single object by key range
+
+If more than one match, it will retrieve the first.
+
+With a MongoDB-style range:
+
+```js
+    server.people.get({gte: 1, lt: 3})
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+With an `IDBKeyRange`:
+
+```js
+    server.people.get(IDBKeyRange.bound(1, 3, false, true))
         .then(function (results) {
             // do something with the results
         });
@@ -316,6 +338,9 @@ without correspondingly modifying the actual object stored:
 
 ##### Counting
 
+To count while utilizing an index and/or the `query`-returned methods,
+you can use the following:
+
 ```js
     server.people.query('firstName')
         .only('Aaron')
@@ -324,6 +349,31 @@ without correspondingly modifying the actual object stored:
         .then(function (results) {
             // `results` will equal the total count of "Aaron"'s
         });
+```
+
+If you only need a count of items in a store with only a key or range,
+you can utilize `server.count`:
+
+```js
+// With no arguments (count all items)
+server.people.count().then(function (ct) {
+    // Do something with "ct"
+});
+
+// With a key
+server.people.count(myKey).then(function (ct) {
+    // Do something with "ct"
+});
+
+// With a MongoDB-style range
+server.people.count({gte: 1, lt: 3}).then(function (ct) {
+    // Do something with "ct"
+});
+
+// With an IDBKeyRange range
+server.people.count(IDBKeyRange.bound(1, 3, false, true)).then(function (ct) {
+    // Do something with "ct"
+});
 ```
 
 #### Atomic updates

@@ -23,6 +23,48 @@
     const dbCache = {};
     const isArray = Array.isArray;
 
+    function mongoDBToKeyRangeArgs (opts) {
+        var keys = Object.keys(opts).sort();
+        if (keys.length === 1) {
+            var key = keys[0];
+            var val = opts[key];
+            var name, inclusive;
+            switch (key) {
+            case 'eq': name = 'only'; break;
+            case 'gt':
+                name = 'lowerBound';
+                inclusive = true;
+                break;
+            case 'lt':
+                name = 'upperBound';
+                inclusive = true;
+                break;
+            case 'gte': name = 'lowerBound'; break;
+            case 'lte': name = 'upperBound'; break;
+            default: throw new TypeError('`' + key + '` is not valid key');
+            }
+            return [name, [val, inclusive]];
+        }
+        var x = opts[keys[0]];
+        var y = opts[keys[1]];
+        var pattern = keys.join('-');
+
+        switch (pattern) {
+        case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
+            return ['bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']];
+        default: throw new TypeError(
+          '`' + pattern + '` are conflicted keys'
+        );
+        }
+    }
+    function mongoifyKey (key) {
+        if (key && typeof key === 'object' && !(key instanceof IDBKeyRange)) {
+            let [type, args] = mongoDBToKeyRangeArgs(key);
+            return IDBKeyRange[type](...args);
+        }
+        return key;
+    }
+
     var Server = function (db, name, noServerMethods) {
         var closed = false;
 
@@ -154,14 +196,15 @@
             delete dbCache[name];
         };
 
-        this.get = function (table, id) {
+        this.get = function (table, key) {
             if (closed) {
                 throw new Error('Database has been closed');
             }
             var transaction = db.transaction(table);
             var store = transaction.objectStore(table);
 
-            var req = store.get(id);
+            key = mongoifyKey(key);
+            var req = store.get(key);
             return new Promise(function (resolve, reject) {
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
@@ -184,7 +227,8 @@
             var store = transaction.objectStore(table);
 
             return new Promise((resolve, reject) => {
-                var req = store.count();
+                key = mongoifyKey(key);
+                var req = store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
@@ -219,7 +263,7 @@
             var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
             var store = transaction.objectStore(table);
             var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+            var keyRange = type ? IDBKeyRange[type](...args) : null;
             var results = [];
             var indexArgs = [keyRange];
             var counter = 0;
@@ -264,7 +308,7 @@
                             } else if (filter.length === 2) {
                                 matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
-                                matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                                matchFilter = matchFilter && filter[0](result);
                             }
                         });
 
@@ -301,8 +345,8 @@
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function () {
-                limitRange = Array.prototype.slice.call(arguments, 0, 2);
+            var limit = function (...args) {
+                limitRange = args.slice(0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
@@ -332,8 +376,8 @@
                     map
                 };
             };
-            filter = function () {
-                filters.push(Array.prototype.slice.call(arguments, 0, 2));
+            filter = function (...args) {
+                filters.push(args.slice(0, 2));
 
                 return {
                     keys,
@@ -412,38 +456,7 @@
         });
 
         this.range = function (opts) {
-            var keys = Object.keys(opts).sort();
-            if (keys.length === 1) {
-                var key = keys[0];
-                var val = opts[key];
-                var name, inclusive;
-                switch (key) {
-                case 'eq': name = 'only'; break;
-                case 'gt':
-                    name = 'lowerBound';
-                    inclusive = true;
-                    break;
-                case 'lt':
-                    name = 'upperBound';
-                    inclusive = true;
-                    break;
-                case 'gte': name = 'lowerBound'; break;
-                case 'lte': name = 'upperBound'; break;
-                default: throw new TypeError('`' + key + '` is not valid key');
-                }
-                return new Query(name, [val, inclusive]);
-            }
-            var x = opts[keys[0]];
-            var y = opts[keys[1]];
-            var pattern = keys.join('-');
-
-            switch (pattern) {
-            case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
-                return new Query('bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
-            default: throw new TypeError(
-              '`' + pattern + '` are conflicted keys'
-            );
-            }
+            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
         };
 
         this.filter = function (...args) {
