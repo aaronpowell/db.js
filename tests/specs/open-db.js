@@ -1,4 +1,4 @@
-/*global window, console*/
+/*global window, console, jasmine */
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
@@ -52,6 +52,49 @@
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server).toBeDefined();
+                done();
+            });
+        });
+
+        it('should normally reject open promise with store conflicting with Server methods', function (done) {
+            db.open({
+                server: dbName,
+                version: 1,
+                schema: {
+                    query: {
+                        key: {
+                            keyPath: 'id'
+                        }
+                    }
+                }
+            }).catch(function (err) {
+                expect(err.toString()).toContain('conflicts with db.js method');
+                done();
+            });
+        });
+
+        it('should not add stores to server using noServerMethods', function (done) {
+            var spec = this;
+            db.open({
+                server: dbName,
+                version: 1,
+                noServerMethods: true,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id'
+                        }
+                    },
+                    query: {
+                        key: {
+                            keyPath: 'id'
+                        }
+                    }
+                }
+            }).then(function (s) {
+                spec.server = s;
+                expect(spec.server.test).toBeUndefined();
+                expect(spec.server.query).toEqual(jasmine.any(Function));
                 done();
             });
         });
@@ -143,5 +186,44 @@
                 done(err);
             });
         });
+        
+        it('should remove object stores no longer defined in the schema', function(done){
+            db.open({
+                server: dbName,
+                version: 1,
+                schema: {
+                    test_1: {},
+                    test_2: {}
+                }
+            }).then(function (s) {
+                s.close();
+                
+                db.open({
+                   server: dbName,
+                   version: 2,
+                   schema: {
+                        test_2: {}
+                    }
+                }).then(function(s){
+                    s.close();
+                    
+                    var req = indexedDB.open(dbName);
+                    req.onsuccess = function (e) {
+                        var db = e.target.result;
+
+                        expect(db.objectStoreNames.length).toEqual(1);
+                        expect(db.objectStoreNames[ 0 ]).toEqual('test_2');
+
+                        db.close();
+                        done();
+                    };
+                }, function (err) {
+                    done(err);
+                });
+            }, function (err) {
+                done(err);
+            });
+        });
+        
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));

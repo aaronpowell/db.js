@@ -83,10 +83,36 @@
             };
         });
 
-        it('should allow getting by id', function (done) {
+        it('should allow getting by key', function (done) {
             var spec = this;
             this.server
                 .get('test', spec.item1.id)
+                .then(function (x) {
+                    expect(x).toBeDefined();
+                    expect(x.id).toEqual(spec.item1.id);
+                    expect(x.firstName).toEqual(spec.item1.firstName);
+                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    done();
+                });
+        });
+
+        it('should allow getting by key range (MongoDB-style)', function (done) {
+            var spec = this;
+            this.server
+                .get('test', {gte: 1, lt: 3})
+                .then(function (x) {
+                    expect(x).toBeDefined();
+                    expect(x.id).toEqual(spec.item1.id);
+                    expect(x.firstName).toEqual(spec.item1.firstName);
+                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    done();
+                });
+        });
+
+        it('should allow getting by key range (IDBKeyRange)', function (done) {
+            var spec = this;
+            this.server
+                .get('test', IDBKeyRange.bound(1, 3, false, true))
                 .then(function (x) {
                     expect(x).toBeDefined();
                     expect(x.id).toEqual(spec.item1.id);
@@ -656,6 +682,34 @@
                         for (i = 0; i < data.length; i++) {
                             var result = data[i];
                             expect(result.nextAge).toEqual(result.age + 1);
+                        }
+                        done();
+                    });
+            });
+
+            it('should not reflect mapper changes during modification but should reflect modifications during mapping', function (done) {
+                var spec = this;
+
+                spec.server.test
+                    .query()
+                    .all()
+                    .map(function (value) {
+                        return {
+                            fullName: value.firstName + ' ' + value.lastName,
+                            raw: value
+                        };
+                    })
+                    .modify({nextAge: function (item) {
+                        expect(item.fullName).toBeUndefined();
+                        return item.age + 1;
+                    }})
+                    .execute()
+                    .then(function (data) {
+                        expect(data.length).toEqual(3);
+                        var i;
+                        for (i = 0; i < data.length; i++) {
+                            var result = data[i];
+                            expect(result.raw.nextAge).toEqual(result.raw.age + 1);
                         }
                         done();
                     });

@@ -11,7 +11,7 @@
 
     let indexedDB = (function () {
         if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || ((window.indexedDB === null && window.shimIndexedDB) ? window.shimIndexedDB : undefined);
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
             if (!indexedDB) {
                 throw new Error('IndexedDB required');
@@ -20,10 +20,52 @@
         return indexedDB;
     })();
 
-    let dbCache = {};
-    var isArray = Array.isArray;
+    const dbCache = {};
+    const isArray = Array.isArray;
 
-    var Server = function (db, name) {
+    function mongoDBToKeyRangeArgs (opts) {
+        var keys = Object.keys(opts).sort();
+        if (keys.length === 1) {
+            var key = keys[0];
+            var val = opts[key];
+            var name, inclusive;
+            switch (key) {
+            case 'eq': name = 'only'; break;
+            case 'gt':
+                name = 'lowerBound';
+                inclusive = true;
+                break;
+            case 'lt':
+                name = 'upperBound';
+                inclusive = true;
+                break;
+            case 'gte': name = 'lowerBound'; break;
+            case 'lte': name = 'upperBound'; break;
+            default: throw new TypeError('`' + key + '` is not valid key');
+            }
+            return [name, [val, inclusive]];
+        }
+        var x = opts[keys[0]];
+        var y = opts[keys[1]];
+        var pattern = keys.join('-');
+
+        switch (pattern) {
+        case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
+            return ['bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']];
+        default: throw new TypeError(
+          '`' + pattern + '` are conflicted keys'
+        );
+        }
+    }
+    function mongoifyKey (key) {
+        if (key && typeof key === 'object' && !(key instanceof IDBKeyRange)) {
+            let [type, args] = mongoDBToKeyRangeArgs(key);
+            return IDBKeyRange[type](...args);
+        }
+        return key;
+    }
+
+    var Server = function (db, name, noServerMethods) {
         var closed = false;
 
         this.getIndexedDB = () => db;
@@ -130,6 +172,7 @@
                 store.delete(key);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -145,6 +188,7 @@
                 store.clear();
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -157,7 +201,7 @@
             delete dbCache[name];
         };
 
-        this.get = function (table, id) {
+        this.get = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
                     reject('Database has been closed');
@@ -166,9 +210,11 @@
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
 
-                var req = store.get(id);
+                key = mongoifyKey(key);
+                var req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
@@ -187,20 +233,33 @@
                 }
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
+                key = mongoifyKey(key);
                 var req = store.count();
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
             });
         };
 
-        [].map.call(db.objectStoreNames, storeName => {
+        if (noServerMethods) {
+            return;
+        }
+
+        var err;
+        [].some.call(db.objectStoreNames, storeName => {
+            if (this[storeName]) {
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                this.close();
+                return true;
+            }
             this[storeName] = {};
             var keys = Object.keys(this);
             keys.filter(key => key !== 'close')
                 .map(key =>
-                    this[storeName][key] = (...args) => this[key].apply(this, [storeName].concat(args))
+                    this[storeName][key] = (...args) => this[key](storeName, ...args)
                 );
         });
+        return err;
     };
 
     var IndexQuery = function (table, db, indexName) {
@@ -210,7 +269,7 @@
             var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
             var store = transaction.objectStore(table);
             var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+            var keyRange = type ? IDBKeyRange[type](...args) : null;
             var results = [];
             var indexArgs = [keyRange];
             var counter = 0;
@@ -224,6 +283,7 @@
             // create a function that will set in the modifyObj properties into
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+
             var modifyRecord = function (record) {
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
@@ -234,7 +294,7 @@
                 return record;
             };
 
-            index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+            index[cursorType](...indexArgs).onsuccess = function (e) {
                 var cursor = e.target.result;
                 if (typeof cursor === 'number') {
                     results = cursor;
@@ -254,18 +314,18 @@
                             } else if (filter.length === 2) {
                                 matchFilter = matchFilter && (result[filter[0]] === filter[1]);
                             } else {
-                                matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                                matchFilter = matchFilter && filter[0](result);
                             }
                         });
 
                         if (matchFilter) {
                             counter++;
-                            results.push(mapper(result));
                             // if we're doing a modify, run it now
                             if (modifyObj) {
                                 result = modifyRecord(result);
                                 cursor.update(result);
                             }
+                            results.push(mapper(result));
                         }
                         cursor.continue();
                     }
@@ -291,8 +351,8 @@
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function () {
-                limitRange = Array.prototype.slice.call(arguments, 0, 2);
+            var limit = function (...args) {
+                limitRange = args.slice(0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
@@ -315,83 +375,83 @@
                 cursorType = 'openKeyCursor';
 
                 return {
-                    desc: desc,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    map: map
+                    desc,
+                    execute,
+                    filter,
+                    distinct,
+                    map
                 };
             };
-            filter = function () {
-                filters.push(Array.prototype.slice.call(arguments, 0, 2));
+            filter = function (...args) {
+                filters.push(args.slice(0, 2));
 
                 return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
+                    keys,
+                    execute,
+                    filter,
+                    desc,
+                    distinct,
+                    modify,
+                    limit,
+                    map
                 };
             };
             desc = function () {
                 direction = 'prev';
 
                 return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    modify: modify,
-                    map: map
+                    keys,
+                    execute,
+                    filter,
+                    distinct,
+                    modify,
+                    map
                 };
             };
             distinct = function () {
                 unique = true;
                 return {
-                    keys: keys,
-                    count: count,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    modify: modify,
-                    map: map
+                    keys,
+                    count,
+                    execute,
+                    filter,
+                    desc,
+                    modify,
+                    map
                 };
             };
             modify = function (update) {
                 modifyObj = update;
                 return {
-                    execute: execute
+                    execute
                 };
             };
             map = function (fn) {
                 mapper = fn;
 
                 return {
-                    execute: execute,
-                    count: count,
-                    keys: keys,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
+                    execute,
+                    count,
+                    keys,
+                    filter,
+                    desc,
+                    distinct,
+                    modify,
+                    limit,
+                    map
                 };
             };
 
             return {
-                execute: execute,
-                count: count,
-                keys: keys,
-                filter: filter,
-                desc: desc,
-                distinct: distinct,
-                modify: modify,
-                limit: limit,
-                map: map
+                execute,
+                count,
+                keys,
+                filter,
+                desc,
+                distinct,
+                modify,
+                limit,
+                map
             };
         };
 
@@ -402,43 +462,12 @@
         });
 
         this.range = function (opts) {
-            var keys = Object.keys(opts).sort();
-            if (keys.length === 1) {
-                var key = keys[0];
-                var val = opts[key];
-                var name, inclusive;
-                switch (key) {
-                case 'eq': name = 'only'; break;
-                case 'gt':
-                    name = 'lowerBound';
-                    inclusive = true;
-                    break;
-                case 'lt':
-                    name = 'upperBound';
-                    inclusive = true;
-                    break;
-                case 'gte': name = 'lowerBound'; break;
-                case 'lte': name = 'upperBound'; break;
-                default: throw new TypeError('`' + key + '` is not valid key');
-                }
-                return new Query(name, [val, inclusive]);
-            }
-            var x = opts[keys[0]];
-            var y = opts[keys[1]];
-            var pattern = keys.join('-');
-
-            switch (pattern) {
-            case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
-                return new Query('bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
-            default: throw new TypeError(
-              '`' + pattern + '` are conflicted keys'
-            );
-            }
+            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
         };
 
-        this.filter = function () {
+        this.filter = function (...args) {
             var query = Query(null, null);
-            return query.filter.apply(query, arguments);
+            return query.filter(...args);
         };
 
         this.all = function () {
@@ -449,6 +478,19 @@
     var createSchema = function (e, schema, db) {
         if (typeof schema === 'function') {
             schema = schema();
+        }
+
+        if (!schema || schema.length === 0) {
+            return;
+        }
+
+        for (var objectStoreKey in db.objectStoreNames) {
+            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
+                var name = db.objectStoreNames[objectStoreKey];
+                if (schema.hasOwnProperty(name) === false) {
+                    e.currentTarget.transaction.db.deleteObjectStore(name);
+                }
+            }
         }
 
         var tableName;
@@ -473,13 +515,12 @@
         }
     };
 
-    var open = function (e, server, version, schema) {
+    var open = function (e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        var s = new Server(db, server);
-
         dbCache[server] = db;
 
-        return Promise.resolve(s);
+        var s = new Server(db, server, noServerMethods);
+        return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {
@@ -491,26 +532,30 @@
                         target: {
                             result: dbCache[options.server]
                         }
-                    }, options.server, options.version, options.schema)
+                    }, options.server, options.noServerMethods, options.version, options.schema)
                     .then(resolve, reject);
                 } else {
                     let request = indexedDB.open(options.server, options.version);
 
-                    request.onsuccess = e => open(e, options.server, options.version, options.schema).then(resolve, reject);
+                    request.onsuccess = e => open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
                     request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
                     request.onerror = e => reject(e);
                 }
             });
         },
 
-        'delete': function (dbName) {
+        delete: function (dbName) {
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
-                request.onsuccess = () => resolve();
+                request.onsuccess = e => resolve(e);
                 request.onerror = e => reject(e);
                 request.onblocked = e => reject(e);
             });
+        },
+
+        cmp: function (param1, param2) {
+            return indexedDB.cmp(param1, param2);
         }
     };
 

@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/aaronpowell/db.js.png?branch=master)](https://travis-ci.org/aaronpowell/db.js)[![Selenium Test Status](https://saucelabs.com/buildstatus/aaronpowell)](https://saucelabs.com/u/aaronpowell)
+[![Build Status](https://travis-ci.org/aaronpowell/db.js.png?branch=master)](https://travis-ci.org/aaronpowell/db.js)
+[![Selenium Test Status](https://saucelabs.com/buildstatus/aaronpowell)](https://saucelabs.com/u/aaronpowell)
 
 # db.js
 
@@ -44,18 +45,18 @@ different database within your application:
 
 Note that `open()` takes an options object with the following properties:
 
-- *version* - The current version of the database to open.
+-   *version* - The current version of the database to open.
 Should be an integer. You can start with `1`.
 
-- *server* - The name of this server. Any subsequent attempt to open a server
+-   *server* - The name of this server. Any subsequent attempt to open a server
 with this name will reuse the already opened connection (unless it has been
 closed).
 
-- *schema* - Expects an object, or, if a function is supplied, a schema object
-should be returned). A schema object optionally has store names as keys (these
-stores will be auto-created if not yet added). The values of these schema
-objects should be objects, optionally with the property "key" and/or
-"indexes". The "key" property, if present, should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
+-   *schema* - Expects an object, or, if a function is supplied, a schema
+object should be returned). A schema object optionally has store names as
+keys (these stores will be auto-created if not yet added). The values of
+these schema objects should be objects, optionally with the property "key"
+and/or "indexes". The "key" property, if present, should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
 parameters (`keyPath` or `autoIncrement`). The "indexes" property should
 contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
@@ -69,9 +70,15 @@ for more examples.
 
 ## General server/store methods
 
-Note that the methods below can be called either as
+Note that by default the methods below can be called either as
 `server.people.xxx( arg1, arg2, ... )` or
 `server.xxx( 'people', arg1, arg2, ... )`.
+
+To reduce some memory requirements or avoid a however unlikely
+potential conflict with server method names, however, one may supply
+`noServerMethods: true` as part of options supplied to `db.open()`
+and under such conditions, only the second method signature above can be
+used.
 
 ### Store modification
 
@@ -120,10 +127,32 @@ This allows removing all items in a table/collection:
 
 ### Fetching
 
-#### Getting a single object by ID
+#### Getting a single object by key
 
 ```js
     server.people.get(5)
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+#### Getting a single object by key range
+
+If more than one match, it will retrieve the first.
+
+With a MongoDB-style range:
+
+```js
+    server.people.get({gte: 1, lt: 3})
+        .then(function (results) {
+            // do something with the results
+        });
+```
+
+With an `IDBKeyRange`:
+
+```js
+    server.people.get(IDBKeyRange.bound(1, 3, false, true))
         .then(function (results) {
             // do something with the results
         });
@@ -288,7 +317,8 @@ Keys may be retrieved with or without an index:
 
 ##### Mapping
 
-The `map` method allows you to modify the object being returned:
+The `map` method allows you to modify the object being returned
+without correspondingly modifying the actual object stored:
 
 ```js
     server.people.
@@ -308,6 +338,9 @@ The `map` method allows you to modify the object being returned:
 
 ##### Counting
 
+To count while utilizing an index and/or the `query`-returned methods,
+you can use the following:
+
 ```js
     server.people.query('firstName')
         .only('Aaron')
@@ -318,11 +351,36 @@ The `map` method allows you to modify the object being returned:
         });
 ```
 
+If you only need a count of items in a store with only a key or range,
+you can utilize `server.count`:
+
+```js
+// With no arguments (count all items)
+server.people.count().then(function (ct) {
+    // Do something with "ct"
+});
+
+// With a key
+server.people.count(myKey).then(function (ct) {
+    // Do something with "ct"
+});
+
+// With a MongoDB-style range
+server.people.count({gte: 1, lt: 3}).then(function (ct) {
+    // Do something with "ct"
+});
+
+// With an IDBKeyRange range
+server.people.count(IDBKeyRange.bound(1, 3, false, true)).then(function (ct) {
+    // Do something with "ct"
+});
+```
+
 #### Atomic updates
 
-Any query that returns a range of results can also be set to modify the returned
-records automatically. This is done by adding `.modify()` at the end of the query
-(right before `.execute()`).
+Any query that returns a range of results can also be set to modify the
+returned records automatically. This is done by adding `.modify()` at
+the end of the query (right before `.execute()`).
 
 `modify` only runs updates on objects matched by the query, and still returns
 the same results to the `done()` function (however, the results will have the
@@ -357,6 +415,8 @@ Examples:
         .then(...)
 ```
 
+`modify` changes will be seen by any `map` functions.
+
 `modify` can be used after: `all`, `filter`, ranges (`range`, `only`,
 `bound`, `upperBound`, and `lowerBound`), `desc`, `distinct`, and `map`.
 
@@ -378,11 +438,20 @@ Examples:
 ## Deleting a database
 
 ```js
-  db.delete(dbName).then(function () {
+  db.delete(dbName).then(function (e) {
       // Should have been a successful database deletion
   }, function (err) {
       // Error during database deletion
   });
+```
+
+## Comparing two keys
+
+Returns `1` if the first key is greater than the second, `-1` if the first
+is less than the second, and `0` if the first is equal to the second.
+
+```js
+  db.cmp(key1, key2);
 ```
 
 # Promise notes
@@ -400,11 +469,9 @@ library.
 
 # Contributor notes
 
-- `npm install` to install all the dependencies
-
-- `grunt jasmine-server` to run the jasmine server
-
-- Open `http://localhost:9999/tests` to run the jasmine tests
+-   `npm install` to install all the dependencies
+-   `grunt jasmine-server` to run the jasmine server
+-   Open `http://localhost:9999/tests` to run the jasmine tests
 
 # License
 
