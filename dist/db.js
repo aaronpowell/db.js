@@ -1,5 +1,11 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 (function (window) {
     'use strict';
 
@@ -13,21 +19,72 @@
         return x;
     };
 
-    var indexedDB = (function () {
+    var indexedDB = function () {
         if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || (window.indexedDB === null && window.shimIndexedDB ? window.shimIndexedDB : undefined);
+            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
 
             if (!indexedDB) {
                 throw new Error('IndexedDB required');
             }
         }
         return indexedDB;
-    })();
+    }();
 
     var dbCache = {};
     var isArray = Array.isArray;
 
-    var Server = function Server(db, name) {
+    function mongoDBToKeyRangeArgs(opts) {
+        var keys = Object.keys(opts).sort();
+        if (keys.length === 1) {
+            var key = keys[0];
+            var val = opts[key];
+            var name, inclusive;
+            switch (key) {
+                case 'eq':
+                    name = 'only';break;
+                case 'gt':
+                    name = 'lowerBound';
+                    inclusive = true;
+                    break;
+                case 'lt':
+                    name = 'upperBound';
+                    inclusive = true;
+                    break;
+                case 'gte':
+                    name = 'lowerBound';break;
+                case 'lte':
+                    name = 'upperBound';break;
+                default:
+                    throw new TypeError('`' + key + '` is not valid key');
+            }
+            return [name, [val, inclusive]];
+        }
+        var x = opts[keys[0]];
+        var y = opts[keys[1]];
+        var pattern = keys.join('-');
+
+        switch (pattern) {
+            case 'gt-lt':case 'gt-lte':case 'gte-lt':case 'gte-lte':
+                return ['bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']];
+            default:
+                throw new TypeError('`' + pattern + '` are conflicted keys');
+        }
+    }
+    function mongoifyKey(key) {
+        if (key && (typeof key === 'undefined' ? 'undefined' : _typeof(key)) === 'object' && !(key instanceof IDBKeyRange)) {
+            var _mongoDBToKeyRangeArg = mongoDBToKeyRangeArgs(key);
+
+            var _mongoDBToKeyRangeArg2 = _slicedToArray(_mongoDBToKeyRangeArg, 2);
+
+            var type = _mongoDBToKeyRangeArg2[0];
+            var args = _mongoDBToKeyRangeArg2[1];
+
+            return IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args));
+        }
+        return key;
+    }
+
+    var Server = function Server(db, name, noServerMethods) {
         var _this3 = this;
 
         var closed = false;
@@ -35,31 +92,35 @@
         this.getIndexedDB = function () {
             return db;
         };
+        this.isClosed = function () {
+            return closed;
+        };
 
         this.add = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var records = [];
-
             for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
                 args[_key - 1] = arguments[_key];
             }
 
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
                 var _this = this;
+
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
 
                 records.forEach(function (record) {
                     var req;
@@ -101,28 +162,29 @@
         };
 
         this.update = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-            var records = [];
-
             for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
                 args[_key2 - 1] = arguments[_key2];
             }
 
-            args.forEach(function (aip) {
-                if (isArray(aip)) {
-                    records = records.concat(aip);
-                } else {
-                    records.push(aip);
-                }
-            });
             return new Promise(function (resolve, reject) {
                 var _this2 = this;
 
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+                var records = [];
+
+                args.forEach(function (aip) {
+                    if (isArray(aip)) {
+                        records = records.concat(aip);
+                    } else {
+                        records.push(aip);
+                    }
+                });
                 records.forEach(function (record) {
                     if (record.item && record.key) {
                         var key = record.key;
@@ -146,13 +208,14 @@
         };
 
         this.remove = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
                 store.delete(key);
                 transaction.oncomplete = function () {
                     return resolve(key);
@@ -160,22 +223,29 @@
                 transaction.onerror = function (e) {
                     return reject(e);
                 };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
             });
         };
 
         this.clear = function (table) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table, transactionModes.readwrite);
-            var store = transaction.objectStore(table);
-
-            store.clear();
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                var store = transaction.objectStore(table);
+
+                store.clear();
                 transaction.oncomplete = function () {
                     return resolve();
                 };
                 transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
                     return reject(e);
                 };
             });
@@ -190,19 +260,24 @@
             delete dbCache[name];
         };
 
-        this.get = function (table, id) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
-            var req = store.get(id);
+        this.get = function (table, key) {
             return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
+
+                key = mongoifyKey(key);
+                var req = store.get(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
                 transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
                     return reject(e);
                 };
             });
@@ -216,24 +291,38 @@
         };
 
         this.count = function (table, key) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            var transaction = db.transaction(table);
-            var store = transaction.objectStore(table);
-
             return new Promise(function (resolve, reject) {
-                var req = store.count();
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                var transaction = db.transaction(table);
+                var store = transaction.objectStore(table);
+                key = mongoifyKey(key);
+                var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
                 transaction.onerror = function (e) {
                     return reject(e);
                 };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
             });
         };
 
-        [].map.call(db.objectStoreNames, function (storeName) {
+        if (noServerMethods) {
+            return;
+        }
+
+        var err;
+        [].some.call(db.objectStoreNames, function (storeName) {
+            if (_this3[storeName]) {
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                _this3.close();
+                return true;
+            }
             _this3[storeName] = {};
             var keys = Object.keys(_this3);
             keys.filter(function (key) {
@@ -248,6 +337,7 @@
                 };
             });
         });
+        return err;
     };
 
     var IndexQuery = function IndexQuery(table, db, indexName) {
@@ -259,7 +349,7 @@
             var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
             var store = transaction.objectStore(table);
             var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(null, args) : null;
+            var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
             var results = [];
             var indexArgs = [keyRange];
             var counter = 0;
@@ -273,6 +363,7 @@
             // create a function that will set in the modifyObj properties into
             // the passed record.
             var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+
             var modifyRecord = function modifyRecord(record) {
                 for (var i = 0; i < modifyKeys.length; i++) {
                     var key = modifyKeys[i];
@@ -305,18 +396,18 @@
                                 } else if (filter.length === 2) {
                                         matchFilter = matchFilter && result[filter[0]] === filter[1];
                                     } else {
-                                        matchFilter = matchFilter && filter[0].apply(undefined, [result]);
+                                        matchFilter = matchFilter && filter[0](result);
                                     }
                             });
 
                             if (matchFilter) {
                                 counter++;
-                                results.push(mapper(result));
                                 // if we're doing a modify, run it now
                                 if (modifyObj) {
                                     result = modifyRecord(result);
                                     cursor.update(result);
                                 }
+                                results.push(mapper(result));
                             }
                             cursor.continue();
                         }
@@ -349,7 +440,11 @@
             };
 
             var limit = function limit() {
-                limitRange = Array.prototype.slice.call(arguments, 0, 2);
+                for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+                    args[_key4] = arguments[_key4];
+                }
+
+                limitRange = args.slice(0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
@@ -367,75 +462,79 @@
                 };
             };
 
-            var filter, desc, distinct, modify, map;
+            var _filter, desc, distinct, modify, _map;
             var keys = function keys() {
                 cursorType = 'openKeyCursor';
 
                 return {
                     desc: desc,
                     execute: execute,
-                    filter: filter,
+                    filter: _filter,
                     distinct: distinct,
-                    map: map
+                    map: _map
                 };
             };
-            filter = function () {
-                filters.push(Array.prototype.slice.call(arguments, 0, 2));
+            _filter = function filter() {
+                for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+                    args[_key5] = arguments[_key5];
+                }
+
+                filters.push(args.slice(0, 2));
 
                 return {
                     keys: keys,
                     execute: execute,
-                    filter: filter,
+                    filter: _filter,
                     desc: desc,
                     distinct: distinct,
                     modify: modify,
                     limit: limit,
-                    map: map
+                    map: _map
                 };
             };
-            desc = function () {
+            desc = function desc() {
                 direction = 'prev';
 
                 return {
                     keys: keys,
                     execute: execute,
-                    filter: filter,
+                    filter: _filter,
                     distinct: distinct,
                     modify: modify,
-                    map: map
+                    map: _map
                 };
             };
-            distinct = function () {
+            distinct = function distinct() {
                 unique = true;
                 return {
                     keys: keys,
                     count: count,
                     execute: execute,
-                    filter: filter,
+                    filter: _filter,
                     desc: desc,
                     modify: modify,
-                    map: map
+                    map: _map
                 };
             };
-            modify = function (update) {
+            modify = function modify(update) {
                 modifyObj = update;
                 return {
                     execute: execute
                 };
             };
-            map = function (fn) {
+            _map = function map(fn) {
                 mapper = fn;
 
                 return {
                     execute: execute,
                     count: count,
                     keys: keys,
-                    filter: filter,
+                    filter: _filter,
                     desc: desc,
                     distinct: distinct,
                     modify: modify,
                     limit: limit,
-                    map: map
+                    map: _map
                 };
             };
 
@@ -443,12 +542,12 @@
                 execute: execute,
                 count: count,
                 keys: keys,
-                filter: filter,
+                filter: _filter,
                 desc: desc,
                 distinct: distinct,
                 modify: modify,
                 limit: limit,
-                map: map
+                map: _map
             };
         };
 
@@ -459,41 +558,7 @@
         });
 
         this.range = function (opts) {
-            var keys = Object.keys(opts).sort();
-            if (keys.length === 1) {
-                var key = keys[0];
-                var val = opts[key];
-                var name, inclusive;
-                switch (key) {
-                    case 'eq':
-                        name = 'only';break;
-                    case 'gt':
-                        name = 'lowerBound';
-                        inclusive = true;
-                        break;
-                    case 'lt':
-                        name = 'upperBound';
-                        inclusive = true;
-                        break;
-                    case 'gte':
-                        name = 'lowerBound';break;
-                    case 'lte':
-                        name = 'upperBound';break;
-                    default:
-                        throw new TypeError('`' + key + '` is not valid key');
-                }
-                return new Query(name, [val, inclusive]);
-            }
-            var x = opts[keys[0]];
-            var y = opts[keys[1]];
-            var pattern = keys.join('-');
-
-            switch (pattern) {
-                case 'gt-lt':case 'gt-lte':case 'gte-lt':case 'gte-lte':
-                    return new Query('bound', [x, y, keys[0] === 'gt', keys[1] === 'lt']);
-                default:
-                    throw new TypeError('`' + pattern + '` are conflicted keys');
-            }
+            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
         };
 
         this.filter = function () {
@@ -509,6 +574,19 @@
     var createSchema = function createSchema(e, schema, db) {
         if (typeof schema === 'function') {
             schema = schema();
+        }
+
+        if (!schema || schema.length === 0) {
+            return;
+        }
+
+        for (var objectStoreKey in db.objectStoreNames) {
+            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
+                var name = db.objectStoreNames[objectStoreKey];
+                if (schema.hasOwnProperty(name) === false) {
+                    e.currentTarget.transaction.db.deleteObjectStore(name);
+                }
+            }
         }
 
         var tableName;
@@ -533,13 +611,12 @@
         }
     };
 
-    var _open = function _open(e, server, version, schema) {
+    var _open = function _open(e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        var s = new Server(db, server);
-
         dbCache[server] = db;
 
-        return Promise.resolve(s);
+        var s = new Server(db, server, noServerMethods);
+        return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {
@@ -551,12 +628,12 @@
                         target: {
                             result: dbCache[options.server]
                         }
-                    }, options.server, options.version, options.schema).then(resolve, reject);
+                    }, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
                 } else {
                     var request = indexedDB.open(options.server, options.version);
 
                     request.onsuccess = function (e) {
-                        return _open(e, options.server, options.version, options.schema).then(resolve, reject);
+                        return _open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
                     };
                     request.onupgradeneeded = function (e) {
                         return createSchema(e, options.schema, e.target.result);
@@ -568,12 +645,12 @@
             });
         },
 
-        'delete': function _delete(dbName) {
+        delete: function _delete(dbName) {
             return new Promise(function (resolve, reject) {
                 var request = indexedDB.deleteDatabase(dbName);
 
-                request.onsuccess = function () {
-                    return resolve();
+                request.onsuccess = function (e) {
+                    return resolve(e);
                 };
                 request.onerror = function (e) {
                     return reject(e);
@@ -582,6 +659,10 @@
                     return reject(e);
                 };
             });
+        },
+
+        cmp: function cmp(param1, param2) {
+            return indexedDB.cmp(param1, param2);
         }
     };
 
