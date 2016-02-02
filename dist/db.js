@@ -620,7 +620,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var db = {
-        version: '0.11.0',
+        version: '0.12.0',
         open: function open(options) {
             return new Promise(function (resolve, reject) {
                 if (dbCache[options.server]) {
