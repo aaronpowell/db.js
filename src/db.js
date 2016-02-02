@@ -234,7 +234,7 @@
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
                 key = mongoifyKey(key);
-                var req = store.count();
+                var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);

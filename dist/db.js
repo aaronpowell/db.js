@@ -299,7 +299,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
                 key = mongoifyKey(key);
-                var req = store.count();
+                var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
