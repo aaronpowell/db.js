@@ -11,7 +11,7 @@ make it easier to work against, making it look more like a queryable API.
 Add a reference to db.js in your application before you want to use IndexedDB:
 
 ```html
-    <script src='/src/db.js'></script>
+    <script src='/dist/db.js'></script>
 ```
 
 Alternatively, db.js includes an optional `define` call, and can be loaded
@@ -62,7 +62,9 @@ contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
-a `key` property on the provided parameter object.
+a `key` property on the provided parameter object. Note also that when a
+schema is supplied, any object stores not present on the schema object will
+be deleted.
 
 A connection is intended to be persisted, and you can perform multiple
 operations while it's kept open. Check out the `/tests/specs` folder
@@ -251,7 +253,7 @@ are also supported:
 
 ##### Querying for distinct values
 
-Will return only one record
+Will return only one record:
 
 ```js
     server.people
