@@ -46,11 +46,12 @@ different database within your application:
 Note that `open()` takes an options object with the following properties:
 
 -   *version* - The current version of the database to open.
-Should be an integer. You can start with `1`.
+Should be an integer. You can start with `1`. You must increase the `version`
+if updating the schema or otherwise the `schema` property will have no effect.
 
 -   *server* - The name of this server. Any subsequent attempt to open a server
-with this name will reuse the already opened connection (unless it has been
-closed).
+with this name (and with the current version) will reuse the already opened
+connection (unless it has been closed).
 
 -   *schema* - Expects an object, or, if a function is supplied, a schema
 object should be returned). A schema object optionally has store names as
@@ -63,12 +64,49 @@ objects which can include the optional parameters and values available to [creat
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
 a `key` property on the provided parameter object. Note also that when a
-schema is supplied, any object stores not present on the schema object will
-be deleted.
+schema is supplied for a new version, any object stores not present on
+the schema object will be deleted.
 
 A connection is intended to be persisted, and you can perform multiple
-operations while it's kept open. Check out the `/tests/specs` folder
-for more examples.
+operations while it's kept open.
+
+In the event a connection has already been opened for modification (whether
+in the same instance or in another tab/window), a blocking error will occur,
+for which you can listen by adding a `Promise.catch` statement and
+communicate with blocking instances still holding a connection so that
+they may close the connection. You can then return the `resume` property
+(a promise) to recover to continue the original `open` operation and
+proceed to the following `then` condition.
+
+```js
+    var server;
+    db.open({
+        // ...
+    }).catch(function (err) {
+        // You might add such a catch statement for
+        //   blocking errors in order to close
+        //   any pre-existing connections and resume
+        //   to the following "then" condition by
+        //   returning the "resume" promise.
+        // window.postMessage might be a suitable
+        //   way to ensure all connections are closed.
+        if (err.type === 'blocked') {
+            oldConnection.close();
+            return e.resume;
+        }
+        // Handle errors here
+        throw err;
+    }).then(function (s) {
+        server = s;
+    });
+```
+
+For cases where the blocking connections are in other tabs/windows,
+[window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+might be a suitable way to communicate with them to get them to close
+their connections or whatever behavior is desired.
+
+Check out the `/tests/specs` folder for more examples.
 
 ## General server/store methods
 
@@ -122,7 +160,7 @@ This allows removing all items in a table/collection:
 
 ```js
     server.people.clear()
-        .then(function() {
+        .then(function () {
             // all table data is gone.
         });
 ```
@@ -440,12 +478,33 @@ Examples:
 ## Deleting a database
 
 ```js
-  db.delete(dbName).then(function (e) {
+  db.delete(dbName).then(function (ev) {
       // Should have been a successful database deletion
   }, function (err) {
       // Error during database deletion
   });
 ```
+
+As with the `open` operation, a `delete` operation will not be able to
+execute so long as there are already opened blocking connections
+(i.e., those allowing for database modification) which are open elsewhere
+in the browser. You can recover as follows:
+
+```js
+  db.delete(dbName).catch(function (err) {
+      if (err.type === 'blocked') {
+          oldConnection.close();
+          return e.resume;
+      }
+      // Handle other errors here
+      throw err;
+  }).then(function (ev) {
+      // Should have been a successful database deletion
+  });
+```
+
+See the documentation on `open` for more on such recovery from blocking
+connections.
 
 ## Comparing two keys
 

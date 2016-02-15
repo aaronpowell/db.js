@@ -4,7 +4,7 @@ module.exports = function (grunt) {
     var saucekey = 'auzcE6Esp+TT6vpQHUyWf9jpvYpEO1iHWiMfkZTxo+MsJcETw1qaAakAgyE8jwPFHSPPT6wDzt+rLUOd6FkwqSgm3lLuP9wKgikXzgYSpNg+EfHrF1rep+BVZFkbs3uk6NetezlALVPOMq+4O54TbtOiLF9KurjkM5YkryExCmc=';
 
     if (!saucekey) {
-        console.warn('Unable to load saurcelabs key');
+        console.warn('Unable to load saucelabs key');
     }
 
     grunt.initConfig({
@@ -91,7 +91,7 @@ module.exports = function (grunt) {
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
     if (saucekey !== null) {
-        testJobs.push('saucelabs-jasmine');
+//        testJobs.push('saucelabs-jasmine');
     }
 
     grunt.registerTask('dev', devJobs);

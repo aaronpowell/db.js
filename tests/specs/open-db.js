@@ -3,7 +3,10 @@
     'use strict';
     describe('db.open', function () {
         var dbName = 'tests';
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var initialVersion = 1;
+        var newVersion = 2;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             var req = indexedDB.deleteDatabase(dbName);
@@ -48,7 +51,7 @@
             var spec = this;
             db.open({
                 server: dbName,
-                version: 1
+                version: initialVersion
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server).toBeDefined();
@@ -59,7 +62,7 @@
         it('should normally reject open promise with store conflicting with Server methods', function (done) {
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     query: {
                         key: {
@@ -77,7 +80,7 @@
             var spec = this;
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 noServerMethods: true,
                 schema: {
                     test: {
@@ -102,7 +105,7 @@
         it('should use the provided schema', function (done) {
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {
                         key: {
@@ -135,7 +138,7 @@
         it('should allow schemas without keypaths', function (done) {
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {}
                 }
@@ -159,7 +162,7 @@
         it('should skip creating existing object stores when migrating schema', function (done) {
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {}
                 }
@@ -171,7 +174,7 @@
                 }
                 db.open({
                     server: dbName,
-                    version: 2,
+                    version: newVersion,
                     schema: {
                         test: {},
                         extra: {}
@@ -186,27 +189,27 @@
                 done(err);
             });
         });
-        
+
         it('should remove object stores no longer defined in the schema', function(done){
             db.open({
                 server: dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test_1: {},
                     test_2: {}
                 }
             }).then(function (s) {
                 s.close();
-                
+
                 db.open({
                    server: dbName,
-                   version: 2,
+                   version: newVersion,
                    schema: {
                         test_2: {}
                     }
                 }).then(function(s){
                     s.close();
-                    
+
                     var req = indexedDB.open(dbName);
                     req.onsuccess = function (e) {
                         var db = e.target.result;
@@ -224,6 +227,5 @@
                 done(err);
             });
         });
-        
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));
