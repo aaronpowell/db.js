@@ -102,12 +102,15 @@
         it('should receive blocked events (on database delete) and be able to resume after unblocking', function (done) {
             // We do not close the prior beforeEach connection, so a blocking error is expected
             var spec = this;
+            var caught = false;
             db.delete(dbName).catch(function (err) {
                 expect(err.oldVersion).toEqual(initialVersion); // Problem in FF: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
                 expect(err.newVersion).toEqual(null);
                 spec.server.close(); // Ensure the last connection is closed so we can resume
+                caught = true;
                 return err.resume;
             }).then(function (ev) { // Successful deletion so no FF bug here
+                expect(caught).toBe(true);
                 expect(ev.oldVersion).toEqual(initialVersion);
                 expect(ev.newVersion).toEqual(null);
                 done();
