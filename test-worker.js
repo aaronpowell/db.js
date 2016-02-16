@@ -3,10 +3,9 @@
     importScripts('dist/db.min.js');
     var dbName = 'tests';
     var initialVersion = 1;
-    console.log('00');
-    onmessage = function (e) {console.log('0');
+    onmessage = function (e) {
         switch (e.data) {
-        case 'web worker open':console.log('a');
+        case 'web worker open':
             db.open({
                 server: dbName,
                 version: initialVersion
@@ -16,7 +15,7 @@
                 postMessage(result);
             });
             break;
-        case 'service worker open':console.log('b');
+        case 'service worker open':
             db.open({
                 server: dbName,
                 version: initialVersion
