@@ -44,13 +44,31 @@
         });
 
         it('should open a created db in a web worker', function (done) {
-            var tw = new Worker('specs/helpers/test-worker.js');
+            var tw = new Worker('../test-worker.js');
             tw.onmessage = function (e) {
                 expect(e.data).toBe(true);
                 tw.terminate();
                 done();
             };
-            tw.postMessage('start');
+            tw.postMessage('web worker open');
+        });
+
+        it('should open a created db in a service worker', function (done) {
+            navigator.serviceWorker.register('../test-worker.js').then(function() {
+                return navigator.serviceWorker.ready;
+            }).then(function () {
+                var messageChannel = new MessageChannel();
+                messageChannel.port1.onmessage = function(e) {
+                    expect(e.data).toBe(true);
+                    done();
+                };
+                navigator.serviceWorker.controller.postMessage(
+                    'service worker open',
+                    [messageChannel.port2]
+                );
+            }).catch(function (err) {
+                console.log('Service worker error: ' + err);
+            });
         });
     });
 })(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach);
