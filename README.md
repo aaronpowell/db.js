@@ -83,18 +83,11 @@ proceed to the following `then` condition.
     db.open({
         // ...
     }).catch(function (err) {
-        // You might add such a catch statement for
-        //   blocking errors in order to close
-        //   any pre-existing connections and resume
-        //   to the following "then" condition by
-        //   returning the "resume" promise.
-        // window.postMessage might be a suitable
-        //   way to ensure all connections are closed.
         if (err.type === 'blocked') {
             oldConnection.close();
-            return e.resume;
+            return err.resume;
         }
-        // Handle errors here
+        // Handle other errors here
         throw err;
     }).then(function (s) {
         server = s;
@@ -494,7 +487,7 @@ in the browser. You can recover as follows:
   db.delete(dbName).catch(function (err) {
       if (err.type === 'blocked') {
           oldConnection.close();
-          return e.resume;
+          return err.resume;
       }
       // Handle other errors here
       throw err;
