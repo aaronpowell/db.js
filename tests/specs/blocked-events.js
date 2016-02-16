@@ -107,9 +107,9 @@
                 expect(err.newVersion).toEqual(null);
                 spec.server.close(); // Ensure the last connection is closed so we can resume
                 return err.resume;
-            }).then(function (resume) { // Successful deletion so no FF bug here
-                expect(resume.oldVersion).toEqual(initialVersion);
-                expect(resume.newVersion).toEqual(null);
+            }).then(function (ev) { // Successful deletion so no FF bug here
+                expect(ev.oldVersion).toEqual(initialVersion);
+                expect(ev.newVersion).toEqual(null);
                 done();
             });
         });
