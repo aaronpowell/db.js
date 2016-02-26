@@ -166,7 +166,7 @@ Queries require one or more methods to determine the type of querying
 (all items, filtering, applying ranges, limits, distinct values, or
 custom mapping--some of which can be combined
 with some of the others), any methods for cursor direction, and then a
-subsequent call to `execute()`.
+subsequent call to `execute()` (followed by a `then` or `catch`).
 
 ##### Querying all objects
 
