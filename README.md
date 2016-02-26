@@ -11,7 +11,7 @@ make it easier to work against, making it look more like a queryable API.
 Add a reference to db.js in your application before you want to use IndexedDB:
 
 ```html
-    <script src='/dist/db.js'></script>
+<script src='/dist/db.js'></script>
 ```
 
 Alternatively, db.js includes an optional `define` call, and can be loaded
@@ -24,23 +24,23 @@ Once you have the script included you can then open connections to each
 different database within your application:
 
 ```js
-    var server;
-    db.open({
-        server: 'my-app',
-        version: 1,
-        schema: {
-            people: {
-                key: {keyPath: 'id', autoIncrement: true},
-                // Optionally add indexes
-                indexes: {
-                    firstName: {},
-                    answer: {unique: true}
-                }
+var server;
+db.open({
+    server: 'my-app',
+    version: 1,
+    schema: {
+        people: {
+            key: {keyPath: 'id', autoIncrement: true},
+            // Optionally add indexes
+            indexes: {
+                firstName: {},
+                answer: {unique: true}
             }
         }
-    }).then(function (s) {
-        server = s;
-    });
+    }
+}).then(function (s) {
+    server = s;
+});
 ```
 
 Note that `open()` takes an options object with the following properties:
@@ -87,33 +87,33 @@ used.
 #### Adding items
 
 ```js
-    server.people.add({
-        firstName: 'Aaron',
-        lastName: 'Powell',
-        answer: 42
-    }).then(function (item) {
-        // item stored
-    });
+server.people.add({
+    firstName: 'Aaron',
+    lastName: 'Powell',
+    answer: 42
+}).then(function (item) {
+    // item stored
+});
 ```
 
 #### Updating
 
 ```js
-    server.people.update({
-        firstName: 'Aaron',
-        lastName: 'Powell',
-        answer: 42
-    }).then(function (item) {
-        // item added or updated
-    });
+server.people.update({
+    firstName: 'Aaron',
+    lastName: 'Powell',
+    answer: 42
+}).then(function (item) {
+    // item added or updated
+});
 ```
 
 #### Removing
 
 ```js
-    server.people.remove(1).then(function (key) {
-        // item removed
-    });
+server.people.remove(1).then(function (key) {
+    // item removed
+});
 ```
 
 ##### Clearing
@@ -121,10 +121,10 @@ used.
 This allows removing all items in a table/collection:
 
 ```js
-    server.people.clear()
-        .then(function() {
-            // all table data is gone.
-        });
+server.people.clear()
+    .then(function() {
+        // all table data is gone.
+    });
 ```
 
 ### Fetching
@@ -132,10 +132,10 @@ This allows removing all items in a table/collection:
 #### Getting a single object by key
 
 ```js
-    server.people.get(5)
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.get(5)
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 #### Getting a single object by key range
@@ -145,19 +145,19 @@ If more than one match, it will retrieve the first.
 With a MongoDB-style range:
 
 ```js
-    server.people.get({gte: 1, lt: 3})
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.get({gte: 1, lt: 3})
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 With an `IDBKeyRange`:
 
 ```js
-    server.people.get(IDBKeyRange.bound(1, 3, false, true))
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.get(IDBKeyRange.bound(1, 3, false, true))
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 #### Querying
@@ -171,23 +171,23 @@ subsequent call to `execute()`.
 ##### Querying all objects
 
 ```js
-    server.people.query()
-        .all()
-        .execute()
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query()
+    .all()
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 ##### Querying using indexes
 
 ```js
-    server.people.query('specialProperty').
-        all().
-        execute().
-        then(function (results) {
-            // do something with the results (items which possess `specialProperty`)
-        });
+server.people.query('specialProperty').
+    all().
+    execute().
+    then(function (results) {
+        // do something with the results (items which possess `specialProperty`)
+    });
 ```
 
 ##### Querying with filtering
@@ -195,23 +195,23 @@ subsequent call to `execute()`.
 ###### Filter with property and value
 
 ```js
-    server.people.query()
-        .filter('firstName', 'Aaron')
-        .execute()
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query()
+    .filter('firstName', 'Aaron')
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 ###### Filter with function
 
 ```js
-    server.people.query()
-        .filter(function(person) {return person.group === 'hipster';})
-        .execute()
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query()
+    .filter(function(person) {return person.group === 'hipster';})
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 ##### Querying with ranges
@@ -220,17 +220,17 @@ All ranges supported by `IDBKeyRange` can be used (`only`,
 `bound`, `lowerBound`, `upperBound`).
 
 ```js
-    server.people.query('firstName')
-        .only('Aaron')
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query('firstName')
+    .only('Aaron')
+    .then(function (results) {
+        // do something with the results
+    });
 
-    server.people.query('answer')
-        .bound(30, 50)
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query('answer')
+    .bound(30, 50)
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 MongoDB-style ranges (as implemented in
@@ -238,17 +238,17 @@ MongoDB-style ranges (as implemented in
 are also supported:
 
 ```js
-    server.people.query('firstName')
-        .range({eq: 'Aaron'})
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query('firstName')
+    .range({eq: 'Aaron'})
+    .then(function (results) {
+        // do something with the results
+    });
 
-    server.people.query('answer')
-        .range({gte: 30, lte: 50})
-        .then(function (results) {
-            // do something with the results
-        });
+server.people.query('answer')
+    .range({gte: 30, lte: 50})
+    .then(function (results) {
+        // do something with the results
+    });
 ```
 
 ##### Querying for distinct values
@@ -256,14 +256,14 @@ are also supported:
 Will return only one record:
 
 ```js
-    server.people
-        .query('firstName')
-        .only('Aaron')
-        .distinct()
-        .execute()
-        .then(function (data) {
-            //
-        });
+server.people
+    .query('firstName')
+    .only('Aaron')
+    .distinct()
+    .execute()
+    .then(function (data) {
+        //
+    });
 ```
 
 ##### Limiting cursor range
@@ -275,14 +275,14 @@ to select how many items (up to the amount available) should
 be retrieved from that point in the navigation of the cursor.
 
 ```js
-    server.people.
-        query('firstName').
-        all().
-        limit(1, 3).
-        execute().
-        then(function (data) {
-            // Skips the first item and obtains the next 3 items (or less if there are fewer)
-        });
+server.people.
+    query('firstName').
+    all().
+    limit(1, 3).
+    execute().
+    then(function (data) {
+        // Skips the first item and obtains the next 3 items (or less if there are fewer)
+    });
 ```
 
 #### Cursor direction (desc)
@@ -291,13 +291,13 @@ The `desc` method may be used to change cursor
 direction to descending order:
 
 ```js
-  server.people.query().
-      all().
-      desc().
-      execute().
-      then(function (results) {
-          // Array of results will be in descending order
-      });
+server.people.query().
+    all().
+    desc().
+    execute().
+    then(function (results) {
+        // Array of results will be in descending order
+    });
 ```
 
 #### Retrieving special types of values
@@ -307,14 +307,14 @@ direction to descending order:
 Keys may be retrieved with or without an index:
 
 ```js
-    server.people.query('firstName').
-        only('Aaron').
-        keys().
-        execute().
-        then(function (results) {
-            // `results` will contain one 'Aaron' value for each
-            //    item in the people store with that first name
-        });
+server.people.query('firstName').
+    only('Aaron').
+    keys().
+    execute().
+    then(function (results) {
+        // `results` will contain one 'Aaron' value for each
+        //    item in the people store with that first name
+    });
 ```
 
 ##### Mapping
@@ -323,19 +323,19 @@ The `map` method allows you to modify the object being returned
 without correspondingly modifying the actual object stored:
 
 ```js
-    server.people.
-        query('age').
-        lowerBound(30).
-        map(function (value) {
-            return {
-                fullName: value.firstName + ' ' + value.lastName,
-                raw: value
-            };
-        }).
-        execute().
-        then(function (data) {
-            // An array of people objects containing `fullName` and `raw` properties
-        });
+server.people.
+    query('age').
+    lowerBound(30).
+    map(function (value) {
+        return {
+            fullName: value.firstName + ' ' + value.lastName,
+            raw: value
+        };
+    }).
+    execute().
+    then(function (data) {
+        // An array of people objects containing `fullName` and `raw` properties
+    });
 ```
 
 ##### Counting
@@ -344,13 +344,13 @@ To count while utilizing an index and/or the `query`-returned methods,
 you can use the following:
 
 ```js
-    server.people.query('firstName')
-        .only('Aaron')
-        .count()
-        .execute()
-        .then(function (results) {
-            // `results` will equal the total count of "Aaron"'s
-        });
+server.people.query('firstName')
+    .only('Aaron')
+    .count()
+    .execute()
+    .then(function (results) {
+        // `results` will equal the total count of "Aaron"'s
+    });
 ```
 
 If you only need a count of items in a store with only a key or range,
@@ -391,30 +391,30 @@ modifications applied to them).
 Examples:
 
 ```js
-    // grab all users modified in the last 10 seconds,
-    server.users.query('last_mod')
-        .lowerBound(new Date().getTime() - 10000)
-        .modify({last_mod: new Date.getTime()})
-        .execute()
-        .then(function(results) {
-            // now we have a list of recently modified users
-        });
+// grab all users modified in the last 10 seconds,
+server.users.query('last_mod')
+    .lowerBound(new Date().getTime() - 10000)
+    .modify({last_mod: new Date.getTime()})
+    .execute()
+    .then(function(results) {
+        // now we have a list of recently modified users
+    });
 
-    // grab all changed records and atomically set them as unchanged
-    server.users.query('changed')
-        .only(true)
-        .modify({changed: false})
-        .execute()
-        .then(...)
+// grab all changed records and atomically set them as unchanged
+server.users.query('changed')
+    .only(true)
+    .modify({changed: false})
+    .execute()
+    .then(...)
 
-    // use a function to update the results. the function is passed the original
-    // (unmodified) record, which allows us to update the data based on the record
-    // itself.
-    server.profiles.query('name')
-        .lowerBound('marcy')
-        .modify({views: function(profile) { return profile.views + 1; }})
-        .execute()
-        .then(...)
+// use a function to update the results. the function is passed the original
+// (unmodified) record, which allows us to update the data based on the record
+// itself.
+server.profiles.query('name')
+    .lowerBound('marcy')
+    .modify({views: function(profile) { return profile.views + 1; }})
+    .execute()
+    .then(...)
 ```
 
 `modify` changes will be seen by any `map` functions.
@@ -427,24 +427,24 @@ Examples:
 ### Closing connection
 
 ```js
-    server.close();
+server.close();
 ```
 
 ### Retrieving the `indexedDB.open` result object in use
 
 ```js
-    var db = server.getIndexedDB();
-    var storeNames = db.objectStoreNames;
+var db = server.getIndexedDB();
+var storeNames = db.objectStoreNames;
 ```
 
 ## Deleting a database
 
 ```js
-  db.delete(dbName).then(function (e) {
-      // Should have been a successful database deletion
-  }, function (err) {
-      // Error during database deletion
-  });
+db.delete(dbName).then(function (e) {
+    // Should have been a successful database deletion
+}, function (err) {
+    // Error during database deletion
+});
 ```
 
 ## Comparing two keys
@@ -453,7 +453,7 @@ Returns `1` if the first key is greater than the second, `-1` if the first
 is less than the second, and `0` if the first is equal to the second.
 
 ```js
-  db.cmp(key1, key2);
+db.cmp(key1, key2);
 ```
 
 # Promise notes
@@ -472,8 +472,8 @@ library.
 # Contributor notes
 
 -   `npm install` to install all the dependencies
--   `grunt jasmine-server` to run the jasmine server
--   Open `http://localhost:9999/tests` to run the jasmine tests
+-   `npm run grunt jasmine-server` to run the jasmine server
+-   Open (`http://localhost:9999/tests`)[http://localhost:9999/tests] to run the jasmine tests
 
 # License
 
