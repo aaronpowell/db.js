@@ -2,11 +2,11 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            var req = indexedDB.deleteDatabase(dbName);
+            this.dbName = guid();
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -27,7 +27,7 @@
             if (this.server) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function (/* e */) {
                 done();
@@ -47,7 +47,7 @@
         it('should open a new instance successfully', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1
             }).then(function (s) {
                 spec.server = s;
@@ -58,7 +58,7 @@
 
         it('should normally reject open promise with store conflicting with Server methods', function (done) {
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     query: {
@@ -76,7 +76,7 @@
         it('should not add stores to server using noServerMethods', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 noServerMethods: true,
                 schema: {
@@ -100,8 +100,9 @@
         });
 
         it('should use the provided schema', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -116,7 +117,7 @@
                 }
             }).then(function (s) {
                 s.close();
-                var req = indexedDB.open(dbName);
+                var req = indexedDB.open(spec.dbName);
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
@@ -133,15 +134,16 @@
         });
 
         it('should allow schemas without keypaths', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {}
                 }
             }).then(function (s) {
                 s.close();
-                var req = indexedDB.open(dbName);
+                var req = indexedDB.open(spec.dbName);
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
@@ -157,8 +159,9 @@
         });
 
         it('should skip creating existing object stores when migrating schema', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {}
@@ -170,7 +173,7 @@
                     done();
                 }
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 2,
                     schema: {
                         test: {},
@@ -186,10 +189,11 @@
                 done(err);
             });
         });
-        
+
         it('should remove object stores no longer defined in the schema', function(done){
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test_1: {},
@@ -197,17 +201,17 @@
                 }
             }).then(function (s) {
                 s.close();
-                
+
                 db.open({
-                   server: dbName,
+                   server: spec.dbName,
                    version: 2,
                    schema: {
                         test_2: {}
                     }
                 }).then(function(s){
                     s.close();
-                    
-                    var req = indexedDB.open(dbName);
+
+                    var req = indexedDB.open(spec.dbName);
                     req.onsuccess = function (e) {
                         var db = e.target.result;
 
@@ -224,6 +228,6 @@
                 done(err);
             });
         });
-        
+
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));
