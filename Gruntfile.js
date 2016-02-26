@@ -91,7 +91,7 @@ module.exports = function (grunt) {
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
     if (saucekey !== null) {
-//        testJobs.push('saucelabs-jasmine');
+        testJobs.push('saucelabs-jasmine');
     }
 
     grunt.registerTask('dev', devJobs);
