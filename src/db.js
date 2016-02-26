@@ -193,12 +193,15 @@
         };
 
         this.close = function () {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            db.close();
-            closed = true;
-            delete dbCache[name][version];
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                }
+                db.close();
+                closed = true;
+                delete dbCache[name][version];
+                resolve();
+            });
         };
 
         this.get = function (table, key) {
@@ -210,7 +213,11 @@
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
 
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
@@ -219,10 +226,8 @@
         };
 
         this.query = function (table, index) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            return new IndexQuery(table, db, index);
+            var error = closed ? 'Database has been closed' : null;
+            return new IndexQuery(table, db, index, error);
         };
 
         this.count = function (table, key) {
@@ -233,7 +238,11 @@
                 }
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
                 transaction.onerror = e => reject(e);
@@ -262,7 +271,7 @@
         return err;
     };
 
-    var IndexQuery = function (table, db, indexName) {
+    var IndexQuery = function (table, db, indexName, preexistingError) {
         var modifyObj = false;
 
         var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
@@ -338,15 +347,19 @@
             });
         };
 
-        var Query = function (type, args) {
+        var Query = function (type, args, queuedError) {
             var direction = 'next';
             var cursorType = 'openCursor';
             var filters = [];
             var limitRange = null;
             var mapper = defaultMapper;
             var unique = false;
+            var error = preexistingError || queuedError;
 
             var execute = function () {
+                if (error) {
+                    return Promise.reject(error);
+                }
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
@@ -461,7 +474,14 @@
         });
 
         this.range = function (opts) {
-            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
+            var error;
+            var keyRange = [null, null];
+            try {
+                keyRange = mongoDBToKeyRangeArgs(opts);
+            } catch (e) {
+                error = e;
+            }
+            return Query(...keyRange, error);
         };
 
         this.filter = function (...args) {
