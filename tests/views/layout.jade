@@ -15,3 +15,39 @@ html
         script(src='../node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js')
         script(src='../node_modules/jasmine-core/lib/jasmine-core/boot.js')
         script(src='../dist/db.min.js')
+        script(src='js/jasmine-jsreporter.js')
+        script.
+            (function() {
+                var jasmineEnv = jasmine.getEnv();
+                jasmineEnv.updateInterval = 1000;
+
+                var queryString = new jasmine.QueryString({
+                    getWindowLocation: function() { return window.location; }
+                  });
+
+                var htmlReporter = new jasmine.HtmlReporter({
+                    env: jasmineEnv,
+                    onRaiseExceptionsClick: function() { queryString.navigateWithNewParam("catch", !env.catchingExceptions()); },
+                    addToExistingQueryString: function(key, value) { return queryString.fullStringWithNewParam(key, value); },
+                    getContainer: function() { return document.body; },
+                    createElement: function() { return document.createElement.apply(document, arguments); },
+                    createTextNode: function() { return document.createTextNode.apply(document, arguments); },
+                    timer: new jasmine.Timer()
+                });
+
+                jasmineEnv.addReporter(htmlReporter);
+                jasmineEnv.addReporter(new jasmine.JSReporter2());
+
+                var currentWindowOnload = window.onload;
+
+                window.onload = function() {
+                    if (currentWindowOnload) {
+                        currentWindowOnload();
+                    }
+                    execJasmine();
+                };
+
+                function execJasmine() {
+                    jasmineEnv.execute();
+                }
+            })();
