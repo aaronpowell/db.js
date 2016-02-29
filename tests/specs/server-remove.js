@@ -2,19 +2,19 @@
     'use strict';
 
     describe('server.remove', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -44,7 +44,7 @@
             if (this.server) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();

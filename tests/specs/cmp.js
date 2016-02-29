@@ -3,14 +3,15 @@
     'use strict';
     var key1, key2;
     describe('db.cmp', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            var request = indexedDB.deleteDatabase(dbName);
+            this.dbName = guid();
+            var request = indexedDB.deleteDatabase(this.dbName);
+            var spec = this;
 
             request.onsuccess = function () {
-                var req = indexedDB.open(dbName);
+                var req = indexedDB.open(spec.dbName);
                 req.onupgradeneeded = function () {
                     var objStore = req.result.createObjectStore('names', {autoIncrement: true});
                     var person1 = {name: 'Alex'};

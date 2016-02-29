@@ -1,15 +1,15 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('server.count', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
-            var request = indexedDB.deleteDatabase(dbName);
+            var request = indexedDB.deleteDatabase(spec.dbName);
             request.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {

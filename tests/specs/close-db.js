@@ -2,11 +2,11 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.close', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            var req = indexedDB.deleteDatabase(dbName);
+            this.dbName = guid();
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -27,7 +27,7 @@
             if (this.server) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function (/* e */) {
                 done();
@@ -46,7 +46,7 @@
 
         it('should close the database', function (done) {
            db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -71,7 +71,7 @@
 
         it ('should reject when trying to work with a closed database', function (done) {
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {

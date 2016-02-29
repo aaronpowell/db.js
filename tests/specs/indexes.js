@@ -2,15 +2,15 @@
     'use strict';
 
     describe('db.indexes', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -32,7 +32,7 @@
 
             var spec = this;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -50,7 +50,7 @@
         it('should allow creating dbs with indexes', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -69,7 +69,7 @@
             }).then(function () {
                 spec.server.close();
 
-                var req = indexedDB.open(dbName, 1);
+                var req = indexedDB.open(spec.dbName, 1);
                 req.onsuccess = function (e) {
                     var res = e.target.result;
 
@@ -90,7 +90,7 @@
         it('should allow adding indexes to an existing object store', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -104,7 +104,7 @@
                 s.close();
 
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 2,
                     schema: {
                         test: {
@@ -123,7 +123,7 @@
                 }).then(function () {
                     spec.server.close();
 
-                    var req = indexedDB.open(dbName, 2);
+                    var req = indexedDB.open(spec.dbName, 2);
                     req.onsuccess = function (e) {
                         var res = e.target.result;
 
@@ -145,7 +145,7 @@
         it('should allow adding indexes to an existing object store with indexes', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -162,7 +162,7 @@
                 s.close();
 
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 2,
                     schema: {
                         test: {
@@ -181,7 +181,7 @@
                 }).then(function () {
                     spec.server.close();
 
-                    var req = indexedDB.open(dbName, 2);
+                    var req = indexedDB.open(spec.dbName, 2);
                     req.onsuccess = function (e) {
                         var res = e.target.result;
 
