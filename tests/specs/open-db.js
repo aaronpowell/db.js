@@ -2,11 +2,11 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            var req = indexedDB.deleteDatabase(dbName);
+            this.dbName = guid();
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -24,10 +24,10 @@
         }, 10000);
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function (/* e */) {
                 done();
@@ -47,18 +47,18 @@
         it('should open a new instance successfully', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1
             }).then(function (s) {
                 spec.server = s;
-                expect(spec.server).toBeDefined();
+                expect(spec.server).to.not.be.undefined;
                 done();
             });
         });
 
         it('should normally reject open promise with store conflicting with Server methods', function (done) {
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     query: {
@@ -68,7 +68,7 @@
                     }
                 }
             }).catch(function (err) {
-                expect(err.toString()).toContain('conflicts with db.js method');
+                expect(err.toString()).to.contain('conflicts with db.js method');
                 done();
             });
         });
@@ -76,7 +76,7 @@
         it('should not add stores to server using noServerMethods', function (done) {
             var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 noServerMethods: true,
                 schema: {
@@ -93,15 +93,16 @@
                 }
             }).then(function (s) {
                 spec.server = s;
-                expect(spec.server.test).toBeUndefined();
-                expect(spec.server.query).toEqual(jasmine.any(Function));
+                expect(spec.server.test).to.be.undefined;
+                expect(spec.server.query).to.be.a(typeof Function);
                 done();
             });
         });
 
         it('should use the provided schema', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {
@@ -116,12 +117,12 @@
                 }
             }).then(function (s) {
                 s.close();
-                var req = indexedDB.open(dbName);
+                var req = indexedDB.open(spec.dbName);
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
-                    expect(db.objectStoreNames.length).toEqual(1);
-                    expect(db.objectStoreNames[ 0 ]).toEqual('test');
+                    expect(db.objectStoreNames.length).to.equal(1);
+                    expect(db.objectStoreNames[ 0 ]).to.equal('test');
 
                     db.close();
                     done();
@@ -133,20 +134,21 @@
         });
 
         it('should allow schemas without keypaths', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {}
                 }
             }).then(function (s) {
                 s.close();
-                var req = indexedDB.open(dbName);
+                var req = indexedDB.open(spec.dbName);
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
-                    expect(db.objectStoreNames.length).toEqual(1);
-                    expect(db.objectStoreNames[ 0 ]).toEqual('test');
+                    expect(db.objectStoreNames.length).to.equal(1);
+                    expect(db.objectStoreNames[ 0 ]).to.equal('test');
 
                     db.close();
                     done();
@@ -157,8 +159,9 @@
         });
 
         it('should skip creating existing object stores when migrating schema', function (done) {
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test: {}
@@ -166,11 +169,11 @@
             }).then(function (s) {
                 s.close();
                 function migrated (ret) {
-                    expect(ret).toBe(true, 'schema migration failed');
+                    expect(ret).to.equal(true, 'schema migration failed');
                     done();
                 }
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 2,
                     schema: {
                         test: {},
@@ -186,10 +189,11 @@
                 done(err);
             });
         });
-        
+
         it('should remove object stores no longer defined in the schema', function(done){
+            var spec = this;
             db.open({
-                server: dbName,
+                server: this.dbName,
                 version: 1,
                 schema: {
                     test_1: {},
@@ -197,22 +201,22 @@
                 }
             }).then(function (s) {
                 s.close();
-                
+
                 db.open({
-                   server: dbName,
+                   server: spec.dbName,
                    version: 2,
                    schema: {
                         test_2: {}
                     }
                 }).then(function(s){
                     s.close();
-                    
-                    var req = indexedDB.open(dbName);
+
+                    var req = indexedDB.open(spec.dbName);
                     req.onsuccess = function (e) {
                         var db = e.target.result;
 
-                        expect(db.objectStoreNames.length).toEqual(1);
-                        expect(db.objectStoreNames[ 0 ]).toEqual('test_2');
+                        expect(db.objectStoreNames.length).to.equal(1);
+                        expect(db.objectStoreNames[ 0 ]).to.equal('test_2');
 
                         db.close();
                         done();
@@ -224,6 +228,6 @@
                 done(err);
             });
         });
-        
+
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));

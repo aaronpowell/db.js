@@ -1,7 +1,7 @@
 module.exports = function (grunt) {
     'use strict';
     // Project configuration.
-    var saucekey = 'auzcE6Esp+TT6vpQHUyWf9jpvYpEO1iHWiMfkZTxo+MsJcETw1qaAakAgyE8jwPFHSPPT6wDzt+rLUOd6FkwqSgm3lLuP9wKgikXzgYSpNg+EfHrF1rep+BVZFkbs3uk6NetezlALVPOMq+4O54TbtOiLF9KurjkM5YkryExCmc=';
+    var saucekey = process.env.saucekey;
 
     if (!saucekey) {
         console.warn('Unable to load saurcelabs key');
@@ -27,14 +27,16 @@ module.exports = function (grunt) {
             }
         },
 
-        'saucelabs-jasmine': {
+        'saucelabs-mocha': {
             all: {
                 options: {
-                    username: 'aaronpowell',
+                    username: process.env.sauceuser,
                     key: saucekey,
                     testname: 'db.js',
                     tags: ['master'],
                     urls: ['http://127.0.0.1:9999/tests/index.html'],
+                    public: !!process.env.TRAVIS_JOB_ID,
+                    build: process.env.TRAVIS_JOB_ID,
                     browsers: [/* {
                         browserName: 'firefox',
                         platform: 'Windows 2012',
@@ -48,6 +50,9 @@ module.exports = function (grunt) {
                             browserName: 'chrome',
                             platform: 'Windows 2008'
                         }]
+                },
+                onTestComplete: function (result, callback) {
+                    console.dir(result);
                 }
             }
         },
@@ -91,13 +96,13 @@ module.exports = function (grunt) {
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
     if (saucekey !== null) {
-        testJobs.push('saucelabs-jasmine');
+        testJobs.push('saucelabs-mocha');
     }
 
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
-    grunt.registerTask('jasmine-server', function () {
+    grunt.registerTask('test:local', function () {
         grunt.task.run(devJobs);
         grunt.task.run('connect:server:keepalive');
     });
