@@ -1,14 +1,15 @@
 (function () {
     'use strict'
     importScripts('dist/db.min.js');
-    var dbName = 'tests';
-    var initialVersion = 1;
     onmessage = function (e) {
-        switch (e.data) {
+        var dbName = e.data.dbName;
+        var msg = e.data.message;
+        var version = e.data.version;
+        switch (msg) {
         case 'web worker open':
             db.open({
                 server: dbName,
-                version: initialVersion
+                version: version
             }).then(function (server) {
                 let result = typeof server !== 'undefined';
                 server.close(); // Prevent subsequent blocking
@@ -18,7 +19,7 @@
         case 'service worker open':
             db.open({
                 server: dbName,
-                version: initialVersion
+                version: version
             }).then(function (server) {
                 let result = typeof server !== 'undefined';
                 server.close(); // Prevent subsequent blocking

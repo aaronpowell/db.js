@@ -1,11 +1,12 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('web workers', function () {
-        var dbName = 'tests';
+        var initialVersion = 1;
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            var req = indexedDB.deleteDatabase(dbName);
+            this.dbName = guid();
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -26,7 +27,7 @@
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function (/* e */) {
                 done();
@@ -46,24 +47,25 @@
         it('should open a created db in a web worker', function (done) {
             var tw = new Worker('../test-worker.js');
             tw.onmessage = function (e) {
-                expect(e.data).toBe(true);
+                expect(e.data).to.be.true;
                 tw.terminate();
                 done();
             };
-            tw.postMessage('web worker open');
+            tw.postMessage({dbName: this.dbName, message: 'web worker open', version: initialVersion});
         });
 
         it('should open a created db in a service worker', function (done) {
+            var spec = this;
             navigator.serviceWorker.register('../test-worker.js').then(function() {
                 return navigator.serviceWorker.ready;
             }).then(function () {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(e) {
-                    expect(e.data).toBe(true);
+                    expect(e.data).to.be.true;
                     done();
                 };
                 navigator.serviceWorker.controller.postMessage(
-                    'service worker open',
+                    {dbName: spec.dbName, message: 'service worker open', version: initialVersion},
                     [messageChannel.port2]
                 );
             }).catch(function (err) {
