@@ -2,19 +2,58 @@ doctype html
 html
   head
     meta(charset='utf-8')
-    link(type='text/css', rel='stylesheet', href='../bower/jasmine/lib/jasmine-core/jasmine.css')
+    link(type='text/css', rel='stylesheet', href='../node_modules/mocha/mocha.css')
     block css
     title IndexedDB Playground
   body
     h1 IndexedDB Testing
 
-    block content
+    #mocha
 
     block scripts
-        script(src='../bower/jasmine/lib/jasmine-core/jasmine.js')
-        script(src='../bower/jasmine/lib/jasmine-core/jasmine-html.js')
-        script(src='../bower/jasmine/lib/jasmine-core/boot.js')
-        script(src='../bower/jasmine-jsreporter/jasmine-jsreporter.js')
+        script(src='../node_modules/mocha/mocha.js')
+        script(src='../node_modules/chai/chai.js')
         script(src='../dist/db.min.js')
         script.
-            jasmine.getEnv().addReporter(new jasmine.JSReporter2())
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+            }
+            mocha.setup('bdd');
+            window.expect = chai.expect;
+
+    block content
+
+    script.
+        onload = function(){
+            //mocha.checkLeaks();
+            //mocha.globals(['foo']);
+            var runner = mocha.run();
+
+            var failedTests = [];
+            runner.on('end', function(){
+                window.mochaResults = runner.stats;
+                window.mochaResults.reports = failedTests;
+            });
+
+            runner.on('fail', logFailure);
+
+            function logFailure(test, err){
+
+            var flattenTitles = function(test){
+                var titles = [];
+                while (test.parent.title){
+                    titles.push(test.parent.title);
+                    test = test.parent;
+                }
+                return titles.reverse();
+            };
+
+            failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+            };
+        };

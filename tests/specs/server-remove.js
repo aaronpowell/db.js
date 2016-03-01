@@ -2,19 +2,19 @@
     'use strict';
 
     describe('server.remove', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -26,7 +26,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeTruthy();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -41,10 +41,10 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -69,10 +69,10 @@
 
             spec.server.add('test', item).then(function (records) {
                 item = records[0];
-                expect(item.id).toBeDefined();
+                expect(item.id).to.not.be.undefined;
                 spec.server.remove('test', item.id).then(function () {
                     spec.server.get('test', item.id).then(function (x) {
-                        expect(x).toEqual(undefined);
+                        expect(x).to.equal(undefined);
 
                         done();
                     });
@@ -94,7 +94,7 @@
             spec.server.add('test', item, item2).then(function (/* records */) {
                 spec.server.clear('test').then(function () {
                     spec.server.query('test').all().execute().then(function (r) {
-                        expect(r.length).toEqual(0);
+                        expect(r.length).to.equal(0);
                         done();
                     });
                 });
