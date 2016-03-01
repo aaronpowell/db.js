@@ -1,15 +1,15 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('server.count', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
-            var request = indexedDB.deleteDatabase(dbName);
+            var request = indexedDB.deleteDatabase(spec.dbName);
             request.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -50,7 +50,7 @@
             };
         });
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
                 setTimeout(done, 0); // For Chrome
                 return;
@@ -60,28 +60,28 @@
         it('should count the number of items in an object store (no args)', function (done) {
             var spec = this;
             spec.server.test.count().then(function (ct) {
-                expect(ct).toEqual(3);
+                expect(ct).to.equal(3);
                 done();
             });
         });
         it('should count the number of items in an object store (key)', function (done) {
             var spec = this;
             spec.server.test.count(1).then(function (ct) {
-                expect(ct).toEqual(1);
+                expect(ct).to.equal(1);
                 done();
             });
         });
         it('should count the number of items in an object store (MongoDB-style range)', function (done) {
             var spec = this;
             spec.server.test.count({gte: 1, lt: 3}).then(function (ct) {
-                expect(ct).toEqual(2);
+                expect(ct).to.equal(2);
                 done();
             });
         });
         it('should count the number of items in an object store (IDBKeyRange)', function (done) {
             var spec = this;
             spec.server.test.count(IDBKeyRange.bound(1, 3, false, true)).then(function (ct) {
-                expect(ct).toEqual(2);
+                expect(ct).to.equal(2);
                 done();
             });
         });

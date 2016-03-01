@@ -2,19 +2,19 @@
     'use strict';
 
     describe('server.add', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(spec.dbName);
 
             req.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -26,7 +26,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeDefined();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -41,10 +41,10 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -67,8 +67,8 @@
 
             this.server.add('test', item).then(function (records) {
                 item = records[0];
-                expect(item.id).toBeDefined();
-                expect(item.id).toEqual(1);
+                expect(item.id).to.not.be.undefined;
+                expect(item.id).to.equal(1);
                 done();
             });
         });
@@ -84,10 +84,10 @@
             };
 
             this.server.add('test', item1, item2).then(function (/* records */) {
-                expect(item1.id).toBeDefined();
-                expect(item1.id).toEqual(1);
-                expect(item2.id).toBeDefined();
-                expect(item2.id).toEqual(2);
+                expect(item1.id).to.not.be.undefined;
+                expect(item1.id).to.equal(1);
+                expect(item2.id).to.not.be.undefined;
+                expect(item2.id).to.equal(2);
             });
         });
     });
@@ -117,7 +117,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeTruthy();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -132,7 +132,7 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             var req = indexedDB.deleteDatabase(dbName);
@@ -159,8 +159,8 @@
 
             this.server.add('test', item).then(function (records) {
                 item = records[0];
-                expect(item.id).toBeDefined();
-                expect(item.id).toEqual('abcd');
+                expect(item.id).to.not.be.undefined;
+                expect(item.id).to.equal('abcd');
                 done();
             });
         });
@@ -190,7 +190,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeTruthy();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -207,7 +207,7 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             var req = indexedDB.deleteDatabase(dbName);
@@ -233,8 +233,8 @@
 
             this.server.add('test', item).then(function (records) {
                 item = records[0];
-                expect(item.__id__).toBeDefined();
-                expect(item.__id__).toEqual(1);
+                expect(item.__id__).to.not.be.undefined;
+                expect(item.__id__).to.equal(1);
                 done();
             });
         });
@@ -251,10 +251,10 @@
 
             var spec = this;
             spec.server.add('test', item1, item2).then(function (/* records */) {
-                expect(item1.__id__).toBeDefined();
-                expect(item1.__id__).toEqual(1);
-                expect(item2.__id__).toBeDefined();
-                expect(item2.__id__).toEqual(2);
+                expect(item1.__id__).to.not.be.undefined;
+                expect(item1.__id__).to.equal(1);
+                expect(item2.__id__).to.not.be.undefined;
+                expect(item2.__id__).to.equal(2);
                 done();
             });
         });
@@ -273,10 +273,10 @@
 
             var spec = this;
             spec.server.add('test', items).then(function (/* records */) {
-                expect(items[0].__id__).toBeDefined();
-                expect(items[0].__id__).toEqual(1);
-                expect(items[1].__id__).toBeDefined();
-                expect(items[1].__id__).toEqual(2);
+                expect(items[0].__id__).to.not.be.undefined;
+                expect(items[0].__id__).to.equal(1);
+                expect(items[1].__id__).to.not.be.undefined;
+                expect(items[1].__id__).to.equal(2);
                 done();
             });
         });
@@ -292,8 +292,8 @@
                 item: item1,
                 key: 1.001
             }).then(function (/* records */) {
-                expect(item1.__id__).toBeDefined();
-                expect(item1.__id__).toEqual(1.001);
+                expect(item1.__id__).to.not.be.undefined;
+                expect(item1.__id__).to.equal(1.001);
                 done();
             });
         });
@@ -309,8 +309,8 @@
                 item: item1,
                 key: 'key'
             }).then(function (/* records */) {
-                expect(item1.__id__).toBeDefined();
-                expect(item1.__id__).toEqual('key');
+                expect(item1.__id__).to.not.be.undefined;
+                expect(item1.__id__).to.equal('key');
                 done();
             });
         });
@@ -333,10 +333,10 @@
                 item: item2,
                 key: 5
             }).then(function (/* records */) {
-                expect(item1.__id__).toBeDefined();
-                expect(item1.__id__).toEqual('key');
-                expect(item2.__id__).toBeDefined();
-                expect(item2.__id__).toEqual(5);
+                expect(item1.__id__).to.not.be.undefined;
+                expect(item1.__id__).to.equal('key');
+                expect(item2.__id__).to.not.be.undefined;
+                expect(item2.__id__).to.equal(5);
                 done();
             });
         });
@@ -360,12 +360,12 @@
                 item: item2,
                 key: 5
             }, item3).then(function (/* records */) {
-                expect(item1.__id__).toBeDefined();
-                expect(item1.__id__).toEqual(1);
-                expect(item2.__id__).toBeDefined();
-                expect(item2.__id__).toEqual(5);
-                expect(item3.__id__).toBeDefined();
-                expect(item3.__id__).toEqual(6);
+                expect(item1.__id__).to.not.be.undefined;
+                expect(item1.__id__).to.equal(1);
+                expect(item2.__id__).to.not.be.undefined;
+                expect(item2.__id__).to.equal(5);
+                expect(item3.__id__).to.not.be.undefined;
+                expect(item3.__id__).to.equal(6);
                 done();
             });
         });
@@ -388,7 +388,7 @@
                 }).then(function (/* records */) {
 
                 }).catch(function (e) {
-                    expect(e.target.error.name).toBe('ConstraintError');
+                    expect(e.target.error.name).to.be.string('ConstraintError');
                     done();
                 });
             });

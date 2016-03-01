@@ -2,19 +2,19 @@
     'use strict';
 
     describe('server.update', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -26,7 +26,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeTruthy();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -41,10 +41,10 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -79,11 +79,11 @@
                             .test
                             .get(item.id)
                             .then(function (record) {
-                                expect(record).toBeDefined();
-                                expect(record.id).toBe(item.id);
-                                expect(record.firstName).toBe(item.firstName);
-                                expect(record.lastName).toBe(item.lastName);
-                                expect(record).not.toBe(item);
+                                expect(record).to.not.be.undefined;
+                                expect(record.id).to.equal(item.id);
+                                expect(record.firstName).to.equal(item.firstName);
+                                expect(record.lastName).to.equal(item.lastName);
+                                expect(record).not.to.equal(item);
                                 done();
                             });
                     });
@@ -119,11 +119,11 @@
                             .test
                             .get(item.id)
                             .then(function (record) {
-                                expect(record).toBeDefined();
-                                expect(record.id).toBe(item.id);
-                                expect(record.firstName).toBe(item.firstName);
-                                expect(record.lastName).toBe(item.lastName);
-                                expect(record).not.toBe(item);
+                                expect(record).to.not.be.undefined;
+                                expect(record.id).to.equal(item.id);
+                                expect(record.firstName).to.equal(item.firstName);
+                                expect(record.lastName).to.equal(item.lastName);
+                                expect(record).not.to.equal(item);
                                 done();
                             });
                     });
@@ -158,21 +158,21 @@
                             .all()
                             .execute()
                             .then(function (records) {
-                                expect(records.length).toBe(2);
+                                expect(records.length).to.equal(2);
 
                                 var record = records[0];
-                                expect(record).toBeDefined();
-                                expect(record.id).toBe(item.id);
-                                expect(record.firstName).toBe(item.firstName);
-                                expect(record.lastName).toBe(item.lastName);
-                                expect(record).not.toBe(item);
+                                expect(record).to.not.be.undefined;
+                                expect(record.id).to.equal(item.id);
+                                expect(record.firstName).to.equal(item.firstName);
+                                expect(record.lastName).to.equal(item.lastName);
+                                expect(record).not.to.equal(item);
 
                                 record = records[1];
-                                expect(record).toBeDefined();
-                                expect(record.id).toBe(item2.id);
-                                expect(record.firstName).toBe(item2.firstName);
-                                expect(record.lastName).toBe(item2.lastName);
-                                expect(record).not.toBe(item2);
+                                expect(record).to.not.be.undefined;
+                                expect(record.id).to.equal(item2.id);
+                                expect(record.firstName).to.equal(item2.firstName);
+                                expect(record.lastName).to.equal(item2.lastName);
+                                expect(record).not.to.equal(item2);
                                 done();
                             });
                     });
@@ -201,7 +201,7 @@
                     }
                 }).then(function (s) {
                     spec.server = s;
-                    expect(spec.server).toBeTruthy();
+                    expect(spec.server).to.not.be.undefined;
                     done();
                 });
             };
@@ -216,7 +216,7 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             var req = indexedDB.deleteDatabase(dbName);
@@ -266,14 +266,14 @@
                                 .then(function (records) {
                                     done = true;
 
-                                    expect(records.length).toBe(1);
+                                    expect(records.length).to.equal(1);
 
                                     var record = records[0];
-                                    expect(record).toBeDefined();
-                                    expect(record.__id__).toBe(key);
-                                    expect(record.firstName).toBe(item.firstName);
-                                    expect(record.lastName).toBe(item.lastName);
-                                    expect(record).not.toBe(item);
+                                    expect(record).to.not.be.undefined;
+                                    expect(record.__id__).to.equal(key);
+                                    expect(record.firstName).to.equal(item.firstName);
+                                    expect(record.lastName).to.equal(item.lastName);
+                                    expect(record).not.to.equal(item);
                                 });
                             done();
                         });
