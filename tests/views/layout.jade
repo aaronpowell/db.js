@@ -2,20 +2,18 @@ doctype html
 html
   head
     meta(charset='utf-8')
-    link(type='text/css', rel='stylesheet', href='../node_modules/jasmine-core/lib/jasmine-core/jasmine.css')
+    link(type='text/css', rel='stylesheet', href='../node_modules/mocha/mocha.css')
     block css
     title IndexedDB Playground
   body
     h1 IndexedDB Testing
 
-    block content
+    #mocha
 
     block scripts
-        script(src='../node_modules/jasmine-core/lib/jasmine-core/jasmine.js')
-        script(src='../node_modules/jasmine-core/lib/jasmine-core/jasmine-html.js')
-        script(src='../node_modules/jasmine-core/lib/jasmine-core/boot.js')
+        script(src='../node_modules/mocha/mocha.js')
+        script(src='../node_modules/chai/chai.js')
         script(src='../dist/db.min.js')
-        script(src='js/jasmine-jsreporter.js')
         script.
             function guid() {
                 function s4() {
@@ -26,72 +24,36 @@ html
                 return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
                     s4() + '-' + s4() + s4() + s4();
             }
-            (function() {
-                var jasmineEnv = jasmine.getEnv();
-                jasmineEnv.updateInterval = 1000;
+            mocha.setup('bdd');
+            window.expect = chai.expect;
 
-                var queryString = new jasmine.QueryString({
-                    getWindowLocation: function() { return window.location; }
-                  });
+    block content
 
-                var htmlReporter = new jasmine.HtmlReporter({
-                    env: jasmineEnv,
-                    onRaiseExceptionsClick: function() { queryString.navigateWithNewParam("catch", !env.catchingExceptions()); },
-                    addToExistingQueryString: function(key, value) { return queryString.fullStringWithNewParam(key, value); },
-                    getContainer: function() { return document.body; },
-                    createElement: function() { return document.createElement.apply(document, arguments); },
-                    createTextNode: function() { return document.createTextNode.apply(document, arguments); },
-                    timer: new jasmine.Timer()
-                });
+    script.
+        onload = function(){
+            //mocha.checkLeaks();
+            //mocha.globals(['foo']);
+            var runner = mocha.run();
 
-                jasmineEnv.addReporter(htmlReporter);
-                jasmineEnv.addReporter(new jasmine.JSReporter2());
+            var failedTests = [];
+            runner.on('end', function(){
+            window.mochaResults = runner.stats;
+            window.mochaResults.reports = failedTests;
+            });
 
-                (function () {
-                    var oldJSReport = window.jasmine.getJSReport;
-                    window.jasmine.getJSReport = function () {
-                        var results = oldJSReport();
-                        if (results) {
-                            return {
-                                durationSec: results.durationSec,
-                                suites: removePassingTests(results.suites),
-                                passed: results.passed
-                            };
-                        } else {
-                            return null;
-                        }
-                    };
+            runner.on('fail', logFailure);
 
-                    function removePassingTests (suites) {
-                        return suites.filter(specFailed)
-                            .map(mapSuite);
-                    }
+            function logFailure(test, err){
 
-                    function mapSuite (suite) {
-                        var result = {};
-                        for (var s in suite) {
-                            result[s] = suite[s];
-                        }
-                        result.specs = suite.specs.filter(specFailed);
-                        result.suites = removePassingTests(suite.suites);
-                        return result;
-                    }
-
-                    function specFailed (item) {
-                        return !item.passed;
-                    }
-                })();
-
-                var currentWindowOnload = window.onload;
-
-                window.onload = function() {
-                    if (currentWindowOnload) {
-                        currentWindowOnload();
-                    }
-                    execJasmine();
-                };
-
-                function execJasmine() {
-                    jasmineEnv.execute();
+            var flattenTitles = function(test){
+                var titles = [];
+                while (test.parent.title){
+                titles.push(test.parent.title);
+                test = test.parent;
                 }
-            })();
+                return titles.reverse();
+            };
+
+            failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+            };
+        };

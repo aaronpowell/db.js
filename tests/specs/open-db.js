@@ -24,7 +24,7 @@
         }, 10000);
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             var req = indexedDB.deleteDatabase(this.dbName);
@@ -51,7 +51,7 @@
                 version: 1
             }).then(function (s) {
                 spec.server = s;
-                expect(spec.server).toBeDefined();
+                expect(spec.server).to.not.be.undefined;
                 done();
             });
         });
@@ -68,7 +68,7 @@
                     }
                 }
             }).catch(function (err) {
-                expect(err.toString()).toContain('conflicts with db.js method');
+                expect(err.toString()).to.contain('conflicts with db.js method');
                 done();
             });
         });
@@ -93,8 +93,8 @@
                 }
             }).then(function (s) {
                 spec.server = s;
-                expect(spec.server.test).toBeUndefined();
-                expect(spec.server.query).toEqual(jasmine.any(Function));
+                expect(spec.server.test).to.be.undefined;
+                expect(spec.server.query).to.be.a(typeof Function);
                 done();
             });
         });
@@ -121,8 +121,8 @@
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
-                    expect(db.objectStoreNames.length).toEqual(1);
-                    expect(db.objectStoreNames[ 0 ]).toEqual('test');
+                    expect(db.objectStoreNames.length).to.equal(1);
+                    expect(db.objectStoreNames[ 0 ]).to.equal('test');
 
                     db.close();
                     done();
@@ -147,8 +147,8 @@
                 req.onsuccess = function (e) {
                     var db = e.target.result;
 
-                    expect(db.objectStoreNames.length).toEqual(1);
-                    expect(db.objectStoreNames[ 0 ]).toEqual('test');
+                    expect(db.objectStoreNames.length).to.equal(1);
+                    expect(db.objectStoreNames[ 0 ]).to.equal('test');
 
                     db.close();
                     done();
@@ -169,7 +169,7 @@
             }).then(function (s) {
                 s.close();
                 function migrated (ret) {
-                    expect(ret).toBe(true, 'schema migration failed');
+                    expect(ret).to.equal(true, 'schema migration failed');
                     done();
                 }
                 db.open({
@@ -215,8 +215,8 @@
                     req.onsuccess = function (e) {
                         var db = e.target.result;
 
-                        expect(db.objectStoreNames.length).toEqual(1);
-                        expect(db.objectStoreNames[ 0 ]).toEqual('test_2');
+                        expect(db.objectStoreNames.length).to.equal(1);
+                        expect(db.objectStoreNames[ 0 ]).to.equal('test_2');
 
                         db.close();
                         done();

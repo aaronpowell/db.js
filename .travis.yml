@@ -2,7 +2,8 @@ language: node_js
 node_js:
 - 0.12
 notifications:
-  email: false
+  email: true
 env:
   global:
+  -   sauceuser: aaronpowell
   -   secure: "UdYt3aVpGXsBnLEYpYiCTirdhFgVeH1f4PDBUiJrifTLq2OWrFzVs12W5vdMcKzEf/Hn2uxLG7tujr/uwjkZe7z9N7uKJYicFSDLwSPoBiW9C60i7s7FlKypkRVrHcUMMNJ+RLI4dSSKjCJ3tcFr2MfcMPPKlIiZQTXViEM+Zm8="

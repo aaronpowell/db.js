@@ -49,7 +49,7 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
 
@@ -84,10 +84,10 @@
               .then(function (resolvedArray) {
                   // var ajaxData = resolvedArray[0];
                   queryData = resolvedArray[1];
-                  expect(queryData).toBeDefined();
-                  expect(queryData.length).toBe(1);
-                  expect(queryData[ 0 ].firstName).toBe('Aaron');
-                  expect(queryData[ 0 ].lastName).toBe('Powell');
+                  expect(queryData).to.not.be.undefined;
+                  expect(queryData.length).to.equal(1);
+                  expect(queryData[ 0 ].firstName).to.equal('Aaron');
+                  expect(queryData[ 0 ].lastName).to.equal('Powell');
                   done();
               });
         });

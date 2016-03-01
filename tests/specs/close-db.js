@@ -24,7 +24,7 @@
         }, 10000);
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             var req = indexedDB.deleteDatabase(this.dbName);
@@ -61,7 +61,7 @@
                 }
             }).then(function (s) {
                 s.close();
-                expect(s.isClosed()).toEqual(true);
+                expect(s.isClosed()).to.equal(true);
                 done();
             }, function (err) {
                 console.error(err);
@@ -93,7 +93,7 @@
                 return s.add('test', { a: 1 });
             })
             .catch(function (err) {
-                expect(err).not.toBeUndefined();
+                expect(err).to.not.be.undefined;
                 done();
             });
         });

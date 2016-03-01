@@ -42,11 +42,11 @@
 
         it('db.cmp should return 1, -1, or 0 as expected for key comparions', function (done) {
             var cmp = db.cmp(key1, key2);
-            expect(cmp).toEqual(-1);
+            expect(cmp).to.equal(-1);
             cmp = db.cmp(key2, key2);
-            expect(cmp).toEqual(0);
+            expect(cmp).to.equal(0);
             cmp = db.cmp(key2, key1);
-            expect(cmp).toEqual(1);
+            expect(cmp).to.equal(1);
             done();
         });
     });

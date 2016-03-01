@@ -77,9 +77,9 @@
                     var store = transaction.objectStore('test');
                     var indexNames = Array.prototype.slice.call(store.indexNames);
 
-                    expect(indexNames.length).toEqual(2);
-                    expect(indexNames).toContain('firstName');
-                    expect(indexNames).toContain('age');
+                    expect(indexNames.length).to.equal(2);
+                    expect(indexNames).to.contain('firstName');
+                    expect(indexNames).to.contain('age');
 
                     spec.server = res;
                     done();
@@ -131,9 +131,9 @@
                         var store = transaction.objectStore('test');
                         var indexNames = Array.prototype.slice.call(store.indexNames);
 
-                        expect(indexNames.length).toEqual(2);
-                        expect(indexNames).toContain('firstName');
-                        expect(indexNames).toContain('age');
+                        expect(indexNames.length).to.equal(2);
+                        expect(indexNames).to.contain('firstName');
+                        expect(indexNames).to.contain('age');
 
                         spec.server = res;
                         done();
@@ -189,9 +189,9 @@
                         var store = transaction.objectStore('test');
                         var indexNames = Array.prototype.slice.call(store.indexNames);
 
-                        expect(indexNames.length).toEqual(2);
-                        expect(indexNames).toContain('firstName');
-                        expect(indexNames).toContain('age');
+                        expect(indexNames.length).to.equal(2);
+                        expect(indexNames).to.contain('firstName');
+                        expect(indexNames).to.contain('age');
 
                         spec.server = res;
                         done();

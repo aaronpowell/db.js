@@ -27,10 +27,10 @@ module.exports = function (grunt) {
             }
         },
 
-        'saucelabs-jasmine': {
+        'saucelabs-mocha': {
             all: {
                 options: {
-                    username: 'aaronpowell',
+                    username: process.env.sauceuser,
                     key: saucekey,
                     testname: 'db.js',
                     tags: ['master'],
@@ -96,13 +96,13 @@ module.exports = function (grunt) {
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
     if (saucekey !== null) {
-        testJobs.push('saucelabs-jasmine');
+        testJobs.push('saucelabs-mocha');
     }
 
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
-    grunt.registerTask('jasmine-server', function () {
+    grunt.registerTask('test:local', function () {
         grunt.task.run(devJobs);
         grunt.task.run('connect:server:keepalive');
     });

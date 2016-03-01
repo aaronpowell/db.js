@@ -31,7 +31,7 @@
                 db.delete(spec.dbName).then(function () {
                     var request = indexedDB.open(spec.dbName);
                     request.onupgradeneeded = function (e) {
-                        expect(e.oldVersion).toEqual(0);
+                        expect(e.oldVersion).to.equal(0);
                         e.target.transaction.abort();
                         done();
                     };

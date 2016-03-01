@@ -62,7 +62,7 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
 
@@ -88,10 +88,10 @@
             this.server
                 .get('test', spec.item1.id)
                 .then(function (x) {
-                    expect(x).toBeDefined();
-                    expect(x.id).toEqual(spec.item1.id);
-                    expect(x.firstName).toEqual(spec.item1.firstName);
-                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    expect(x).to.not.be.undefined;
+                    expect(x.id).to.equal(spec.item1.id);
+                    expect(x.firstName).to.equal(spec.item1.firstName);
+                    expect(x.lastName).to.equal(spec.item1.lastName);
                     done();
                 });
         });
@@ -101,10 +101,10 @@
             this.server
                 .get('test', {gte: 1, lt: 3})
                 .then(function (x) {
-                    expect(x).toBeDefined();
-                    expect(x.id).toEqual(spec.item1.id);
-                    expect(x.firstName).toEqual(spec.item1.firstName);
-                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    expect(x).to.not.be.undefined;
+                    expect(x.id).to.equal(spec.item1.id);
+                    expect(x.firstName).to.equal(spec.item1.firstName);
+                    expect(x.lastName).to.equal(spec.item1.lastName);
                     done();
                 });
         });
@@ -114,10 +114,10 @@
             this.server
                 .get('test', IDBKeyRange.bound(1, 3, false, true))
                 .then(function (x) {
-                    expect(x).toBeDefined();
-                    expect(x.id).toEqual(spec.item1.id);
-                    expect(x.firstName).toEqual(spec.item1.firstName);
-                    expect(x.lastName).toEqual(spec.item1.lastName);
+                    expect(x).to.not.be.undefined;
+                    expect(x.id).to.equal(spec.item1.id);
+                    expect(x.firstName).to.equal(spec.item1.firstName);
+                    expect(x.lastName).to.equal(spec.item1.lastName);
                     done();
                 });
         });
@@ -128,11 +128,11 @@
                 .all()
                 .execute()
                 .then(function (results) {
-                    expect(results).toBeDefined();
-                    expect(results.length).toEqual(3);
-                    expect(results[0].id).toEqual(spec.item1.id);
-                    expect(results[1].id).toEqual(spec.item2.id);
-                    expect(results[2].id).toEqual(spec.item3.id);
+                    expect(results).to.not.be.undefined;
+                    expect(results.length).to.equal(3);
+                    expect(results[0].id).to.equal(spec.item1.id);
+                    expect(results[1].id).to.equal(spec.item2.id);
+                    expect(results[2].id).to.equal(spec.item3.id);
 
                     done();
                 });
@@ -145,11 +145,11 @@
                 .desc()
                 .execute()
                 .then(function (results) {
-                    expect(results).toBeDefined();
-                    expect(results.length).toEqual(3);
-                    expect(results[0].id).toEqual(spec.item3.id);
-                    expect(results[1].id).toEqual(spec.item2.id);
-                    expect(results[2].id).toEqual(spec.item1.id);
+                    expect(results).to.not.be.undefined;
+                    expect(results.length).to.equal(3);
+                    expect(results[0].id).to.equal(spec.item3.id);
+                    expect(results[1].id).to.equal(spec.item2.id);
+                    expect(results[2].id).to.equal(spec.item1.id);
 
                     done();
                 });
@@ -162,10 +162,10 @@
                 .filter('firstName', 'Aaron')
                 .execute()
                 .then(function (results) {
-                    expect(results).toBeDefined();
-                    expect(results.length).toEqual(2);
-                    expect(results[0].firstName).toEqual(spec.item1.firstName);
-                    expect(results[1].firstName).toEqual(spec.item3.firstName);
+                    expect(results).to.not.be.undefined;
+                    expect(results.length).to.equal(2);
+                    expect(results[0].firstName).to.equal(spec.item1.firstName);
+                    expect(results[1].firstName).to.equal(spec.item3.firstName);
 
                     done();
                 });
@@ -180,10 +180,10 @@
                 })
                 .execute()
                 .then(function (results) {
-                    expect(results).toBeDefined();
-                    expect(results.length).toEqual(1);
-                    expect(results[0].firstName).toEqual(spec.item1.firstName);
-                    expect(results[0].firstName).toEqual(spec.item1.firstName);
+                    expect(results).to.not.be.undefined;
+                    expect(results.length).to.equal(1);
+                    expect(results[0].firstName).to.equal(spec.item1.firstName);
+                    expect(results[0].firstName).to.equal(spec.item1.firstName);
 
                     done();
                 });
@@ -195,7 +195,7 @@
                     .range({eq: 'Aaron'})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
+                        expect(results.length).to.equal(2);
                         done();
                     });
             });
@@ -205,9 +205,9 @@
                     .range({gte: 30})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(30);
-                        expect(results[1].age).toEqual(40);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(30);
+                        expect(results[1].age).to.equal(40);
                         done();
                     });
             });
@@ -217,8 +217,8 @@
                     .range({lt: 30})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
-                        expect(results[0].age).toEqual(20);
+                        expect(results.length).to.equal(1);
+                        expect(results[0].age).to.equal(20);
                         done();
                     });
             });
@@ -228,10 +228,10 @@
                     .range({gte: 20, lte: 40})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(3);
-                        expect(results[0].age).toEqual(20);
-                        expect(results[1].age).toEqual(30);
-                        expect(results[2].age).toEqual(40);
+                        expect(results.length).to.equal(3);
+                        expect(results[0].age).to.equal(20);
+                        expect(results[1].age).to.equal(30);
+                        expect(results[2].age).to.equal(40);
                         done();
                     });
             });
@@ -241,8 +241,8 @@
                     .range({gt: 20, lt: 40})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
-                        expect(results[0].age).toEqual(30);
+                        expect(results.length).to.equal(1);
+                        expect(results[0].age).to.equal(30);
                         done();
                     });
             });
@@ -252,9 +252,9 @@
                     .range({gte: 20, lt: 40})
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(20);
-                        expect(results[1].age).toEqual(30);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(20);
+                        expect(results[1].age).to.equal(30);
                         done();
                     });
             });
@@ -265,9 +265,9 @@
                     .desc()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(30);
-                        expect(results[1].age).toEqual(20);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(30);
+                        expect(results[1].age).to.equal(20);
                         done();
                     });
             });
@@ -279,7 +279,7 @@
                     .only('Aaron')
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
+                        expect(results.length).to.equal(2);
                         done();
                     });
             });
@@ -289,9 +289,9 @@
                     .lowerBound(30)
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(30);
-                        expect(results[1].age).toEqual(40);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(30);
+                        expect(results[1].age).to.equal(40);
                         done();
                     });
             });
@@ -301,8 +301,8 @@
                     .upperBound(30, true)
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
-                        expect(results[0].age).toEqual(20);
+                        expect(results.length).to.equal(1);
+                        expect(results[0].age).to.equal(20);
                         done();
                     });
             });
@@ -312,10 +312,10 @@
                     .bound(20, 40, false, false)
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(3);
-                        expect(results[0].age).toEqual(20);
-                        expect(results[1].age).toEqual(30);
-                        expect(results[2].age).toEqual(40);
+                        expect(results.length).to.equal(3);
+                        expect(results[0].age).to.equal(20);
+                        expect(results[1].age).to.equal(30);
+                        expect(results[2].age).to.equal(40);
                         done();
                     });
             });
@@ -325,8 +325,8 @@
                     .bound(20, 40, true, true)
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
-                        expect(results[0].age).toEqual(30);
+                        expect(results.length).to.equal(1);
+                        expect(results[0].age).to.equal(30);
                         done();
                     });
             });
@@ -336,9 +336,9 @@
                     .bound(20, 40, false, true)
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(20);
-                        expect(results[1].age).toEqual(30);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(20);
+                        expect(results[1].age).to.equal(30);
                         done();
                     });
             });
@@ -349,9 +349,9 @@
                     .desc()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0].age).toEqual(30);
-                        expect(results[1].age).toEqual(20);
+                        expect(results.length).to.equal(2);
+                        expect(results[0].age).to.equal(30);
+                        expect(results[1].age).to.equal(20);
                         done();
                     });
             });
@@ -364,7 +364,7 @@
                     .count()
                     .execute()
                     .then(function (results) {
-                        expect(results).toEqual(2);
+                        expect(results).to.equal(2);
                         done();
                     });
             });
@@ -375,7 +375,7 @@
                     .count()
                     .execute()
                     .then(function (results) {
-                        expect(results).toEqual(3);
+                        expect(results).to.equal(3);
                         done();
                     });
             });
@@ -386,7 +386,7 @@
                     .count()
                     .execute()
                     .then(function (results) {
-                        expect(results).toEqual(1);
+                        expect(results).to.equal(1);
                         done();
                     });
             });
@@ -397,7 +397,7 @@
                     .count()
                     .execute()
                     .then(function (results) {
-                        expect(results).toEqual(2);
+                        expect(results).to.equal(2);
                         done();
                     });
             });
@@ -410,9 +410,9 @@
                     .keys()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0]).toEqual('Aaron');
-                        expect(results[1]).toEqual('Aaron');
+                        expect(results.length).to.equal(2);
+                        expect(results[0]).to.equal('Aaron');
+                        expect(results[1]).to.equal('Aaron');
                         done();
                     });
             });
@@ -423,10 +423,10 @@
                     .keys()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(3);
-                        expect(results[0]).toEqual(20);
-                        expect(results[1]).toEqual(30);
-                        expect(results[2]).toEqual(40);
+                        expect(results.length).to.equal(3);
+                        expect(results[0]).to.equal(20);
+                        expect(results[1]).to.equal(30);
+                        expect(results[2]).to.equal(40);
                         done();
                     });
             });
@@ -437,8 +437,8 @@
                     .keys()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
-                        expect(results[0]).toEqual(20);
+                        expect(results.length).to.equal(1);
+                        expect(results[0]).to.equal(20);
                         done();
                     });
             });
@@ -449,9 +449,9 @@
                     .keys()
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
-                        expect(results[0]).toEqual(30);
-                        expect(results[1]).toEqual(40);
+                        expect(results.length).to.equal(2);
+                        expect(results[0]).to.equal(30);
+                        expect(results[1]).to.equal(40);
                         done();
                     });
             });
@@ -466,7 +466,7 @@
                     })
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
+                        expect(results.length).to.equal(1);
                         done();
                     });
             });
@@ -479,7 +479,7 @@
                     })
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(2);
+                        expect(results.length).to.equal(2);
                         done();
                     });
             });
@@ -491,7 +491,7 @@
                     })
                     .execute()
                     .then(function (results) {
-                        expect(results.length).toEqual(1);
+                        expect(results.length).to.equal(1);
                         done();
                     });
             });
@@ -505,7 +505,7 @@
                     .distinct()
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(1);
+                        expect(data.length).to.equal(1);
 
                         done();
                     });
@@ -520,7 +520,7 @@
                     .distinct()
                     .execute()
                     .then(function (data) {
-                        expect(data[ 0 ].firstName).toEqual(spec.item1.firstName);
+                        expect(data[ 0 ].firstName).to.equal(spec.item1.firstName);
 
                         done();
                     });
@@ -535,11 +535,11 @@
                     .distinct()
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(2);
-                        expect(data[ 0 ].firstName).toEqual(spec.item1.firstName);
-                        expect(data[ 0 ].lastName).toEqual(spec.item1.lastName);
-                        expect(data[ 1 ].firstName).toEqual(spec.item2.firstName);
-                        expect(data[ 1 ].lastName).toEqual(spec.item2.lastName);
+                        expect(data.length).to.equal(2);
+                        expect(data[ 0 ].firstName).to.equal(spec.item1.firstName);
+                        expect(data[ 0 ].lastName).to.equal(spec.item1.lastName);
+                        expect(data[ 1 ].firstName).to.equal(spec.item2.firstName);
+                        expect(data[ 1 ].lastName).to.equal(spec.item2.lastName);
                         done();
                     });
             });
@@ -554,9 +554,9 @@
                     .desc()
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(2);
-                        expect(data[ 0 ].id).toEqual(spec.item2.id);
-                        expect(data[ 1 ].id).toEqual(spec.item1.id);
+                        expect(data.length).to.equal(2);
+                        expect(data[ 0 ].id).to.equal(spec.item2.id);
+                        expect(data[ 1 ].id).to.equal(spec.item1.id);
                         done();
                     });
             });
@@ -572,9 +572,9 @@
                     .limit(2)
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(2);
-                        expect(data[ 0 ].id).toEqual(spec.item1.id);
-                        expect(data[ 1 ].id).toEqual(spec.item3.id);
+                        expect(data.length).to.equal(2);
+                        expect(data[ 0 ].id).to.equal(spec.item1.id);
+                        expect(data[ 1 ].id).to.equal(spec.item3.id);
                         done();
                     });
             });
@@ -587,9 +587,9 @@
                     .limit(1, 3)
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(2);
-                        expect(data[ 0 ].id).toEqual(spec.item3.id);
-                        expect(data[ 1 ].id).toEqual(spec.item2.id);
+                        expect(data.length).to.equal(2);
+                        expect(data[ 0 ].id).to.equal(spec.item3.id);
+                        expect(data[ 1 ].id).to.equal(spec.item2.id);
                         done();
                     });
             });
@@ -603,8 +603,8 @@
                     .limit(1, 1)
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(1);
-                        expect(data[ 0 ].id).toEqual(spec.item3.id);
+                        expect(data.length).to.equal(1);
+                        expect(data[ 0 ].id).to.equal(spec.item3.id);
                         done();
                     });
             });
@@ -618,8 +618,8 @@
                     .limit(2, 1)
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(1);
-                        expect(data[ 0 ].id).toEqual(spec.item2.id);
+                        expect(data.length).to.equal(1);
+                        expect(data[ 0 ].id).to.equal(spec.item2.id);
                         done();
                     });
             });
@@ -640,7 +640,7 @@
                     })
                     .execute()
                     .then(function (data) {
-                        expect(data[0].fullName).toEqual(data[0].raw.firstName + ' ' + data[0].raw.lastName);
+                        expect(data[0].fullName).to.equal(data[0].raw.firstName + ' ' + data[0].raw.lastName);
                         done();
                     });
             });
@@ -656,14 +656,14 @@
                     .modify({aboveThirty: true})
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(2);
+                        expect(data.length).to.equal(2);
                         var i;
                         for (i = 0; i < data.length; i++) {
                             var result = data[i];
-                            expect(result.aboveThirty).toEqual(true);
+                            expect(result.aboveThirty).to.equal(true);
                         }
-                        expect(data[ 0 ].id).toEqual(spec.item2.id);
-                        expect(data[ 1 ].id).toEqual(spec.item3.id);
+                        expect(data[ 0 ].id).to.equal(spec.item2.id);
+                        expect(data[ 1 ].id).to.equal(spec.item3.id);
                         done();
                     });
             });
@@ -677,11 +677,11 @@
                     .modify({nextAge: function (item) { return item.age + 1; }})
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(3);
+                        expect(data.length).to.equal(3);
                         var i;
                         for (i = 0; i < data.length; i++) {
                             var result = data[i];
-                            expect(result.nextAge).toEqual(result.age + 1);
+                            expect(result.nextAge).to.equal(result.age + 1);
                         }
                         done();
                     });
@@ -700,16 +700,16 @@
                         };
                     })
                     .modify({nextAge: function (item) {
-                        expect(item.fullName).toBeUndefined();
+                        expect(item.fullName).to.be.undefined;
                         return item.age + 1;
                     }})
                     .execute()
                     .then(function (data) {
-                        expect(data.length).toEqual(3);
+                        expect(data.length).to.equal(3);
                         var i;
                         for (i = 0; i < data.length; i++) {
                             var result = data[i];
-                            expect(result.raw.nextAge).toEqual(result.raw.age + 1);
+                            expect(result.raw.nextAge).to.equal(result.raw.age + 1);
                         }
                         done();
                     });
@@ -718,34 +718,34 @@
             it('should only allow `modify` from a specific query type', function (done) {
                 var spec = this;
 
-                expect(spec.server.test.get('id').modify).toBeUndefined();
-                expect(spec.server.test.query().modify).toBeUndefined();
-                expect(spec.server.test.query().all().modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query().filter({my: 'filter'}).modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query('age').only(30).modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query('age').bound(1, 3).modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query('age').lowerBound(1).modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query('age').upperBound(3).modify instanceof Function).toEqual(true);
-                expect(spec.server.test.query('age').upperBound(3).desc().modify instanceof Function).toEqual(true);
+                expect(spec.server.test.get('id').modify).to.be.undefined;
+                expect(spec.server.test.query().modify).to.be.undefined;
+                expect(spec.server.test.query().all().modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query().filter({my: 'filter'}).modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query('age').only(30).modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query('age').bound(1, 3).modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query('age').lowerBound(1).modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query('age').upperBound(3).modify instanceof Function).to.equal(true);
+                expect(spec.server.test.query('age').upperBound(3).desc().modify instanceof Function).to.equal(true);
                 done();
             });
         });
     });
 
     describe('index.multiEntry', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
+            this.dbName = guid();
             var spec = this;
 
             spec.server = undefined;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 db.open({
-                    server: dbName,
+                    server: spec.dbName,
                     version: 1,
                     schema: {
                         test: {
@@ -802,13 +802,13 @@
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
 
             var spec = this;
 
-            var req = indexedDB.deleteDatabase(dbName);
+            var req = indexedDB.deleteDatabase(spec.dbName);
 
             req.onsuccess = function () {
                 done();
@@ -831,9 +831,9 @@
                 .only('one')
                 .execute()
                 .then(function (data) {
-                    expect(data.length).toEqual(3);
-                    expect(data[0].firstName).toEqual('Aaron');
-                    expect(data[2].tags).toEqual(['one', 'two', 'three', 'four']);
+                    expect(data.length).to.equal(3);
+                    expect(data[0].firstName).to.equal('Aaron');
+                    expect(data[2].tags).to.have.members(['one', 'two', 'three', 'four']);
                     done();
                 });
         });
@@ -845,7 +845,7 @@
                 .all()
                 .execute()
                 .then(function (data) {
-                    expect(data.length).toEqual(10);
+                    expect(data.length).to.equal(10);
                     done();
                 });
         });
