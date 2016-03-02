@@ -1,7 +1,7 @@
-(function (window) {
+(function (local) {
     'use strict';
 
-    const IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    const IDBKeyRange = local.IDBKeyRange || local.webkitIDBKeyRange;
     const transactionModes = {
         readonly: 'readonly',
         readwrite: 'readwrite'
@@ -9,16 +9,11 @@
     const hasOwn = Object.prototype.hasOwnProperty;
     const defaultMapper = x => x;
 
-    let indexedDB = (function () {
-        if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
-
-            if (!indexedDB) {
-                throw new Error('IndexedDB required');
-            }
-        }
-        return indexedDB;
-    })();
+    let indexedDB = local.indexedDB || local.webkitIndexedDB ||
+        local.mozIndexedDB || local.oIndexedDB || local.msIndexedDB ||
+        local.shimIndexedDB || (function () {
+            throw new Error('IndexedDB required');
+        }());
 
     const dbCache = {};
     const isArray = Array.isArray;
@@ -616,6 +611,6 @@
     } else if (typeof define === 'function' && define.amd) {
         define(function () { return db; });
     } else {
-        window.db = db;
+        local.db = db;
     }
-})(window);
+}(self));
