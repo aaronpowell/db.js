@@ -1,7 +1,7 @@
-(function (window) {
+(function (local) {
     'use strict';
 
-    const IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    const IDBKeyRange = local.IDBKeyRange || local.webkitIDBKeyRange;
     const transactionModes = {
         readonly: 'readonly',
         readwrite: 'readwrite'
@@ -9,16 +9,11 @@
     const hasOwn = Object.prototype.hasOwnProperty;
     const defaultMapper = x => x;
 
-    let indexedDB = (function () {
-        if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
-
-            if (!indexedDB) {
-                throw new Error('IndexedDB required');
-            }
-        }
-        return indexedDB;
-    })();
+    let indexedDB = local.indexedDB || local.webkitIndexedDB ||
+        local.mozIndexedDB || local.oIndexedDB || local.msIndexedDB ||
+        local.shimIndexedDB || (function () {
+            throw new Error('IndexedDB required');
+        }());
 
     const dbCache = {};
     const isArray = Array.isArray;
@@ -65,7 +60,7 @@
         return key;
     }
 
-    var Server = function (db, name, noServerMethods) {
+    var Server = function (db, name, noServerMethods, version) {
         var closed = false;
 
         this.getIndexedDB = () => db;
@@ -199,7 +194,7 @@
                 }
                 db.close();
                 closed = true;
-                delete dbCache[name];
+                delete dbCache[name][version];
                 resolve();
             });
         };
@@ -291,15 +286,14 @@
 
             // create a function that will set in the modifyObj properties into
             // the passed record.
-            var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+            var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
             var modifyRecord = function (record) {
-                for (var i = 0; i < modifyKeys.length; i++) {
-                    var key = modifyKeys[i];
+                modifyKeys.forEach(key => {
                     var val = modifyObj[key];
                     if (val instanceof Function) { val = val(record); }
                     record[key] = val;
-                }
+                });
                 return record;
             };
 
@@ -535,29 +529,50 @@
 
     var open = function (e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        dbCache[server] = db;
+        dbCache[server][version] = db;
 
-        var s = new Server(db, server, noServerMethods);
+        var s = new Server(db, server, noServerMethods, version);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {
-        version: '0.12.0',
+        version: '0.13.0',
         open: function (options) {
+            var server = options.server;
+            var version = options.version || 1;
+            if (!dbCache[server]) {
+                dbCache[server] = {};
+            }
             return new Promise(function (resolve, reject) {
-                if (dbCache[options.server]) {
+                if (dbCache[server][version]) {
                     open({
                         target: {
-                            result: dbCache[options.server]
+                            result: dbCache[server][version]
                         }
-                    }, options.server, options.noServerMethods, options.version, options.schema)
+                    }, server, options.noServerMethods, version, options.schema)
                     .then(resolve, reject);
                 } else {
-                    let request = indexedDB.open(options.server, options.version);
+                    let request = indexedDB.open(server, version);
 
-                    request.onsuccess = e => open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
+                    request.onsuccess = e => open(e, server, options.noServerMethods, version, options.schema).then(resolve, reject);
                     request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
                     request.onerror = e => reject(e);
+                    request.onblocked = e => {
+                        var resume = new Promise(function (res, rej) {
+                            // We overwrite handlers rather than make a new
+                            //   open() since the original request is still
+                            //   open and its onsuccess will still fire if
+                            //   the user unblocks by closing the blocking
+                            //   connection
+                            request.onsuccess = (ev) => {
+                                open(ev, server, options.noServerMethods, version, options.schema)
+                                    .then(res, rej);
+                            };
+                            request.onerror = e => rej(e);
+                        });
+                        e.resume = resume;
+                        reject(e);
+                    };
                 }
             });
         },
@@ -568,7 +583,19 @@
 
                 request.onsuccess = e => resolve(e);
                 request.onerror = e => reject(e);
-                request.onblocked = e => reject(e);
+                request.onblocked = e => {
+                    var resume = new Promise(function (res, rej) {
+                        // We overwrite handlers rather than make a new
+                        //   delete() since the original request is still
+                        //   open and its onsuccess will still fire if
+                        //   the user unblocks by closing the blocking
+                        //   connection
+                        request.onsuccess = e => res(e);
+                        request.onerror = e => rej(e);
+                    });
+                    e.resume = resume;
+                    reject(e);
+                };
             });
         },
 
@@ -582,6 +609,6 @@
     } else if (typeof define === 'function' && define.amd) {
         define(function () { return db; });
     } else {
-        window.db = db;
+        local.db = db;
     }
-})(window);
+}(self));

@@ -46,11 +46,12 @@ db.open({
 Note that `open()` takes an options object with the following properties:
 
 -   *version* - The current version of the database to open.
-Should be an integer. You can start with `1`.
+Should be an integer. You can start with `1`. You must increase the `version`
+if updating the schema or otherwise the `schema` property will have no effect.
 
 -   *server* - The name of this server. Any subsequent attempt to open a server
-with this name will reuse the already opened connection (unless it has been
-closed).
+with this name (and with the current version) will reuse the already opened
+connection (unless it has been closed).
 
 -   *schema* - Expects an object, or, if a function is supplied, a schema
 object should be returned). A schema object optionally has store names as
@@ -63,12 +64,42 @@ objects which can include the optional parameters and values available to [creat
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
 a `key` property on the provided parameter object. Note also that when a
-schema is supplied, any object stores not present on the schema object will
-be deleted.
+schema is supplied for a new version, any object stores not present on
+the schema object will be deleted.
 
 A connection is intended to be persisted, and you can perform multiple
-operations while it's kept open. Check out the `/tests/specs` folder
-for more examples.
+operations while it's kept open.
+
+In the event a connection has already been opened for modification (whether
+in the same instance or in another tab/window), a blocking error will occur,
+for which you can listen by adding a `Promise.catch` statement and
+communicate with blocking instances still holding a connection so that
+they may close the connection. You can then return the `resume` property
+(a promise) to recover to continue the original `open` operation and
+proceed to the following `then` condition.
+
+```js
+var server;
+db.open({
+    // ...
+}).catch(function (err) {
+    if (err.type === 'blocked') {
+        oldConnection.close();
+        return err.resume;
+    }
+    // Handle other errors here
+    throw err;
+}).then(function (s) {
+    server = s;
+});
+```
+
+For cases where the blocking connections are in other tabs/windows,
+[window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+might be a suitable way to communicate with them to get them to close
+their connections or whatever behavior is desired.
+
+Check out the `/tests/specs` folder for more examples.
 
 ## General server/store methods
 
@@ -182,10 +213,10 @@ server.people.query()
 ##### Querying using indexes
 
 ```js
-server.people.query('specialProperty').
-    all().
-    execute().
-    then(function (results) {
+server.people.query('specialProperty')
+    .all()
+    .execute()
+    .then(function (results) {
         // do something with the results (items which possess `specialProperty`)
     });
 ```
@@ -275,12 +306,12 @@ to select how many items (up to the amount available) should
 be retrieved from that point in the navigation of the cursor.
 
 ```js
-server.people.
-    query('firstName').
-    all().
-    limit(1, 3).
-    execute().
-    then(function (data) {
+server.people
+    .query('firstName')
+    .all()
+    .limit(1, 3)
+    .execute()
+    .then(function (data) {
         // Skips the first item and obtains the next 3 items (or less if there are fewer)
     });
 ```
@@ -291,11 +322,11 @@ The `desc` method may be used to change cursor
 direction to descending order:
 
 ```js
-server.people.query().
-    all().
-    desc().
-    execute().
-    then(function (results) {
+server.people.query()
+    .all()
+    .desc()
+    .execute()
+    .then(function (results) {
         // Array of results will be in descending order
     });
 ```
@@ -307,11 +338,11 @@ server.people.query().
 Keys may be retrieved with or without an index:
 
 ```js
-server.people.query('firstName').
-    only('Aaron').
-    keys().
-    execute().
-    then(function (results) {
+server.people.query('firstName')
+    .only('Aaron')
+    .keys()
+    .execute()
+    .then(function (results) {
         // `results` will contain one 'Aaron' value for each
         //    item in the people store with that first name
     });
@@ -323,17 +354,17 @@ The `map` method allows you to modify the object being returned
 without correspondingly modifying the actual object stored:
 
 ```js
-server.people.
-    query('age').
-    lowerBound(30).
-    map(function (value) {
+server.people
+    .query('age')
+    .lowerBound(30)
+    .map(function (value) {
         return {
             fullName: value.firstName + ' ' + value.lastName,
             raw: value
         };
-    }).
-    execute().
-    then(function (data) {
+    })
+    .execute()
+    .then(function (data) {
         // An array of people objects containing `fullName` and `raw` properties
     });
 ```
@@ -440,12 +471,33 @@ var storeNames = db.objectStoreNames;
 ## Deleting a database
 
 ```js
-db.delete(dbName).then(function (e) {
+db.delete(dbName).then(function (ev) {
     // Should have been a successful database deletion
 }, function (err) {
     // Error during database deletion
 });
 ```
+
+As with the `open` operation, a `delete` operation will not be able to
+execute so long as there are already opened blocking connections
+(i.e., those allowing for database modification) which are open elsewhere
+in the browser. You can recover as follows:
+
+```js
+db.delete(dbName).catch(function (err) {
+    if (err.type === 'blocked') {
+        oldConnection.close();
+        return err.resume;
+    }
+    // Handle other errors here
+    throw err;
+}).then(function (ev) {
+    // Should have been a successful database deletion
+});
+```
+
+See the documentation on `open` for more on such recovery from blocking
+connections.
 
 ## Comparing two keys
 
@@ -472,8 +524,8 @@ library.
 # Contributor notes
 
 -   `npm install` to install all the dependencies
--   `npm run grunt jasmine-server` to run the jasmine server
--   Open (`http://localhost:9999/tests`)[http://localhost:9999/tests] to run the jasmine tests
+-   `npm run grunt test:local` to run the mocha server
+-   Open (`http://localhost:9999/tests`)[] to run the mocha tests
 
 # License
 

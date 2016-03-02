@@ -2,7 +2,10 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var initialVersion = 1;
+        var newVersion = 2;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             this.dbName = guid();
@@ -48,7 +51,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1
+                version: initialVersion
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server).to.not.be.undefined;
@@ -59,7 +62,7 @@
         it('should normally reject open promise with store conflicting with Server methods', function (done) {
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     query: {
                         key: {
@@ -77,7 +80,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 noServerMethods: true,
                 schema: {
                     test: {
@@ -94,7 +97,7 @@
             }).then(function (s) {
                 spec.server = s;
                 expect(spec.server.test).to.be.undefined;
-                expect(spec.server.query).to.be.a(typeof Function);
+                expect(spec.server.query).to.be.function;
                 done();
             });
         });
@@ -103,7 +106,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {
                         key: {
@@ -137,7 +140,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {}
                 }
@@ -162,7 +165,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test: {}
                 }
@@ -174,7 +177,7 @@
                 }
                 db.open({
                     server: spec.dbName,
-                    version: 2,
+                    version: newVersion,
                     schema: {
                         test: {},
                         extra: {}
@@ -194,7 +197,7 @@
             var spec = this;
             db.open({
                 server: this.dbName,
-                version: 1,
+                version: initialVersion,
                 schema: {
                     test_1: {},
                     test_2: {}
@@ -204,7 +207,7 @@
 
                 db.open({
                    server: spec.dbName,
-                   version: 2,
+                   version: newVersion,
                    schema: {
                         test_2: {}
                     }

@@ -1,0 +1,26 @@
+{
+  "name": "db.js",
+  "main": "dist/db.min.js",
+  "homepage": "https://github.com/aaronpowell/db.js",
+  "authors": [
+    "Aaron Powell <me@aaron-powell.com>"
+  ],
+  "description": "db.js is a wrapper for IndexedDB to make it easier to work against, making it look more like a queryable API.",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "keywords": [
+    "indexeddb",
+    "database"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower",
+    "test",
+    "tests"
+  ]
+}
+
