@@ -95,7 +95,7 @@ module.exports = function (grunt) {
 
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
-    if (saucekey !== null) {
+    if (saucekey !== null && !process.env.TRAVIS_PULL_REQUEST) {
         testJobs.push('saucelabs-mocha');
     }
 
