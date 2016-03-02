@@ -468,6 +468,22 @@ var db = server.getIndexedDB();
 var storeNames = db.objectStoreNames;
 ```
 
+## Server event handlers
+
+All of the following are optional and can be chained as desired.
+
+```js
+server.onabort(function (e) {
+    // Handle abort event
+}).onerror(function (err) {
+    // Handle any errors (check err.name)
+}).onversionchange(function (e) {
+    // Be notified of version changes (can use e.oldVersion and e.newVersion)
+});
+```
+
+See the IndexedDB spec for the [possible exceptions](http://www.w3.org/TR/IndexedDB/#exceptions).
+
 ## Deleting a database
 
 ```js

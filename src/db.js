@@ -232,6 +232,17 @@
             });
         };
 
+        ['abort', 'error', 'versionchange'].forEach(function (eventName) {
+            var onHandler = 'on' + eventName;
+            this[onHandler] = function (table, handler) {
+                db[onHandler] = handler;
+                if (this[table]) {
+                    return this[table];
+                }
+                return this;
+            };
+        }, this);
+
         if (noServerMethods) {
             return;
         }
