@@ -4,7 +4,7 @@ module.exports = function (grunt) {
     var saucekey = process.env.saucekey;
 
     if (!saucekey) {
-        console.warn('Unable to load saurcelabs key');
+        console.warn('Unable to load saucelabs key');
     }
 
     grunt.initConfig({
