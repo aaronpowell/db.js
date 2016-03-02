@@ -1,4 +1,4 @@
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     'use strict';
     // Project configuration.
     var saucekey = process.env.saucekey;
@@ -51,7 +51,7 @@ module.exports = function (grunt) {
                             platform: 'Windows 2008'
                         }]
                 },
-                onTestComplete: function (result, callback) {
+                onTestComplete: function(result, callback) {
                     console.dir(result);
                 }
             }
@@ -83,13 +83,27 @@ module.exports = function (grunt) {
                     'dist/db.min.js': ['dist/db.js']
                 }
             }
+        },
+
+        karma: {
+            options: {
+                configFile: 'karma.conf.js'
+            },
+            ci: {
+                singleRun: true,
+                browsers: ['PhantomJS']
+            },
+            dev: {
+                singleRun: false,
+                browsers: ['PhantomJS']
+            }
         }
     });
 
     // load all grunt tasks
     require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
-    grunt.registerTask('forever', function () {
+    grunt.registerTask('forever', function() {
         this.async();
     });
 
@@ -99,10 +113,14 @@ module.exports = function (grunt) {
         testJobs.push('saucelabs-mocha');
     }
 
+    if (process.env.TRAVIS_JOB_ID) {
+        testJobs.concat('karma:ci');
+    }
+
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
-    grunt.registerTask('test:local', function () {
+    grunt.registerTask('test:local', function() {
         grunt.task.run(devJobs);
         grunt.task.run('connect:server:keepalive');
     });
