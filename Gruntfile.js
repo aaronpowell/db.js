@@ -119,7 +119,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', function() {
-        console.log(testJobs);
+        console.log(process.env);
         grunt.task.run(testJobs);
     });
     grunt.registerTask('default', 'test');
