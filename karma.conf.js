@@ -10,19 +10,23 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine'],
+    frameworks: ['mocha'],
 
 
     // list of files / patterns to load in the browser
     files: [
       'node_modules/es6-promise/dist/es6-promise.js',
       'dist/db.min.js',
+      'node_modules/chai/chai.js',
+      'tests/helpers/**/*.js',
       'tests/specs/**/*.js'
     ],
 
 
     // list of files to exclude
     exclude: [
+        // exclude the jQuery integraion tests for karma
+        'tests/specs/thenable-integration.js'
     ],
 
 
@@ -66,6 +70,18 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+    customLaunchers: {
+        'PhantomJS_custom': {
+        base: 'PhantomJS',
+        options: {
+          windowName: 'my-window',
+        },
+        flags: ['--load-images=true'],
+        debug: true
+      }
+
+    }
   })
 };

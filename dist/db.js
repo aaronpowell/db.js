@@ -252,12 +252,15 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.close = function () {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            db.close();
-            closed = true;
-            delete dbCache[name];
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                }
+                db.close();
+                closed = true;
+                delete dbCache[name];
+                resolve();
+            });
         };
 
         this.get = function (table, key) {
@@ -269,7 +272,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
 
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = store.get(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
@@ -284,10 +291,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.query = function (table, index) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            return new IndexQuery(table, db, index);
+            var error = closed ? 'Database has been closed' : null;
+            return new IndexQuery(table, db, index, error);
         };
 
         this.count = function (table, key) {
@@ -298,7 +303,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
@@ -340,7 +349,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return err;
     };
 
-    var IndexQuery = function IndexQuery(table, db, indexName) {
+    var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
         var _this4 = this;
 
         var modifyObj = false;
@@ -427,15 +436,19 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             });
         };
 
-        var Query = function Query(type, args) {
+        var Query = function Query(type, args, queuedError) {
             var direction = 'next';
             var cursorType = 'openCursor';
             var filters = [];
             var limitRange = null;
             var mapper = defaultMapper;
             var unique = false;
+            var error = preexistingError || queuedError;
 
             var execute = function execute() {
+                if (error) {
+                    return Promise.reject(error);
+                }
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
@@ -558,7 +571,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         });
 
         this.range = function (opts) {
-            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
+            var error;
+            var keyRange = [null, null];
+            try {
+                keyRange = mongoDBToKeyRangeArgs(opts);
+            } catch (e) {
+                error = e;
+            }
+            return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));
         };
 
         this.filter = function () {
@@ -580,12 +600,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return;
         }
 
-        for (var objectStoreKey in db.objectStoreNames) {
-            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
-                var name = db.objectStoreNames[objectStoreKey];
-                if (schema.hasOwnProperty(name) === false) {
-                    e.currentTarget.transaction.db.deleteObjectStore(name);
-                }
+        for (var i = 0; i < db.objectStoreNames.length; i++) {
+            var name = db.objectStoreNames[i];
+            if (schema.hasOwnProperty(name) === false) {
+                e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 

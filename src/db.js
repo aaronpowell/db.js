@@ -504,12 +504,10 @@
             return;
         }
 
-        for (var objectStoreKey in db.objectStoreNames) {
-            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
-                var name = db.objectStoreNames[objectStoreKey];
-                if (schema.hasOwnProperty(name) === false) {
-                    e.currentTarget.transaction.db.deleteObjectStore(name);
-                }
+        for (var i = 0; i < db.objectStoreNames.length; i++) {
+            var name = db.objectStoreNames[i];
+            if (schema.hasOwnProperty(name) === false) {
+                e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
