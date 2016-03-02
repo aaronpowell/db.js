@@ -6,10 +6,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-(function (window) {
+(function (local) {
     'use strict';
 
-    var IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange;
+    var IDBKeyRange = local.IDBKeyRange || local.webkitIDBKeyRange;
     var transactionModes = {
         readonly: 'readonly',
         readwrite: 'readwrite'
@@ -19,15 +19,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return x;
     };
 
-    var indexedDB = function () {
-        if (!indexedDB) {
-            indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB || window.shimIndexedDB;
-
-            if (!indexedDB) {
-                throw new Error('IndexedDB required');
-            }
-        }
-        return indexedDB;
+    var indexedDB = local.indexedDB || local.webkitIndexedDB || local.mozIndexedDB || local.oIndexedDB || local.msIndexedDB || local.shimIndexedDB || function () {
+        throw new Error('IndexedDB required');
     }();
 
     var dbCache = {};
@@ -84,7 +77,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return key;
     }
 
-    var Server = function Server(db, name, noServerMethods) {
+    var Server = function Server(db, name, noServerMethods, version) {
         var _this3 = this;
 
         var closed = false;
@@ -252,12 +245,15 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.close = function () {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            db.close();
-            closed = true;
-            delete dbCache[name];
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                }
+                db.close();
+                closed = true;
+                delete dbCache[name][version];
+                resolve();
+            });
         };
 
         this.get = function (table, key) {
@@ -269,7 +265,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
 
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = store.get(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
@@ -284,10 +284,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.query = function (table, index) {
-            if (closed) {
-                throw new Error('Database has been closed');
-            }
-            return new IndexQuery(table, db, index);
+            var error = closed ? 'Database has been closed' : null;
+            return new IndexQuery(table, db, index, error);
         };
 
         this.count = function (table, key) {
@@ -298,7 +296,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }
                 var transaction = db.transaction(table);
                 var store = transaction.objectStore(table);
-                key = mongoifyKey(key);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
                 var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
@@ -340,7 +342,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return err;
     };
 
-    var IndexQuery = function IndexQuery(table, db, indexName) {
+    var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
         var _this4 = this;
 
         var modifyObj = false;
@@ -362,17 +364,16 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
             // create a function that will set in the modifyObj properties into
             // the passed record.
-            var modifyKeys = modifyObj ? Object.keys(modifyObj) : false;
+            var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
             var modifyRecord = function modifyRecord(record) {
-                for (var i = 0; i < modifyKeys.length; i++) {
-                    var key = modifyKeys[i];
+                modifyKeys.forEach(function (key) {
                     var val = modifyObj[key];
                     if (val instanceof Function) {
                         val = val(record);
                     }
                     record[key] = val;
-                }
+                });
                 return record;
             };
 
@@ -427,15 +428,19 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             });
         };
 
-        var Query = function Query(type, args) {
+        var Query = function Query(type, args, queuedError) {
             var direction = 'next';
             var cursorType = 'openCursor';
             var filters = [];
             var limitRange = null;
             var mapper = defaultMapper;
             var unique = false;
+            var error = preexistingError || queuedError;
 
             var execute = function execute() {
+                if (error) {
+                    return Promise.reject(error);
+                }
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
@@ -558,7 +563,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         });
 
         this.range = function (opts) {
-            return Query.apply(null, mongoDBToKeyRangeArgs(opts));
+            var error;
+            var keyRange = [null, null];
+            try {
+                keyRange = mongoDBToKeyRangeArgs(opts);
+            } catch (e) {
+                error = e;
+            }
+            return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));
         };
 
         this.filter = function () {
@@ -613,34 +625,58 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
     var _open = function _open(e, server, noServerMethods, version, schema) {
         var db = e.target.result;
-        dbCache[server] = db;
+        dbCache[server][version] = db;
 
-        var s = new Server(db, server, noServerMethods);
+        var s = new Server(db, server, noServerMethods, version);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
     var db = {
-        version: '0.12.0',
+        version: '0.13.0',
         open: function open(options) {
+            var server = options.server;
+            var version = options.version || 1;
+            if (!dbCache[server]) {
+                dbCache[server] = {};
+            }
             return new Promise(function (resolve, reject) {
-                if (dbCache[options.server]) {
+                if (dbCache[server][version]) {
                     _open({
                         target: {
-                            result: dbCache[options.server]
+                            result: dbCache[server][version]
                         }
-                    }, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
+                    }, server, options.noServerMethods, version, options.schema).then(resolve, reject);
                 } else {
-                    var request = indexedDB.open(options.server, options.version);
+                    (function () {
+                        var request = indexedDB.open(server, version);
 
-                    request.onsuccess = function (e) {
-                        return _open(e, options.server, options.noServerMethods, options.version, options.schema).then(resolve, reject);
-                    };
-                    request.onupgradeneeded = function (e) {
-                        return createSchema(e, options.schema, e.target.result);
-                    };
-                    request.onerror = function (e) {
-                        return reject(e);
-                    };
+                        request.onsuccess = function (e) {
+                            return _open(e, server, options.noServerMethods, version, options.schema).then(resolve, reject);
+                        };
+                        request.onupgradeneeded = function (e) {
+                            return createSchema(e, options.schema, e.target.result);
+                        };
+                        request.onerror = function (e) {
+                            return reject(e);
+                        };
+                        request.onblocked = function (e) {
+                            var resume = new Promise(function (res, rej) {
+                                // We overwrite handlers rather than make a new
+                                //   open() since the original request is still
+                                //   open and its onsuccess will still fire if
+                                //   the user unblocks by closing the blocking
+                                //   connection
+                                request.onsuccess = function (ev) {
+                                    _open(ev, server, options.noServerMethods, version, options.schema).then(res, rej);
+                                };
+                                request.onerror = function (e) {
+                                    return rej(e);
+                                };
+                            });
+                            e.resume = resume;
+                            reject(e);
+                        };
+                    })();
                 }
             });
         },
@@ -656,7 +692,21 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return reject(e);
                 };
                 request.onblocked = function (e) {
-                    return reject(e);
+                    var resume = new Promise(function (res, rej) {
+                        // We overwrite handlers rather than make a new
+                        //   delete() since the original request is still
+                        //   open and its onsuccess will still fire if
+                        //   the user unblocks by closing the blocking
+                        //   connection
+                        request.onsuccess = function (e) {
+                            return res(e);
+                        };
+                        request.onerror = function (e) {
+                            return rej(e);
+                        };
+                    });
+                    e.resume = resume;
+                    reject(e);
                 };
             });
         },
@@ -673,7 +723,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return db;
         });
     } else {
-        window.db = db;
+        local.db = db;
     }
-})(window);
+})(self);
 //# sourceMappingURL=db.js.map
