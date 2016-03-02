@@ -26,7 +26,9 @@ module.exports = function(config) {
     // list of files to exclude
     exclude: [
         // exclude the jQuery integraion tests for karma
-        'tests/specs/thenable-integration.js'
+        'tests/specs/thenable-integration.js',
+        // phantom doesn't support web workers
+        'tests/specs/web-workers.js'
     ],
 
 
