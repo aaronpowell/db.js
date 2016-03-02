@@ -114,12 +114,12 @@ module.exports = function(grunt) {
     }
 
     if (process.env.TRAVIS_JOB_ID) {
-        testJobs.concat('karma:ci');
+        testJobs = testJobs.concat('karma:ci');
     }
 
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', function() {
-        console.log(process.env);
+        console.log(testJobs);
         grunt.task.run(testJobs);
     });
     grunt.registerTask('default', 'test');
