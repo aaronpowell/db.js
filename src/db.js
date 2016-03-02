@@ -536,7 +536,7 @@
     };
 
     var db = {
-        version: '0.13.0',
+        version: '0.13.1',
         open: function (options) {
             var server = options.server;
             var version = options.version || 1;
@@ -590,7 +590,17 @@
                         //   open and its onsuccess will still fire if
                         //   the user unblocks by closing the blocking
                         //   connection
-                        request.onsuccess = e => res(e);
+                        request.onsuccess = ev => {
+                            if (!('newVersion' in ev)) {
+                                ev.newVersion = e.newVersion;
+                            }
+
+                            if (!('oldVersion' in ev)) {
+                                ev.oldVersion = e.oldVersion;
+                            }
+
+                            res(ev);
+                        };
                         request.onerror = e => rej(e);
                     });
                     e.resume = resume;
