@@ -118,7 +118,10 @@ module.exports = function(grunt) {
     }
 
     grunt.registerTask('dev', devJobs);
-    grunt.registerTask('test', testJobs);
+    grunt.registerTask('test', function() {
+        console.log(testJobs);
+        grunt.task.run(testJobs);
+    });
     grunt.registerTask('default', 'test');
     grunt.registerTask('test:local', function() {
         grunt.task.run(devJobs);
