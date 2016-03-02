@@ -58,13 +58,16 @@
             var spec = this;
             navigator.serviceWorker.register('../test-worker.js').then(function() {
                 return navigator.serviceWorker.ready;
-            }).then(function () {
+            }).then(function (serviceWorker) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(e) {
                     expect(e.data).to.be.true;
                     done();
                 };
-                navigator.serviceWorker.controller.postMessage(
+
+                var controller = navigator.serviceWorker.controller || serviceWorker.active;
+
+                controller.postMessage(
                     {dbName: spec.dbName, message: 'service worker open', version: initialVersion},
                     [messageChannel.port2]
                 );
