@@ -24,7 +24,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     }();
 
     var dbCache = {};
-    var isArray = Array.isArray;
 
     function mongoDBToKeyRangeArgs(opts) {
         var keys = Object.keys(opts).sort();
@@ -102,19 +101,25 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
 
-                var records = [];
-
-                args.forEach(function (aip) {
-                    if (isArray(aip)) {
-                        records = records.concat(aip);
-                    } else {
-                        records.push(aip);
-                    }
-                });
+                var records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                var store = transaction.objectStore(table);
+                transaction.oncomplete = function () {
+                    return resolve(records, _this);
+                };
+                transaction.onerror = function (e) {
+                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
 
+                var store = transaction.objectStore(table);
                 records.forEach(function (record) {
                     var req;
                     if (record.item && record.key) {
@@ -137,20 +142,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         });
                     };
                 });
-
-                transaction.oncomplete = function () {
-                    return resolve(records, _this);
-                };
-
-                transaction.onerror = function (e) {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
-                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                    e.preventDefault();
-                    reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
             });
         };
 
@@ -168,26 +159,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                var store = transaction.objectStore(table);
-                var records = [];
-
-                args.forEach(function (aip) {
-                    if (isArray(aip)) {
-                        records = records.concat(aip);
-                    } else {
-                        records.push(aip);
-                    }
-                });
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        var key = record.key;
-                        record = record.item;
-                        store.put(record, key);
-                    } else {
-                        store.put(record);
-                    }
-                });
-
                 transaction.oncomplete = function () {
                     return resolve(records, _this2);
                 };
@@ -197,6 +168,20 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 transaction.onabort = function (e) {
                     return reject(e);
                 };
+
+                var store = transaction.objectStore(table);
+                var records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+                records.forEach(function (record) {
+                    if (record.item && record.key) {
+                        var key = record.key;
+                        record = record.item;
+                        store.put(record, key);
+                    } else {
+                        store.put(record);
+                    }
+                });
             });
         };
 
@@ -207,9 +192,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                var store = transaction.objectStore(table);
-
-                store.delete(key);
                 transaction.oncomplete = function () {
                     return resolve(key);
                 };
@@ -219,6 +201,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 transaction.onabort = function (e) {
                     return reject(e);
                 };
+
+                var store = transaction.objectStore(table);
+                store.delete(key);
             });
         };
 
@@ -229,9 +214,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                var store = transaction.objectStore(table);
-
-                store.clear();
                 transaction.oncomplete = function () {
                     return resolve();
                 };
@@ -241,6 +223,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 transaction.onabort = function (e) {
                     return reject(e);
                 };
+
+                var store = transaction.objectStore(table);
+                store.clear();
             });
         };
 
@@ -263,6 +248,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var transaction = db.transaction(table);
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+
                 var store = transaction.objectStore(table);
 
                 try {
@@ -273,12 +265,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var req = store.get(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
                 };
             });
         };
@@ -295,6 +281,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var transaction = db.transaction(table);
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+
                 var store = transaction.objectStore(table);
                 try {
                     key = mongoifyKey(key);
@@ -304,12 +297,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
                 };
             });
         };
@@ -348,74 +335,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         var modifyObj = false;
 
         var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
-            var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-            var store = transaction.objectStore(table);
-            var index = indexName ? store.index(indexName) : store;
-            var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
-            var results = [];
-            var indexArgs = [keyRange];
-            var counter = 0;
-
-            limitRange = limitRange || null;
-            filters = filters || [];
-            if (cursorType !== 'count') {
-                indexArgs.push(direction || 'next');
-            }
-
-            // create a function that will set in the modifyObj properties into
-            // the passed record.
-            var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
-
-            var modifyRecord = function modifyRecord(record) {
-                modifyKeys.forEach(function (key) {
-                    var val = modifyObj[key];
-                    if (val instanceof Function) {
-                        val = val(record);
-                    }
-                    record[key] = val;
-                });
-                return record;
-            };
-
-            index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
-                var cursor = e.target.result;
-                if (typeof cursor === 'number') {
-                    results = cursor;
-                } else if (cursor) {
-                    if (limitRange !== null && limitRange[0] > counter) {
-                        counter = limitRange[0];
-                        cursor.advance(limitRange[0]);
-                    } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
-                        // out of limit range... skip
-                    } else {
-                            var matchFilter = true;
-                            var result = 'value' in cursor ? cursor.value : cursor.key;
-
-                            filters.forEach(function (filter) {
-                                if (!filter || !filter.length) {
-                                    // Invalid filter do nothing
-                                } else if (filter.length === 2) {
-                                        matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                    } else {
-                                        matchFilter = matchFilter && filter[0](result);
-                                    }
-                            });
-
-                            if (matchFilter) {
-                                counter++;
-                                // if we're doing a modify, run it now
-                                if (modifyObj) {
-                                    result = modifyRecord(result);
-                                    cursor.update(result);
-                                }
-                                results.push(mapper(result));
-                            }
-                            cursor.continue();
-                        }
-                }
-            };
-
             return new Promise(function (resolve, reject) {
+                var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                var results = [];
+                var indexArgs = [keyRange];
+                var counter = 0;
+
+                var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
                 transaction.oncomplete = function () {
                     return resolve(results);
                 };
@@ -424,6 +350,68 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+
+                var store = transaction.objectStore(table);
+                var index = indexName ? store.index(indexName) : store;
+
+                limitRange = limitRange || null;
+                filters = filters || [];
+                if (cursorType !== 'count') {
+                    indexArgs.push(direction || 'next');
+                }
+
+                // create a function that will set in the modifyObj properties into
+                // the passed record.
+                var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
+
+                var modifyRecord = function modifyRecord(record) {
+                    modifyKeys.forEach(function (key) {
+                        var val = modifyObj[key];
+                        if (val instanceof Function) {
+                            val = val(record);
+                        }
+                        record[key] = val;
+                    });
+                    return record;
+                };
+
+                index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (typeof cursor === 'number') {
+                        results = cursor;
+                    } else if (cursor) {
+                        if (limitRange !== null && limitRange[0] > counter) {
+                            counter = limitRange[0];
+                            cursor.advance(limitRange[0]);
+                        } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
+                            // out of limit range... skip
+                        } else {
+                                var matchFilter = true;
+                                var result = 'value' in cursor ? cursor.value : cursor.key;
+
+                                filters.forEach(function (filter) {
+                                    if (!filter || !filter.length) {
+                                        // Invalid filter do nothing
+                                    } else if (filter.length === 2) {
+                                            matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                        } else {
+                                            matchFilter = matchFilter && filter[0](result);
+                                        }
+                                });
+
+                                if (matchFilter) {
+                                    counter++;
+                                    // if we're doing a modify, run it now
+                                    if (modifyObj) {
+                                        result = modifyRecord(result);
+                                        cursor.update(result);
+                                    }
+                                    results.push(mapper(result));
+                                }
+                                cursor.continue();
+                            }
+                    }
                 };
             });
         };
@@ -592,12 +580,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return;
         }
 
-        for (var objectStoreKey in db.objectStoreNames) {
-            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
-                var name = db.objectStoreNames[objectStoreKey];
-                if (schema.hasOwnProperty(name) === false) {
-                    e.currentTarget.transaction.db.deleteObjectStore(name);
-                }
+        for (var i = 0; i < db.objectStoreNames.length; i++) {
+            var name = db.objectStoreNames[i];
+            if (schema.hasOwnProperty(name) === false) {
+                e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
@@ -632,7 +618,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var db = {
-        version: '0.13.0',
+        version: '0.13.2',
         open: function open(options) {
             var server = options.server;
             var version = options.version || 1;
@@ -698,8 +684,16 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         //   open and its onsuccess will still fire if
                         //   the user unblocks by closing the blocking
                         //   connection
-                        request.onsuccess = function (e) {
-                            return res(e);
+                        request.onsuccess = function (ev) {
+                            if (!('newVersion' in ev)) {
+                                ev.newVersion = e.newVersion;
+                            }
+
+                            if (!('oldVersion' in ev)) {
+                                ev.oldVersion = e.oldVersion;
+                            }
+
+                            res(ev);
                         };
                         request.onerror = function (e) {
                             return rej(e);

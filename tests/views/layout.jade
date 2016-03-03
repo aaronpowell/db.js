@@ -14,46 +14,35 @@ html
         script(src='../node_modules/mocha/mocha.js')
         script(src='../node_modules/chai/chai.js')
         script(src='../dist/db.min.js')
+        script(src='helpers/guid.js')
+        script(src='helpers/chai-setup.js')
         script.
-            function guid() {
-                function s4() {
-                    return Math.floor((1 + Math.random()) * 0x10000)
-                    .toString(16)
-                    .substring(1);
-                }
-                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-                    s4() + '-' + s4() + s4() + s4();
-            }
             mocha.setup('bdd');
-            window.expect = chai.expect;
 
     block content
 
     script.
-        onload = function(){
-            //mocha.checkLeaks();
-            //mocha.globals(['foo']);
+        onload = function() {
             var runner = mocha.run();
 
             var failedTests = [];
-            runner.on('end', function(){
+            runner.on('end', function() {
                 window.mochaResults = runner.stats;
                 window.mochaResults.reports = failedTests;
             });
 
             runner.on('fail', logFailure);
 
-            function logFailure(test, err){
+            function logFailure(test, err) {
+                var flattenTitles = function(test) {
+                    var titles = [];
+                    while (test.parent.title) {
+                        titles.push(test.parent.title);
+                        test = test.parent;
+                    }
+                    return titles.reverse();
+                };
 
-            var flattenTitles = function(test){
-                var titles = [];
-                while (test.parent.title){
-                    titles.push(test.parent.title);
-                    test = test.parent;
-                }
-                return titles.reverse();
-            };
-
-            failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+                failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
             };
         };
