@@ -61,26 +61,12 @@
             };
         });
 
-        afterEach(function (done) {
+        afterEach(function () {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
 
-            var spec = this;
-
             var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in afterEach', arguments, spec);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments);
-            };
         });
 
         it('should allow getting by key', function (done) {

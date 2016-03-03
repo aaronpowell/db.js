@@ -592,12 +592,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return;
         }
 
-        for (var objectStoreKey in db.objectStoreNames) {
-            if (db.objectStoreNames.hasOwnProperty(objectStoreKey)) {
-                var name = db.objectStoreNames[objectStoreKey];
-                if (schema.hasOwnProperty(name) === false) {
-                    e.currentTarget.transaction.db.deleteObjectStore(name);
-                }
+        for (var i = 0; i < db.objectStoreNames.length; i++) {
+            var name = db.objectStoreNames[i];
+            if (schema.hasOwnProperty(name) === false) {
+                e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
@@ -632,7 +630,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var db = {
-        version: '0.13.0',
+        version: '0.13.1',
         open: function open(options) {
             var server = options.server;
             var version = options.version || 1;
@@ -698,8 +696,16 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         //   open and its onsuccess will still fire if
                         //   the user unblocks by closing the blocking
                         //   connection
-                        request.onsuccess = function (e) {
-                            return res(e);
+                        request.onsuccess = function (ev) {
+                            if (!('newVersion' in ev)) {
+                                ev.newVersion = e.newVersion;
+                            }
+
+                            if (!('oldVersion' in ev)) {
+                                ev.oldVersion = e.oldVersion;
+                            }
+
+                            res(ev);
                         };
                         request.onerror = function (e) {
                             return rej(e);

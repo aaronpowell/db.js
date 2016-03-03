@@ -1,7 +1,7 @@
 {
   "name": "db.js",
   "description": "db.js is a wrapper for IndexedDB to make it easier to work against, making it look more like a queryable API.",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "author": "Aaron Powell <me@aaron-powell.com>",
   "contributors": [
     "Brett Zamir <brettz9@yahoo.com>"
@@ -42,6 +42,7 @@
     "grunt-contrib-jade": "~0.5.1",
     "grunt-contrib-uglify": "^0.10.0",
     "grunt-eslint": "^17.3.1",
+    "grunt-karma": "^0.12.1",
     "grunt-saucelabs": "^8.6.0",
     "jade": "^1.11.0",
     "jquery": "^2.2.1",
