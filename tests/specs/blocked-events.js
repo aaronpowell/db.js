@@ -21,57 +21,57 @@
         };
 
         beforeEach(function (done) {
-            this.dbName = guid();
             var spec = this;
-            var req = indexedDB.deleteDatabase(this.dbName);
-            req.onsuccess = function () {
-                db.open({
-                    server: spec.dbName,
-                    version: initialVersion,
-                    schema: schema
-                }).then(function (s) {
-                    spec.server = s;
-                }).then(function () {
-                    spec.item1 = {
-                        firstName: 'Aaron',
-                        lastName: 'Powell',
-                        age: 20
-                    };
-                    spec.item2 = {
-                        firstName: 'John',
-                        lastName: 'Smith',
-                        age: 30
-                    };
-                    spec.item3 = {
-                        firstName: 'Aaron',
-                        lastName: 'Jones',
-                        age: 40,
-                        specialID: 5
-                    };
-                    spec.server.add('test', spec.item1,
-                        spec.item2, spec.item3).then(function () {
-                            done();
-                        }
-                    );
-                });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in beforeEach', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
-
+            this.dbName = guid();
+            db.open({
+                server: this.dbName,
+                version: initialVersion,
+                schema: schema
+            }).then(function (s) {
+                spec.server = s;
+            }).then(function () {
+                spec.item1 = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20
+                };
+                spec.item2 = {
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30
+                };
+                spec.item3 = {
+                    firstName: 'Aaron',
+                    lastName: 'Jones',
+                    age: 40,
+                    specialID: 5
+                };
+                spec.server.add('test', spec.item1,
+                    spec.item2, spec.item3).then(function () {
+                        done();
+                    }
+                );
+            });
         });
 
         afterEach(function (done) {
             // We close the connection so that subsequent files are not blocked
-            if (!this.server.isClosed()) {
+            if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            done();
+            this.server = undefined;
+
+            var req = indexedDB.deleteDatabase(this.dbName);
+
+            req.onsuccess = function () {
+                done();
+            };
+            req.onerror = function () {
+                console.log('failed to delete db in afterEach', arguments);
+            };
+            req.onblocked = function () {
+                console.log('db blocked', arguments);
+            };
         });
 
         it('should receive blocked events (on db open) and be able to resume after unblocking', function (done) {

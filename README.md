@@ -91,19 +91,19 @@ db.open({
     throw err;
 }).then(function (s) {
     server = s;
+    // One can add a versionchange handler here to self-close
+    //   the connection upon future upgrade attempts (likely to
+    //   be one made in other tabs) and thereby
+    //   avoid such attempts having to face blocking errors.
 });
 ```
-
-For cases where the blocking connections are in other tabs/windows,
-[window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
-might be a suitable way to communicate with them to get them to close
-their connections or whatever behavior is desired.
 
 Check out the `/tests/specs` folder for more examples.
 
 ## General server/store methods
 
-Note that by default the methods below can be called either as
+Note that by default the methods below (not including `close`,
+`addEventListener`, and `removeEventListener`) can be called either as
 `server.people.xxx( arg1, arg2, ... )` or
 `server.xxx( 'people', arg1, arg2, ... )`.
 
@@ -470,14 +470,29 @@ var storeNames = db.objectStoreNames;
 
 ## Server event handlers
 
-All of the following are optional and can be chained as desired.
+All of the following are optional.
 
 ```js
-server.onabort(function (e) {
+server.addEventListener('abort', function (e) {
     // Handle abort event
-}).onerror(function (err) {
+});
+server.addEventListener('error', function (err) {
     // Handle any errors (check err.name)
-}).onversionchange(function (e) {
+});
+server.addEventListener('versionchange', function (e) {
+    // Be notified of version changes (can use e.oldVersion and e.newVersion)
+});
+```
+
+All of the following shorter equivalent forms (which also work internally
+via `addEventListener`) are optional and can be chained as desired.
+
+```js
+server.abort(function (e) {
+    // Handle abort event
+}).error(function (err) {
+    // Handle any errors (check err.name)
+}).versionchange(function (e) {
     // Be notified of version changes (can use e.oldVersion and e.newVersion)
 });
 ```
@@ -526,15 +541,15 @@ db.cmp(key1, key2);
 
 # Promise notes
 
-db.js used the es6 Promise spec to handle asynchronous operations.
+db.js used the ES6 Promise spec to handle asynchronous operations.
 
 All operations that are asynchronous will return an instance of the
-es6 Promise object that exposes a `then` method which will take up
+ES6 Promise object that exposes a `then` method which will take up
 to two callbacks, `onFulfilled` and `onRejected`. Please refer to
-es6 promise spec for more information.
+the ES6 Promise spec for more information.
 
 As of version `0.7.0` db.js's Promise API is designed to work with
-es6 Promises, please polyfill it if you would like to use other promise
+ES6 Promises, please polyfill it if you would like to use another promise
 library.
 
 # Contributor notes

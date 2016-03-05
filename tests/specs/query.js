@@ -2,70 +2,59 @@
     'use strict';
 
     describe('query', function () {
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            this.dbName = guid();
             var spec = this;
+            this.dbName = guid();
 
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                db.open({
-                    server: spec.dbName,
-                    version: 1,
-                    schema: {
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: true
-                            },
-                            indexes: {
-                                firstName: { },
-                                age: { }
-                            }
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id',
+                            autoIncrement: true
+                        },
+                        indexes: {
+                            firstName: { },
+                            age: { }
                         }
                     }
-                }).then(function (s) {
-                    spec.server = s;
-                }).then(function () {
-                    spec.item1 = {
-                        firstName: 'Aaron',
-                        lastName: 'Powell',
-                        age: 20
-                    };
-                    spec.item2 = {
-                        firstName: 'John',
-                        lastName: 'Smith',
-                        age: 30
-                    };
-                    spec.item3 = {
-                        firstName: 'Aaron',
-                        lastName: 'Jones',
-                        age: 40
-                    };
-                    spec.server.add('test', spec.item1, spec.item2, spec.item3).then(function () {
-                        done();
-                    });
+                }
+            }).then(function (s) {
+                spec.server = s;
+            }).then(function () {
+                spec.item1 = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20
+                };
+                spec.item2 = {
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30
+                };
+                spec.item3 = {
+                    firstName: 'Aaron',
+                    lastName: 'Jones',
+                    age: 40
+                };
+                spec.server.add('test', spec.item1, spec.item2, spec.item3).then(function () {
+                    done();
                 });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in beforeEach', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
+            });
         });
 
         afterEach(function () {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
+            this.server = undefined;
 
+            // PhantomJS doesn't like handlers added here
             var req = indexedDB.deleteDatabase(this.dbName);
         });
 
@@ -512,7 +501,7 @@
                     });
             });
 
-            it('should return only one record per key in a dinstinct query', function (done) {
+            it('should return only one record per key in a distinct query', function (done) {
                 var spec = this;
 
                 spec.server.test
@@ -530,7 +519,7 @@
                     });
             });
 
-            it('should return only one record per key in a dinstinct query in descending order', function (done) {
+            it('should return only one record per key in a distinct query in descending order', function (done) {
                 var spec = this;
 
                 spec.server.test
@@ -719,94 +708,68 @@
     });
 
     describe('index.multiEntry', function () {
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            this.dbName = guid();
             var spec = this;
-
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                db.open({
-                    server: spec.dbName,
-                    version: 1,
-                    schema: {
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: true
-                            },
-                            indexes: {
-                                firstName: { },
-                                age: { },
-                                tags: {
-                                    multiEntry: true
-                                }
+            this.dbName = guid();
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id',
+                            autoIncrement: true
+                        },
+                        indexes: {
+                            firstName: { },
+                            age: { },
+                            tags: {
+                                multiEntry: true
                             }
                         }
                     }
-                }).then(function (s) {
-                    spec.server = s;
-                }).then(function () {
-                    var item1 = {
-                        id: 1,
-                        firstName: 'Aaron',
-                        lastName: 'Powell',
-                        age: 20,
-                        tags: ['one', 'two', 'three']
-                    };
-                    var item2 = {
-                        id: 2,
-                        firstName: 'John',
-                        lastName: 'Smith',
-                        age: 30,
-                        tags: ['one', 'two', 'three']
-                    };
-                    var item3 = {
-                        id: 3,
-                        firstName: 'Aaron',
-                        lastName: 'Jones',
-                        age: 40,
-                        tags: ['one', 'two', 'three', 'four']
-                    };
-                    spec.server.add('test', item1, item2, item3).then(function () {
-                        done();
-                    });
+                }
+            }).then(function (s) {
+                spec.server = s;
+            }).then(function () {
+                var item1 = {
+                    id: 1,
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20,
+                    tags: ['one', 'two', 'three']
+                };
+                var item2 = {
+                    id: 2,
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30,
+                    tags: ['one', 'two', 'three']
+                };
+                var item3 = {
+                    id: 3,
+                    firstName: 'Aaron',
+                    lastName: 'Jones',
+                    age: 40,
+                    tags: ['one', 'two', 'three', 'four']
+                };
+                spec.server.add('test', item1, item2, item3).then(function () {
+                    done();
                 });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in beforeEach', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
+            });
         });
 
-        afterEach(function (done) {
+        afterEach(function () {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
+            this.server = undefined;
 
-            var spec = this;
-
-            var req = indexedDB.deleteDatabase(spec.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in afterEach', arguments, spec);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments);
-            };
+            // PhantomJS doesn't like handlers added here
+            var req = indexedDB.deleteDatabase(this.dbName);
         });
 
         it('should query for data in a multiEntry index', function (done) {

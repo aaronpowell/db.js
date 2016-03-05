@@ -7,6 +7,12 @@ module.exports = function(config) {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
+    client: {
+      captureConsole: true,
+      mocha: {
+        bail: true
+      }
+    },
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
@@ -15,7 +21,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'node_modules/es6-promise/dist/es6-promise.js',
+      'node_modules/babel-polyfill/dist/polyfill.js',
       'dist/db.min.js',
       'node_modules/chai/chai.js',
       'tests/helpers/**/*.js',
@@ -25,7 +31,7 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
-        // exclude the jQuery integraion tests for karma
+        // exclude the jQuery integration tests for karma
         'tests/specs/thenable-integration.js',
         // phantom doesn't support web workers
         'tests/specs/web-workers.js'

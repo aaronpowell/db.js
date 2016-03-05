@@ -2,46 +2,28 @@
     'use strict';
 
     describe('db.indexes', function () {
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             this.dbName = guid();
-            var spec = this;
-
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db in beforeEach', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
+            done();
         });
 
         afterEach(function (done) {
-            if (this.server) {
+            if (this.server) { // No isClosed check as methods returns native result
                 this.server.close();
             }
-
-            var spec = this;
+            this.server = undefined;
 
             var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
             };
-
             req.onerror = function () {
-                console.log('failed to delete db in afterEach', arguments, spec);
+                console.log('failed to delete db', arguments);
             };
-
             req.onblocked = function () {
                 console.log('db blocked', arguments);
             };
