@@ -545,7 +545,7 @@
     };
 
     var db = {
-        version: '0.13.2',
+        version: '0.14.0',
         open: function (options) {
             var server = options.server;
             var version = options.version || 1;

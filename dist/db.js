@@ -24,6 +24,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     }();
 
     var dbCache = {};
+    var serverEvents = ['abort', 'error', 'versionchange'];
 
     function mongoDBToKeyRangeArgs(opts) {
         var keys = Object.keys(opts).sort();
@@ -301,6 +302,26 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             });
         };
 
+        this.addEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.addEventListener(eventName, handler);
+        };
+
+        this.removeEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.removeEventListener(eventName, handler);
+        };
+
+        serverEvents.forEach(function (evName) {
+            this[evName] = function (handler) {
+                this.addEventListener(evName, handler);
+            };
+        }, this);
+
         if (noServerMethods) {
             return;
         }
@@ -315,7 +336,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             _this3[storeName] = {};
             var keys = Object.keys(_this3);
             keys.filter(function (key) {
-                return key !== 'close';
+                return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
             }).map(function (key) {
                 return _this3[storeName][key] = function () {
                     for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
@@ -582,7 +603,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         for (var i = 0; i < db.objectStoreNames.length; i++) {
             var name = db.objectStoreNames[i];
-            if (schema.hasOwnProperty(name) === false) {
+            if (!schema.hasOwnProperty(name)) {
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
@@ -618,7 +639,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var db = {
-        version: '0.13.2',
+        version: '0.14.0',
         open: function open(options) {
             var server = options.server;
             var version = options.version || 1;
@@ -685,6 +706,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         //   the user unblocks by closing the blocking
                         //   connection
                         request.onsuccess = function (ev) {
+                            // Attempt to workaround Firefox event version problem: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
                             if (!('newVersion' in ev)) {
                                 ev.newVersion = e.newVersion;
                             }
