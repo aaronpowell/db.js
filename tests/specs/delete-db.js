@@ -20,51 +20,56 @@
         };
 
         beforeEach(function (done) {
-            this.dbName = guid();
-            var req = indexedDB.deleteDatabase(this.dbName);
             var spec = this;
+            this.dbName = guid();
+            db.open({
+                server: this.dbName,
+                version: initialVersion,
+                schema: schema
+            }).then(function (s) {
+                spec.server = s;
+            }).then(function () {
+                spec.item1 = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell',
+                    age: 20
+                };
+                spec.item2 = {
+                    firstName: 'John',
+                    lastName: 'Smith',
+                    age: 30
+                };
+                spec.item3 = {
+                    firstName: 'Aaron',
+                    lastName: 'Jones',
+                    age: 40,
+                    specialID: 5
+                };
+                spec.server.add('test', spec.item1,
+                    spec.item2, spec.item3).then(function () {
+                        spec.server.close();
+                        done();
+                    }
+                );
+            });
+        });
+        afterEach(function (done) {
+            if (this.server && !this.server.isClosed()) {
+                this.server.close();
+            }
+            this.server = undefined;
+
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
-                db.open({
-                    server: spec.dbName,
-                    version: initialVersion,
-                    schema: schema
-                }).then(function (s) {
-                    spec.server = s;
-                }).then(function () {
-                    spec.item1 = {
-                        firstName: 'Aaron',
-                        lastName: 'Powell',
-                        age: 20
-                    };
-                    spec.item2 = {
-                        firstName: 'John',
-                        lastName: 'Smith',
-                        age: 30
-                    };
-                    spec.item3 = {
-                        firstName: 'Aaron',
-                        lastName: 'Jones',
-                        age: 40,
-                        specialID: 5
-                    };
-                    spec.server.add('test', spec.item1,
-                        spec.item2, spec.item3).then(function () {
-                            spec.server.close();
-                            done();
-                        }
-                    );
-                });
+                done();
             };
-
             req.onerror = function () {
-                console.log('failed to delete db in beforeEach', arguments);
+                console.log('failed to delete db', arguments);
             };
-
             req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
+                console.log('db blocked', arguments);
             };
-
         });
         it('should delete a created db', function (done) {
             var spec = this;

@@ -9,41 +9,25 @@
 
         beforeEach(function (done) {
             this.dbName = guid();
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-
-            req.onerror = function (e) {
-                console.log('error deleting db', arguments);
-                done(e);
-            };
-
-            req.onblocked = function (e) {
-                console.log('db blocked on delete', arguments);
-                done(e);
-            };
-        }, 10000);
+            done();
+        });
 
         afterEach(function (done) {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
+            this.server = undefined;
+
             var req = indexedDB.deleteDatabase(this.dbName);
 
-            req.onsuccess = function (/* e */) {
+            req.onsuccess = function () {
                 done();
             };
-
             req.onerror = function (e) {
                 console.log('failed to delete db', arguments);
-                done(e);
             };
-
             req.onblocked = function (e) {
                 console.log('db blocked', arguments);
-                done(e);
             };
         });
 

@@ -2,58 +2,45 @@
     'use strict';
 
     describe('server.add', function () {
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
-            this.dbName = guid();
             var spec = this;
+            this.dbName = guid();
 
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(spec.dbName);
-
-            req.onsuccess = function () {
-                db.open({
-                    server: spec.dbName,
-                    version: 1,
-                    schema: {
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: true
-                            }
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id',
+                            autoIncrement: true
                         }
                     }
-                }).then(function (s) {
-                    spec.server = s;
-                    expect(spec.server).to.not.be.undefined;
-                    done();
-                });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
+                }
+            }).then(function (s) {
+                spec.server = s;
+                expect(spec.server).to.not.be.undefined;
+                done();
+            });
         });
 
         afterEach(function (done) {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
+            this.server = undefined;
+
             var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
             };
-
             req.onerror = function () {
                 console.log('failed to delete db', arguments);
             };
-
             req.onblocked = function () {
                 console.log('db blocked', arguments);
             };
@@ -93,58 +80,45 @@
     });
 
     describe('server.add-non-autoincrement key', function () {
-        var dbName = 'tests';
-        var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
+        var indexedDB = window.indexedDB || window.webkitIndexedDB ||
+            window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             var spec = this;
+            this.dbName = guid();
 
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(dbName);
-
-            req.onsuccess = function () {
-                db.open({
-                    server: dbName,
-                    version: 1,
-                    schema: {
-                        test: {
-                            key: {
-                                keyPath: 'id',
-                                autoIncrement: false
-                            }
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'id',
+                            autoIncrement: false
                         }
                     }
-                }).then(function (s) {
-                    spec.server = s;
-                    expect(spec.server).to.not.be.undefined;
-                    done();
-                });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db', arguments);
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-            };
+                }
+            }).then(function (s) {
+                spec.server = s;
+                expect(spec.server).to.not.be.undefined;
+                done();
+            });
         });
 
         afterEach(function (done) {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            this.server = undefined;
+
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();
             };
-
             req.onerror = function () {
                 console.log('failed to delete db', arguments);
             };
-
             req.onblocked = function () {
                 console.log('db blocked', arguments);
             };
@@ -167,50 +141,36 @@
     });
 
     describe('server.add no keyPath', function () {
-        var dbName = 'tests';
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             var spec = this;
+            this.dbName = guid();
 
-            spec.server = undefined;
-
-            var req = indexedDB.deleteDatabase(dbName);
-
-            req.onsuccess = function () {
-                db.open({
-                    server: dbName,
-                    version: 1,
-                    schema: {
-                        test: {
-                            key: {
-                                autoIncrement: true
-                            }
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            autoIncrement: true
                         }
                     }
-                }).then(function (s) {
-                    spec.server = s;
-                    expect(spec.server).to.not.be.undefined;
-                    done();
-                });
-            };
-
-            req.onerror = function () {
-                console.log('failed to delete db', arguments);
+                }
+            }).then(function (s) {
+                spec.server = s;
+                expect(spec.server).to.not.be.undefined;
                 done();
-            };
-
-            req.onblocked = function () {
-                console.log('db blocked', arguments, spec);
-                done();
-            };
+            });
         });
 
         afterEach(function (done) {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
-            var req = indexedDB.deleteDatabase(dbName);
+            this.server = undefined;
+
+            var req = indexedDB.deleteDatabase(this.dbName);
 
             req.onsuccess = function () {
                 done();

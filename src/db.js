@@ -16,6 +16,7 @@
         }());
 
     const dbCache = {};
+    const serverEvents = ['abort', 'error', 'versionchange'];
 
     function mongoDBToKeyRangeArgs (opts) {
         var keys = Object.keys(opts).sort();
@@ -232,6 +233,26 @@
             });
         };
 
+        this.addEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.addEventListener(eventName, handler);
+        };
+
+        this.removeEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.removeEventListener(eventName, handler);
+        };
+
+        serverEvents.forEach(function (evName) {
+            this[evName] = function (handler) {
+                this.addEventListener(evName, handler);
+            };
+        }, this);
+
         if (noServerMethods) {
             return;
         }
@@ -245,7 +266,7 @@
             }
             this[storeName] = {};
             var keys = Object.keys(this);
-            keys.filter(key => key !== 'close')
+            keys.filter(key => !(([...serverEvents, 'close', 'addEventListener', 'removeEventListener']).includes(key)))
                 .map(key =>
                     this[storeName][key] = (...args) => this[key](storeName, ...args)
                 );
@@ -488,7 +509,7 @@
 
         for (var i = 0; i < db.objectStoreNames.length; i++) {
             var name = db.objectStoreNames[i];
-            if (schema.hasOwnProperty(name) === false) {
+            if (!schema.hasOwnProperty(name)) {
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
@@ -579,6 +600,7 @@
                         //   the user unblocks by closing the blocking
                         //   connection
                         request.onsuccess = ev => {
+                            // Attempt to workaround Firefox event version problem: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
                             if (!('newVersion' in ev)) {
                                 ev.newVersion = e.newVersion;
                             }
