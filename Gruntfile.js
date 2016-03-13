@@ -96,12 +96,16 @@ module.exports = function(grunt) {
             dev: {
                 singleRun: false,
                 browsers: ['PhantomJS']
+            },
+            'dev-single': {
+                singleRun: true,
+                browsers: ['PhantomJS']
             }
         }
     });
 
     // load all grunt tasks
-    require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
+    require('matchdep').filterDev(['grunt-*', '!grunt-cli']).forEach(grunt.loadNpmTasks);
 
     grunt.registerTask('forever', function() {
         this.async();
@@ -109,12 +113,15 @@ module.exports = function(grunt) {
 
     var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
-    if (saucekey !== null && !process.env.TRAVIS_PULL_REQUEST) {
+    if (saucekey && !process.env.TRAVIS_PULL_REQUEST) {
+        console.info('adding saucelabs integration');
         testJobs.push('saucelabs-mocha');
     }
 
     if (process.env.TRAVIS_JOB_ID) {
         testJobs = testJobs.concat('karma:ci');
+    } else {
+        testJobs.push('karma:dev-single');
     }
 
     grunt.registerTask('dev', devJobs);
