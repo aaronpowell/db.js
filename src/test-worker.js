@@ -1,7 +1,9 @@
+/*global importScripts, db */
 (function () {
-    'use strict'
-    importScripts('dist/db.min.js');
-    onmessage = function (e) {
+    'use strict';
+    importScripts('/node_modules/babel-polyfill/dist/polyfill.js');
+    importScripts('/dist/db.min.js');
+    self.onmessage = function (e) {
         var dbName = e.data.dbName;
         var msg = e.data.message;
         var version = e.data.version;
