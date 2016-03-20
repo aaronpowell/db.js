@@ -1,0 +1,49 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    link(type='text/css', rel='stylesheet', href='../node_modules/mocha/mocha.css')
+    link(rel='shortcut icon', href='data:image/x-icon;,', type='image/x-icon')
+    block css
+    title IndexedDB Playground
+  body
+    h1 IndexedDB Testing
+
+    #mocha
+
+    block scripts
+        script(src='../node_modules/mocha/mocha.js')
+        script(src='../node_modules/chai/chai.js')
+        script(src='../dist/db.min.js')
+        script(src='helpers/guid.js')
+        script(src='helpers/chai-setup.js')
+        script.
+            mocha.setup('bdd');
+
+    block content
+
+    script.
+        onload = function() {
+            var runner = mocha.run();
+
+            var failedTests = [];
+            runner.on('end', function() {
+                window.mochaResults = runner.stats;
+                window.mochaResults.reports = failedTests;
+            });
+
+            runner.on('fail', logFailure);
+
+            function logFailure(test, err) {
+                var flattenTitles = function(test) {
+                    var titles = [];
+                    while (test.parent.title) {
+                        titles.push(test.parent.title);
+                        test = test.parent;
+                    }
+                    return titles.reverse();
+                };
+
+                failedTests.push({name: test.title, result: false, message: err.message, stack: err.stack, titles: flattenTitles(test) });
+            };
+        };
