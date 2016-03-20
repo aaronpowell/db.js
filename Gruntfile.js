@@ -1,10 +1,10 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     'use strict';
     // Project configuration.
     var saucekey = process.env.saucekey;
 
     if (!saucekey) {
-        console.warn('Unable to load saucelabs key');
+        console.warn('Unable to load Saucelabs key');
     }
 
     grunt.initConfig({
@@ -51,36 +51,8 @@ module.exports = function(grunt) {
                             platform: 'Windows 2008'
                         }]
                 },
-                onTestComplete: function(result, callback) {
+                onTestComplete: function (result, callback) {
                     console.dir(result);
-                }
-            }
-        },
-
-        'babel': {
-            options: {
-                sourceMap: true
-            },
-            dist: {
-                files: {
-                    'dist/db.js': 'src/db.js'
-                }
-            }
-        },
-
-        'eslint': {
-            target: ['src/db.js']
-        },
-
-        uglify: {
-            options: {
-                sourceMap: true,
-                sourceMapIncludeSources: true,
-                sourceMapIn: 'dist/db.js.map' // input sourcemap from a previous compilation
-            },
-            dist: {
-                files: {
-                    'dist/db.min.js': ['dist/db.js']
                 }
             }
         },
@@ -101,25 +73,77 @@ module.exports = function(grunt) {
                 singleRun: true,
                 browsers: ['PhantomJS']
             }
+        },
+
+        eslint: {
+            target: ['src/db.js', 'src/test-worker.js']
+        },
+
+        babel: {
+            options: {
+                sourceMap: true
+            },
+            dist: {
+                files: {
+                    'dist/db.js': 'src/db.js',
+                    'tests/test-worker.js': 'src/test-worker.js'
+                }
+            }
+        },
+
+        browserify: {
+            dist: {
+                files: {
+                    'dist/db.js': 'dist/db.js'
+                },
+                options: {
+                    browserifyOptions: {
+                        standalone: 'db'
+                    }
+                }
+            }
+        },
+
+        uglify: {
+            options: {
+                sourceMap: true,
+                sourceMapIncludeSources: true
+            },
+            dbjs: {
+                options: {
+                    sourceMapIn: 'dist/db.js.map' // input sourcemap from a previous compilation
+                },
+                files: {
+                    'dist/db.min.js': ['dist/db.js']
+                }
+            },
+            testworker: {
+                options: {
+                    sourceMapIn: 'tests/test-worker.js.map' // input sourcemap from a previous compilation
+                },
+                files: {
+                    'tests/test-worker.js': ['tests/test-worker.js']
+                }
+            }
         }
     });
 
     // load all grunt tasks
     require('matchdep').filterDev(['grunt-*', '!grunt-cli']).forEach(grunt.loadNpmTasks);
 
-    grunt.registerTask('forever', function() {
+    grunt.registerTask('forever', function () {
         this.async();
     });
 
-    var devJobs = ['eslint', 'babel', 'uglify', 'clean', 'jade'];
+    var devJobs = ['eslint', 'babel', 'browserify', 'uglify', 'clean', 'jade'];
     var testJobs = devJobs.concat('connect');
     if (saucekey && !process.env.TRAVIS_PULL_REQUEST) {
-        console.info('adding saucelabs integration');
+        console.info('adding Saucelabs integration');
         testJobs.push('saucelabs-mocha');
     }
 
     if (process.env.TRAVIS_JOB_ID) {
-        testJobs = testJobs.concat('karma:ci');
+        testJobs.push('karma:ci');
     } else {
         testJobs.push('karma:dev-single');
     }
@@ -127,7 +151,7 @@ module.exports = function(grunt) {
     grunt.registerTask('dev', devJobs);
     grunt.registerTask('test', testJobs);
     grunt.registerTask('default', 'test');
-    grunt.registerTask('test:local', function() {
+    grunt.registerTask('test:local', function () {
         grunt.task.run(devJobs);
         grunt.task.run('connect:server:keepalive');
     });
