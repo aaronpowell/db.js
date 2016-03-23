@@ -1,3 +1,4 @@
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.db = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
@@ -357,7 +358,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
-                var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                try {
+                    var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                } catch (e) {
+                    reject(e);
+                }
                 var results = [];
                 var indexArgs = [keyRange];
                 var counter = 0;
@@ -593,10 +598,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var createSchema = function createSchema(e, schema, db) {
-        if (typeof schema === 'function') {
-            schema = schema();
-        }
-
         if (!schema || schema.length === 0) {
             return;
         }
@@ -630,7 +631,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         }
     };
 
-    var _open = function _open(e, server, noServerMethods, version, schema) {
+    var _open = function _open(e, server, noServerMethods, version) {
         var db = e.target.result;
         dbCache[server][version] = db;
 
@@ -643,6 +644,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         open: function open(options) {
             var server = options.server;
             var version = options.version || 1;
+            var schema = options.schema;
+            var noServerMethods = options.noServerMethods;
+
             if (!dbCache[server]) {
                 dbCache[server] = {};
             }
@@ -652,16 +656,26 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         target: {
                             result: dbCache[server][version]
                         }
-                    }, server, options.noServerMethods, version, options.schema).then(resolve, reject);
+                    }, server, noServerMethods, version).then(resolve, reject);
                 } else {
-                    (function () {
+                    var _ret = function () {
+                        if (typeof schema === 'function') {
+                            try {
+                                schema = schema();
+                            } catch (e) {
+                                reject(e);
+                                return {
+                                    v: void 0
+                                };
+                            }
+                        }
                         var request = indexedDB.open(server, version);
 
                         request.onsuccess = function (e) {
-                            return _open(e, server, options.noServerMethods, version, options.schema).then(resolve, reject);
+                            return _open(e, server, noServerMethods, version).then(resolve, reject);
                         };
                         request.onupgradeneeded = function (e) {
-                            return createSchema(e, options.schema, e.target.result);
+                            return createSchema(e, schema, e.target.result);
                         };
                         request.onerror = function (e) {
                             return reject(e);
@@ -674,7 +688,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                 //   the user unblocks by closing the blocking
                                 //   connection
                                 request.onsuccess = function (ev) {
-                                    _open(ev, server, options.noServerMethods, version, options.schema).then(res, rej);
+                                    _open(ev, server, noServerMethods, version).then(res, rej);
                                 };
                                 request.onerror = function (e) {
                                     return rej(e);
@@ -683,7 +697,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                             e.resume = resume;
                             reject(e);
                         };
-                    })();
+                    }();
+
+                    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
                 }
             });
         },
@@ -742,4 +758,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         local.db = db;
     }
 })(self);
-//# sourceMappingURL=db.js.map
+
+
+},{}]},{},[1])(1)
+});

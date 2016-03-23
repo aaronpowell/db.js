@@ -1,3 +1,4 @@
+/*global guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('handlers', function () {
@@ -61,7 +62,7 @@
             this.server = undefined;
 
             // PhantomJS doesn't like handlers added here
-            var req = indexedDB.deleteDatabase(this.dbName);
+            var req = indexedDB.deleteDatabase(this.dbName); // eslint-disable-line no-unused-vars
         });
 
         it('should receive abort events', function (done) {
@@ -190,10 +191,10 @@
             // Trigger error
             var tx = this.server.getIndexedDB().transaction('test', 'readwrite');
             var store = tx.objectStore('test');
-            var request = store.add({specialID: 5});
+            var request = store.add({specialID: 5}); // eslint-disable-line no-unused-vars
 
             // Trigger abort
-            var tx = this.server.getIndexedDB().transaction('test');
+            tx = this.server.getIndexedDB().transaction('test');
             tx.abort();
 
             // Trigger versionchange
@@ -207,7 +208,6 @@
                     dbr.close();
                 }
             });
-
         });
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));
