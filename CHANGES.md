@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Breaking change: Change `db.cmp()` to return a Promise to deliver the result
 - Docs: Badges, CHANGES
 - Testing improvements: Travis, Grunt
 
