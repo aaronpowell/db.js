@@ -541,7 +541,9 @@ Returns `1` if the first key is greater than the second, `-1` if the first
 is less than the second, and `0` if the first is equal to the second.
 
 ```js
-db.cmp(key1, key2);
+db.cmp(key1, key2).then(function (ret) {
+    // Use `ret`
+});
 ```
 
 # Promise notes

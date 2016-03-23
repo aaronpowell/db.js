@@ -744,7 +744,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         },
 
         cmp: function cmp(param1, param2) {
-            return indexedDB.cmp(param1, param2);
+            return new Promise(function (resolve, reject) {
+                try {
+                    resolve(indexedDB.cmp(param1, param2));
+                } catch (e) {
+                    reject(e);
+                }
+            });
         }
     };
 
