@@ -1,4 +1,4 @@
-/*global window, console*/
+/*global window, console, guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.close', function () {
@@ -30,7 +30,7 @@
         });
 
         it('should close the database', function (done) {
-           db.open({
+            db.open({
                 server: this.dbName,
                 version: 1,
                 schema: {
@@ -54,7 +54,7 @@
             });
         });
 
-        it ('should reject when trying to work with a closed database', function (done) {
+        it('should reject when trying to work with a closed database', function (done) {
             db.open({
                 server: this.dbName,
                 version: 1,

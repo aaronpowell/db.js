@@ -1,3 +1,4 @@
+/*globals guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('blocked events', function () {
@@ -54,24 +55,14 @@
             });
         });
 
-        afterEach(function (done) {
+        afterEach(function () {
             // We close the connection so that subsequent files are not blocked
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             this.server = undefined;
 
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-            req.onerror = function () {
-                console.log('failed to delete db in afterEach', arguments);
-            };
-            req.onblocked = function () {
-                console.log('db blocked', arguments);
-            };
+            var req = indexedDB.deleteDatabase(this.dbName); // eslint-disable-line no-unused-vars
         });
 
         it('should receive blocked events (on db open) and be able to resume after unblocking', function (done) {
@@ -117,6 +108,56 @@
             });
         });
 
+        it('should trigger a version change event in another window and be able to resume once unblocked', function (done) {
+            this.server.close(); // We don't want a connection yet
+            var spec = this;
+            schema.changed = schema.test;
+            var ourOrigin = window.location.origin;
+            var resumed = false;
+            var finished = false;
+            self.addEventListener('message', function (e) {
+                if (e.origin !== ourOrigin || typeof e.data !== 'string') {
+                    return;
+                }
+                switch (e.data) {
+                case 'message-listeners2-ready': {
+                    break;
+                }
+                case 'versionchange-listeners2-ready': {
+                    db.open({
+                        server: spec.dbName,
+                        version: newVersion,
+                        schema: schema
+                    }).then(function (s) { // Chrome and Firefox both get to the "done"
+                        resumed = true;
+                        if (finished) {
+                            done();
+                        }
+                    });
+                    break;
+                }
+                case 'versionchange2-fired-and-finished': {
+                    if (!resumed) {
+                        finished = true;
+                        return;
+                    }
+                    // We add this just in case the versionchange events close
+                    //   the connection and cause a resumption of the "then" above
+                    //   before the "finished" event can be received here (as
+                    //   sent from the same versionchange events)
+                    done();
+                    break;
+                }
+                }
+            });
+            var ifr = document.createElement('iframe');
+            ifr.style.display = 'none';
+            ifr.onload = function () {
+                ifr.contentWindow.postMessage(['start', spec.dbName], ourOrigin);
+            };
+            ifr.src = 'helpers/other-dbjs-instance.html';
+            document.body.appendChild(ifr);
+        });
         // The beforeEach behavior creates an open (blocking) connection by
         //   default, so if you wish for a test which does not begin in
         //   this manner, you must first close the connection:

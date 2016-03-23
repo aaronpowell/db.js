@@ -1,3 +1,4 @@
+/*global guid*/
 (function (db, describe, it, expect, beforeEach, afterEach, $) {
     'use strict';
 

@@ -1,3 +1,4 @@
+/*global guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
 
@@ -55,7 +56,7 @@
             this.server = undefined;
 
             // PhantomJS doesn't like handlers added here
-            var req = indexedDB.deleteDatabase(this.dbName);
+            var req = indexedDB.deleteDatabase(this.dbName); // eslint-disable-line no-unused-vars
         });
 
         it('should allow getting by key', function (done) {
@@ -769,7 +770,7 @@
             this.server = undefined;
 
             // PhantomJS doesn't like handlers added here
-            var req = indexedDB.deleteDatabase(this.dbName);
+            var req = indexedDB.deleteDatabase(this.dbName); // eslint-disable-line no-unused-vars
         });
 
         it('should query for data in a multiEntry index', function (done) {
