@@ -5,10 +5,10 @@
 - Breaking change: Change `db.cmp()` to return a Promise to deliver the result
 - Fix: Ensure there is a promise rejection for a bad schema callback or
     bad IDBKeyRange-related call
-- Docs: Badges, CHANGES
+- Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
-    testing `verionchange` events in another window)
+    testing `verionchange` events in another window, testing bad args)
 
 ## 0.14.0 (March 8, 2016)
 
