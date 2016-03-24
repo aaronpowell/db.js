@@ -514,10 +514,15 @@ db.delete(dbName).then(function (ev) {
 });
 ```
 
-As with the `open` operation, a `delete` operation will not be able to
-execute so long as there are already opened blocking connections
+Note that, in line with the behavior of the `deleteDatabase` method of
+IndexedDB, `delete` will not actually produce an error if one attempts
+to delete a database which doesn't exist or even if a non-string is
+supplied.
+
+However, as with the `open` operation, a `delete` operation will
+produce an error so long as there are already opened blocking connections
 (i.e., those allowing for database modification) which are open elsewhere
-in the browser. You can recover as follows:
+in the browser. You can nevertheless recover as follows:
 
 ```js
 db.delete(dbName).catch(function (err) {
