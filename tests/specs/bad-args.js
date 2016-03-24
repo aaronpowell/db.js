@@ -72,6 +72,33 @@
                     });
                 };
             });
+            describe('createSchema', function () {
+                it('should catch bad key paths', function (done) {
+                    db.open({server: this.dbName, version: 2, schema: {
+                        test: {
+                            key: {
+                                keyPath: 55
+                            }
+                        }
+                    }}).catch(function (err) {
+                        expect(err.name).to.equal('SyntaxError');
+                        done();
+                    });
+                });
+                it('should catch autoIncrement with empty key path string', function (done) {
+                    db.open({server: this.dbName, version: 3, schema: {
+                        test: {
+                            key: {
+                                autoIncrement: true,
+                                keyPath: ''
+                            }
+                        }
+                    }}).catch(function (err) {
+                        expect(err.name).to.equal('InvalidAccessError');
+                        done();
+                    });
+                });
+            });
         });
 
         it('should catch bad args to delete', function (done) {

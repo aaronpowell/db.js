@@ -304,7 +304,7 @@
                     indexArgs.push(direction || 'next');
                 }
 
-                // create a function that will set in the modifyObj properties into
+                // Create a function that will set in the modifyObj properties into
                 // the passed record.
                 const modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
@@ -326,7 +326,7 @@
                             counter = limitRange[0];
                             cursor.advance(limitRange[0]);
                         } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
-                            // out of limit range... skip
+                            // Out of limit range... skip
                         } else {
                             let matchFilter = true;
                             let result = 'value' in cursor ? cursor.value : cursor.key;
@@ -343,7 +343,7 @@
 
                             if (matchFilter) {
                                 counter++;
-                                // if we're doing a modify, run it now
+                                // If we're doing a modify, run it now
                                 if (modifyObj) {
                                     result = modifyRecord(result);
                                     cursor.update(result);
@@ -503,7 +503,7 @@
         };
     };
 
-    const createSchema = function (e, schema, db) {
+    const createSchema = function (e, schema, db, reject, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -511,28 +511,54 @@
         for (let i = 0; i < db.objectStoreNames.length; i++) {
             const name = db.objectStoreNames[i];
             if (!hasOwn.call(schema, name)) {
+                // Errors for which we are not concerned and why:
+                // `InvalidStateError` - We are in the upgrade transaction.
+                // `TransactionInactiveError` (as by the upgrade having already
+                //      completed or somehow aborting) - since we've just started and
+                //      should be without risk in this loop
+                // `NotFoundError` - since we are iterating the dynamically updated
+                //      `objectStoreNames`
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
-        for (let tableName in schema) {
+        Object.keys(schema).some(function (tableName) {
             const table = schema[tableName];
             let store;
-            if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
+            if (db.objectStoreNames.contains(tableName)) {
                 store = e.currentTarget.transaction.objectStore(tableName);
             } else {
-                store = db.createObjectStore(tableName, table.key);
+                // Errors for which we are not concerned and why:
+                // `InvalidStateError` - We are in the upgrade transaction.
+                // `ConstraintError` - We are just starting (and probably never too large anyways) for a key generator.
+                // `ConstraintError` - The above condition should prevent the name already existing.
+                //
+                // Possible errors:
+                // `TransactionInactiveError` - if the upgrade had already aborted,
+                //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                //      the store but then abort the transaction.
+                // `SyntaxError` - if an invalid key path is supplied.
+                // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
+                //      empty string or any sequence (empty or otherwise).
+                try {
+                    store = db.createObjectStore(tableName, table.key);
+                } catch (err) {
+                    db.close();
+                    delete dbCache[server][version];
+                    reject(err);
+                    return true;
+                }
             }
 
-            for (let indexKey in table.indexes) {
+            Object.keys(table.indexes || {}).forEach(function (indexKey) {
                 const index = table.indexes[indexKey];
                 try {
                     store.index(indexKey);
                 } catch (err) {
                     store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : { unique: false });
                 }
-            }
-        }
+            });
+        });
     };
 
     const open = function (e, server, noServerMethods, version) {
@@ -574,7 +600,7 @@
                     let request = indexedDB.open(server, version);
 
                     request.onsuccess = e => open(e, server, noServerMethods, version).then(resolve, reject);
-                    request.onupgradeneeded = e => createSchema(e, schema, e.target.result);
+                    request.onupgradeneeded = e => createSchema(e, schema, e.target.result, reject, server, version);
                     request.onerror = e => reject(e);
                     request.onblocked = e => {
                         const resume = new Promise(function (res, rej) {

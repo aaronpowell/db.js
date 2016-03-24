@@ -390,7 +390,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     indexArgs.push(direction || 'next');
                 }
 
-                // create a function that will set in the modifyObj properties into
+                // Create a function that will set in the modifyObj properties into
                 // the passed record.
                 var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
@@ -414,7 +414,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                             counter = limitRange[0];
                             cursor.advance(limitRange[0]);
                         } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
-                            // out of limit range... skip
+                            // Out of limit range... skip
                         } else {
                                 (function () {
                                     var matchFilter = true;
@@ -432,7 +432,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                                     if (matchFilter) {
                                         counter++;
-                                        // if we're doing a modify, run it now
+                                        // If we're doing a modify, run it now
                                         if (modifyObj) {
                                             result = modifyRecord(result);
                                             cursor.update(result);
@@ -601,7 +601,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
     };
 
-    var createSchema = function createSchema(e, schema, db) {
+    var createSchema = function createSchema(e, schema, db, reject, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -609,28 +609,54 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         for (var i = 0; i < db.objectStoreNames.length; i++) {
             var name = db.objectStoreNames[i];
             if (!hasOwn.call(schema, name)) {
+                // Errors for which we are not concerned and why:
+                // `InvalidStateError` - We are in the upgrade transaction.
+                // `TransactionInactiveError` (as by the upgrade having already
+                //      completed or somehow aborting) - since we've just started and
+                //      should be without risk in this loop
+                // `NotFoundError` - since we are iterating the dynamically updated
+                //      `objectStoreNames`
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
-        for (var tableName in schema) {
+        Object.keys(schema).some(function (tableName) {
             var table = schema[tableName];
             var store = void 0;
-            if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
+            if (db.objectStoreNames.contains(tableName)) {
                 store = e.currentTarget.transaction.objectStore(tableName);
             } else {
-                store = db.createObjectStore(tableName, table.key);
+                // Errors for which we are not concerned and why:
+                // `InvalidStateError` - We are in the upgrade transaction.
+                // `ConstraintError` - We are just starting (and probably never too large anyways) for a key generator.
+                // `ConstraintError` - The above condition should prevent the name already existing.
+                //
+                // Possible errors:
+                // `TransactionInactiveError` - if the upgrade had already aborted,
+                //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                //      the store but then abort the transaction.
+                // `SyntaxError` - if an invalid key path is supplied.
+                // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
+                //      empty string or any sequence (empty or otherwise).
+                try {
+                    store = db.createObjectStore(tableName, table.key);
+                } catch (err) {
+                    db.close();
+                    delete dbCache[server][version];
+                    reject(err);
+                    return true;
+                }
             }
 
-            for (var indexKey in table.indexes) {
+            Object.keys(table.indexes || {}).forEach(function (indexKey) {
                 var index = table.indexes[indexKey];
                 try {
                     store.index(indexKey);
                 } catch (err) {
                     store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : { unique: false });
                 }
-            }
-        }
+            });
+        });
     };
 
     var _open = function _open(e, server, noServerMethods, version) {
@@ -677,7 +703,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                             return _open(e, server, noServerMethods, version).then(resolve, reject);
                         };
                         request.onupgradeneeded = function (e) {
-                            return createSchema(e, schema, e.target.result);
+                            return createSchema(e, schema, e.target.result, reject, server, version);
                         };
                         request.onerror = function (e) {
                             return reject(e);
