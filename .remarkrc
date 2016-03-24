@@ -1,0 +1,10 @@
+{
+  "plugins": {
+    "lint": {
+        "no-multiple-toplevel-headings": false,
+        "ordered-list-marker-value": "one",
+        "list-item-spacing": false,
+        "list-item-indent": "space"
+    }
+  }
+}
