@@ -662,8 +662,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
                     //      the index object but then abort the transaction.
                     // `SyntaxError` - If the `keyPath` (second argument) is an invalid key path
-                    // `InvalidAccessError` - If `options.multiEntry` is `true` and `keyPath` (second arugment) is a sequence
-                    store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : { unique: false });
+                    // `InvalidAccessError` - If `multiEntry` on `index` is `true` and
+                    //                          `keyPath` (second argument) is a sequence
+                    store.createIndex(indexKey, index.key || indexKey, index && (typeof index === 'undefined' ? 'undefined' : _typeof(index)) === 'object' ? index : {});
                 }
             });
         });
