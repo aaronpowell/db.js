@@ -250,6 +250,7 @@
         serverEvents.forEach(function (evName) {
             this[evName] = function (handler) {
                 this.addEventListener(evName, handler);
+                return this;
             };
         }, this);
 

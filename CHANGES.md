@@ -5,6 +5,7 @@
 - Breaking change: Change `db.cmp()` to return a Promise to deliver the result
 - Fix: Ensure there is a promise rejection for a bad schema callback or
     bad IDBKeyRange-related call
+- Fix: Actually implement documented chaining of (short) event handlers
 - Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,

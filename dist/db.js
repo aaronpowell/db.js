@@ -321,6 +321,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         serverEvents.forEach(function (evName) {
             this[evName] = function (handler) {
                 this.addEventListener(evName, handler);
+                return this;
             };
         }, this);
 
