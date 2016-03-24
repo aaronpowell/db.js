@@ -653,6 +653,16 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 try {
                     store.index(indexKey);
                 } catch (err) {
+                    // Errors for which we are not concerned and why:
+                    // `InvalidStateError` - We are in the upgrade transaction and store found above should not have already been deleted.
+                    // `ConstraintError` - We have already tried getting the index, so it shouldn't already exist
+                    //
+                    // Possible errors:
+                    // `TransactionInactiveError` - if the upgrade had already aborted,
+                    //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                    //      the index object but then abort the transaction.
+                    // `SyntaxError` - If the `keyPath` (second argument) is an invalid key path
+                    // `InvalidAccessError` - If `options.multiEntry` is `true` and `keyPath` (second arugment) is a sequence
                     store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : { unique: false });
                 }
             });
