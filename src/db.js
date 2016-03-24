@@ -510,7 +510,7 @@
 
         for (let i = 0; i < db.objectStoreNames.length; i++) {
             const name = db.objectStoreNames[i];
-            if (!schema.hasOwnProperty(name)) {
+            if (!hasOwn.call(schema, name)) {
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }

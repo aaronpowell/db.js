@@ -608,7 +608,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         for (var i = 0; i < db.objectStoreNames.length; i++) {
             var name = db.objectStoreNames[i];
-            if (!schema.hasOwnProperty(name)) {
+            if (!hasOwn.call(schema, name)) {
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
