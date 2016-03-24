@@ -50,15 +50,15 @@ db.open({
 
 Note that `open()` takes an options object with the following properties:
 
--   *version* - The current version of the database to open.
+- *version* - The current version of the database to open.
 Should be an integer. You can start with `1`. You must increase the `version`
 if updating the schema or otherwise the `schema` property will have no effect.
 
--   *server* - The name of this server. Any subsequent attempt to open a server
+- *server* - The name of this server. Any subsequent attempt to open a server
 with this name (and with the current version) will reuse the already opened
 connection (unless it has been closed).
 
--   *schema* - Expects an object, or, if a function is supplied, a schema
+- *schema* - Expects an object, or, if a function is supplied, a schema
 object should be returned). A schema object optionally has store names as
 keys (these stores will be auto-created if not yet added). The values of
 these schema objects should be objects, optionally with the property "key"
@@ -559,9 +559,9 @@ library.
 
 # Contributor notes
 
--   `npm install` to install all the dependencies
--   `npm run grunt test:local` to run the mocha server
--   Open (`http://localhost:9999/tests`)[] to run the mocha tests
+- `npm install` to install all the dependencies
+- `npm run grunt test:local` to run the mocha server
+- Open (`http://localhost:9999/tests`)[] to run the mocha tests
 
 # License
 
