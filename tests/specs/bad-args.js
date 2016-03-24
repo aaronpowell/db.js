@@ -50,6 +50,41 @@
             };
         });
 
+        describe('open', function () {
+            it('should catch bad schema arg', function (done) {
+                db.open({server: this.dbName, schema: function () {
+                    throw new Error('Bad schema');
+                }}).catch(function (err) {
+                    expect(err.message).to.equal('Bad schema');
+                    done();
+                });
+            });
+            it('should catch an attempt to (auto-load) a schema with a conflicting name (when there is no noServerMethods)', function (done) {
+                var spec = this;
+                var req = indexedDB.open(this.dbName, 2);
+                req.onupgradeneeded = function () {
+                    var storeNameConflictingWithMethod = 'count';
+                    req.result.createObjectStore(storeNameConflictingWithMethod);
+                    req.result.close();
+                    db.open({server: spec.dbName, version: 2}).catch(function (err) {
+                        expect(err.message).to.have.string('conflicts with db.js method names');
+                        done();
+                    });
+                };
+            });
+        });
+
+        it('should catch bad args to delete', function (done) {
+            var spec = this;
+            db.open({server: this.dbName}).then(function (s) {
+                db.delete(spec.dbName).catch(function (err) { // Other arguments (or missing arguments) do not throw
+                    expect(err.type).to.equal('blocked');
+                    s.close();
+                    done();
+                });
+            });
+        });
+
         it('should catch bad args to cmp', function (done) {
             db.cmp(key1, null).catch(function (err) {
                 expect(err.name).to.equal('DataError');

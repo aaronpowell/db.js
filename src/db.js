@@ -9,7 +9,7 @@
     const hasOwn = Object.prototype.hasOwnProperty;
     const defaultMapper = x => x;
 
-    let indexedDB = local.indexedDB || local.webkitIndexedDB ||
+    const indexedDB = local.indexedDB || local.webkitIndexedDB ||
         local.mozIndexedDB || local.oIndexedDB || local.msIndexedDB ||
         local.shimIndexedDB || (function () {
             throw new Error('IndexedDB required');
@@ -19,11 +19,11 @@
     const serverEvents = ['abort', 'error', 'versionchange'];
 
     function mongoDBToKeyRangeArgs (opts) {
-        var keys = Object.keys(opts).sort();
+        const keys = Object.keys(opts).sort();
         if (keys.length === 1) {
-            var key = keys[0];
-            var val = opts[key];
-            var name, inclusive;
+            const key = keys[0];
+            const val = opts[key];
+            let name, inclusive;
             switch (key) {
             case 'eq': name = 'only'; break;
             case 'gt':
@@ -40,9 +40,9 @@
             }
             return [name, [val, inclusive]];
         }
-        var x = opts[keys[0]];
-        var y = opts[keys[1]];
-        var pattern = keys.join('-');
+        const x = opts[keys[0]];
+        const y = opts[keys[1]];
+        const pattern = keys.join('-');
 
         switch (pattern) {
         case 'gt-lt': case 'gt-lte': case 'gte-lt': case 'gte-lte':
@@ -60,8 +60,8 @@
         return key;
     }
 
-    var Server = function (db, name, noServerMethods, version) {
-        var closed = false;
+    const Server = function (db, name, noServerMethods, version) {
+        let closed = false;
 
         this.getIndexedDB = () => db;
         this.isClosed = () => closed;
@@ -73,11 +73,11 @@
                     return;
                 }
 
-                var records = args.reduce(function (records, aip) {
+                const records = args.reduce(function (records, aip) {
                     return records.concat(aip);
                 }, []);
 
-                var transaction = db.transaction(table, transactionModes.readwrite);
+                const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve(records, this);
                 transaction.onerror = e => {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
@@ -87,11 +87,11 @@
                 };
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
+                const store = transaction.objectStore(table);
                 records.forEach(function (record) {
-                    var req;
+                    let req;
                     if (record.item && record.key) {
-                        var key = record.key;
+                        const key = record.key;
                         record = record.item;
                         req = store.add(record, key);
                     } else {
@@ -99,8 +99,8 @@
                     }
 
                     req.onsuccess = function (e) {
-                        var target = e.target;
-                        var keyPath = target.source.keyPath;
+                        const target = e.target;
+                        let keyPath = target.source.keyPath;
                         if (keyPath === null) {
                             keyPath = '__id__';
                         }
@@ -120,18 +120,18 @@
                     return;
                 }
 
-                var transaction = db.transaction(table, transactionModes.readwrite);
+                const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve(records, this);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
-                var records = args.reduce(function (records, aip) {
+                const store = transaction.objectStore(table);
+                const records = args.reduce(function (records, aip) {
                     return records.concat(aip);
                 }, []);
                 records.forEach(function (record) {
                     if (record.item && record.key) {
-                        var key = record.key;
+                        const key = record.key;
                         record = record.item;
                         store.put(record, key);
                     } else {
@@ -147,12 +147,12 @@
                     reject('Database has been closed');
                     return;
                 }
-                var transaction = db.transaction(table, transactionModes.readwrite);
+                const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
+                const store = transaction.objectStore(table);
                 store.delete(key);
             });
         };
@@ -163,12 +163,12 @@
                     reject('Database has been closed');
                     return;
                 }
-                var transaction = db.transaction(table, transactionModes.readwrite);
+                const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve();
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
+                const store = transaction.objectStore(table);
                 store.clear();
             });
         };
@@ -191,24 +191,24 @@
                     reject('Database has been closed');
                     return;
                 }
-                var transaction = db.transaction(table);
+                const transaction = db.transaction(table);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
+                const store = transaction.objectStore(table);
 
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
                 }
-                var req = store.get(key);
+                const req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
             });
         };
 
         this.query = function (table, index) {
-            var error = closed ? 'Database has been closed' : null;
+            const error = closed ? 'Database has been closed' : null;
             return new IndexQuery(table, db, index, error);
         };
 
@@ -218,17 +218,17 @@
                     reject('Database has been closed');
                     return;
                 }
-                var transaction = db.transaction(table);
+                const transaction = db.transaction(table);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
+                const store = transaction.objectStore(table);
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
                 }
-                var req = key === undefined ? store.count() : store.count(key);
+                const req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
             });
         };
@@ -257,7 +257,7 @@
             return;
         }
 
-        var err;
+        let err;
         [].some.call(db.objectStoreNames, storeName => {
             if (this[storeName]) {
                 err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
@@ -265,7 +265,7 @@
                 return true;
             }
             this[storeName] = {};
-            var keys = Object.keys(this);
+            const keys = Object.keys(this);
             keys.filter(key => !(([...serverEvents, 'close', 'addEventListener', 'removeEventListener']).includes(key)))
                 .map(key =>
                     this[storeName][key] = (...args) => this[key](storeName, ...args)
@@ -274,27 +274,28 @@
         return err;
     };
 
-    var IndexQuery = function (table, db, indexName, preexistingError) {
-        var modifyObj = false;
+    const IndexQuery = function (table, db, indexName, preexistingError) {
+        let modifyObj = false;
 
-        var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
+        const runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
+                let keyRange;
                 try {
-                    var keyRange = type ? IDBKeyRange[type](...args) : null;
+                    keyRange = type ? IDBKeyRange[type](...args) : null;
                 } catch (e) {
                     reject(e);
                 }
-                var results = [];
-                var indexArgs = [keyRange];
-                var counter = 0;
+                let results = [];
+                const indexArgs = [keyRange];
+                let counter = 0;
 
-                var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
+                const transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
                 transaction.oncomplete = () => resolve(results);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                var store = transaction.objectStore(table);
-                var index = indexName ? store.index(indexName) : store;
+                const store = transaction.objectStore(table);
+                const index = indexName ? store.index(indexName) : store;
 
                 limitRange = limitRange || null;
                 filters = filters || [];
@@ -304,19 +305,19 @@
 
                 // create a function that will set in the modifyObj properties into
                 // the passed record.
-                var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
+                const modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
-                var modifyRecord = function (record) {
+                const modifyRecord = function (record) {
                     modifyKeys.forEach(key => {
-                        var val = modifyObj[key];
-                        if (val instanceof Function) { val = val(record); }
+                        let val = modifyObj[key];
+                        if (typeof val === 'function') { val = val(record); }
                         record[key] = val;
                     });
                     return record;
                 };
 
                 index[cursorType](...indexArgs).onsuccess = function (e) {
-                    var cursor = e.target.result;
+                    const cursor = e.target.result;
                     if (typeof cursor === 'number') {
                         results = cursor;
                     } else if (cursor) {
@@ -326,8 +327,8 @@
                         } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
                             // out of limit range... skip
                         } else {
-                            var matchFilter = true;
-                            var result = 'value' in cursor ? cursor.value : cursor.key;
+                            let matchFilter = true;
+                            let result = 'value' in cursor ? cursor.value : cursor.key;
 
                             filters.forEach(function (filter) {
                                 if (!filter || !filter.length) {
@@ -355,43 +356,42 @@
             });
         };
 
-        var Query = function (type, args, queuedError) {
-            var direction = 'next';
-            var cursorType = 'openCursor';
-            var filters = [];
-            var limitRange = null;
-            var mapper = defaultMapper;
-            var unique = false;
-            var error = preexistingError || queuedError;
+        const Query = function (type, args, queuedError) {
+            let direction = 'next';
+            let cursorType = 'openCursor';
+            const filters = [];
+            let limitRange = null;
+            let mapper = defaultMapper;
+            let unique = false;
+            const error = preexistingError || queuedError;
 
-            var execute = function () {
+            const execute = function () {
                 if (error) {
                     return Promise.reject(error);
                 }
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function (...args) {
+            const limit = function (...args) {
                 limitRange = args.slice(0, 2);
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
 
                 return {
-                    execute: execute
+                    execute
                 };
             };
-            var count = function () {
+            const count = function () {
                 direction = null;
                 cursorType = 'count';
 
                 return {
-                    execute: execute
+                    execute
                 };
             };
 
-            var filter, desc, distinct, modify, map;
-            var keys = function () {
+            const keys = function () {
                 cursorType = 'openKeyCursor';
 
                 return {
@@ -402,7 +402,7 @@
                     map
                 };
             };
-            filter = function (...args) {
+            const filter = function (...args) {
                 filters.push(args.slice(0, 2));
 
                 return {
@@ -416,7 +416,7 @@
                     map
                 };
             };
-            desc = function () {
+            const desc = function () {
                 direction = 'prev';
 
                 return {
@@ -428,7 +428,7 @@
                     map
                 };
             };
-            distinct = function () {
+            const distinct = function () {
                 unique = true;
                 return {
                     keys,
@@ -440,13 +440,13 @@
                     map
                 };
             };
-            modify = function (update) {
+            const modify = function (update) {
                 modifyObj = update;
                 return {
                     execute
                 };
             };
-            map = function (fn) {
+            const map = function (fn) {
                 mapper = fn;
 
                 return {
@@ -482,8 +482,8 @@
         });
 
         this.range = function (opts) {
-            var error;
-            var keyRange = [null, null];
+            let error;
+            let keyRange = [null, null];
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
             } catch (e) {
@@ -493,7 +493,7 @@
         };
 
         this.filter = function (...args) {
-            var query = Query(null, null);
+            const query = Query(null, null);
             return query.filter(...args);
         };
 
@@ -502,31 +502,29 @@
         };
     };
 
-    var createSchema = function (e, schema, db) {
+    const createSchema = function (e, schema, db) {
         if (!schema || schema.length === 0) {
             return;
         }
 
-        for (var i = 0; i < db.objectStoreNames.length; i++) {
-            var name = db.objectStoreNames[i];
+        for (let i = 0; i < db.objectStoreNames.length; i++) {
+            const name = db.objectStoreNames[i];
             if (!schema.hasOwnProperty(name)) {
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
-        var tableName;
-        for (tableName in schema) {
-            var table = schema[tableName];
-            var store;
+        for (let tableName in schema) {
+            const table = schema[tableName];
+            let store;
             if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
                 store = e.currentTarget.transaction.objectStore(tableName);
             } else {
                 store = db.createObjectStore(tableName, table.key);
             }
 
-            var indexKey;
-            for (indexKey in table.indexes) {
-                var index = table.indexes[indexKey];
+            for (let indexKey in table.indexes) {
+                const index = table.indexes[indexKey];
                 try {
                     store.index(indexKey);
                 } catch (err) {
@@ -536,15 +534,15 @@
         }
     };
 
-    var open = function (e, server, noServerMethods, version) {
-        var db = e.target.result;
+    const open = function (e, server, noServerMethods, version) {
+        const db = e.target.result;
         dbCache[server][version] = db;
 
-        var s = new Server(db, server, noServerMethods, version);
+        const s = new Server(db, server, noServerMethods, version);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
-    var db = {
+    const db = {
         version: '0.14.0',
         open: function (options) {
             let server = options.server;
@@ -578,7 +576,7 @@
                     request.onupgradeneeded = e => createSchema(e, schema, e.target.result);
                     request.onerror = e => reject(e);
                     request.onblocked = e => {
-                        var resume = new Promise(function (res, rej) {
+                        const resume = new Promise(function (res, rej) {
                             // We overwrite handlers rather than make a new
                             //   open() since the original request is still
                             //   open and its onsuccess will still fire if
@@ -599,12 +597,12 @@
 
         delete: function (dbName) {
             return new Promise(function (resolve, reject) {
-                var request = indexedDB.deleteDatabase(dbName);
+                const request = indexedDB.deleteDatabase(dbName); // Does not throw
 
                 request.onsuccess = e => resolve(e);
-                request.onerror = e => reject(e);
+                request.onerror = e => reject(e); // No errors currently
                 request.onblocked = e => {
-                    var resume = new Promise(function (res, rej) {
+                    const resume = new Promise(function (res, rej) {
                         // We overwrite handlers rather than make a new
                         //   delete() since the original request is still
                         //   open and its onsuccess will still fire if
