@@ -60,9 +60,10 @@ connection (unless it has been closed).
 
 - *schema* - Expects an object, or, if a function is supplied, a schema
 object should be returned). A schema object optionally has store names as
-keys (these stores will be auto-created if not yet added). The values of
-these schema objects should be objects, optionally with the property "key"
-and/or "indexes". The "key" property, if present, should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
+keys (these stores will be auto-created if not yet added and modified
+otherwise). The values of these schema objects should be objects, optionally
+with the property "key" and/or "indexes". The "key" property, if present,
+should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
 parameters (`keyPath` or `autoIncrement`). The "indexes" property should
 contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
