@@ -69,7 +69,7 @@ contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
-a `key` property on the provided parameter object. Note also that when a
+a `keyPath` property on the provided parameter object. Note also that when a
 schema is supplied for a new version, any object stores not present on
 the schema object will be deleted.
 

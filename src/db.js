@@ -537,7 +537,7 @@
                 // `TransactionInactiveError` - if the upgrade had already aborted,
                 //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
                 //      the store but then abort the transaction.
-                // `SyntaxError` - if an invalid key path is supplied.
+                // `SyntaxError` - if an invalid `table.key.keyPath` is supplied.
                 // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
                 //      empty string or any sequence (empty or otherwise).
                 try {
@@ -550,11 +550,12 @@
                 }
             }
 
-            Object.keys(table.indexes || {}).forEach(function (indexKey) {
-                const index = table.indexes[indexKey];
+            Object.keys(table.indexes || {}).some(function (indexKey) {
                 try {
                     store.index(indexKey);
                 } catch (err) {
+                    let index = table.indexes[indexKey];
+                    index = index && typeof index === 'object' ? index : {};
                     // Errors for which we are not concerned and why:
                     // `InvalidStateError` - We are in the upgrade transaction and store found above should not have already been deleted.
                     // `ConstraintError` - We have already tried getting the index, so it shouldn't already exist
@@ -566,7 +567,14 @@
                     // `SyntaxError` - If the `keyPath` (second argument) is an invalid key path
                     // `InvalidAccessError` - If `multiEntry` on `index` is `true` and
                     //                          `keyPath` (second argument) is a sequence
-                    store.createIndex(indexKey, index.key || indexKey, index && typeof index === 'object' ? index : {});
+                    try {
+                        store.createIndex(indexKey, index.keyPath || index.key || indexKey, index);
+                    } catch (err2) {
+                        db.close();
+                        delete dbCache[server][version];
+                        reject(err2);
+                        return true;
+                    }
                 }
             });
         });

@@ -100,6 +100,35 @@
                     done();
                 });
             });
+            it('should catch bad key path for indexes', function (done) {
+                db.open({server: this.dbName, version: 2, schema: {
+                    test: {
+                        indexes: {
+                            index1: {
+                                keyPath: 55
+                            }
+                        }
+                    }
+                }}).catch(function (err) {
+                    expect(err.name).to.equal('SyntaxError');
+                    done();
+                });
+            });
+            it('should catch bad multiEntry key path for indexes', function (done) {
+                db.open({server: this.dbName, version: 2, schema: {
+                    test: {
+                        indexes: {
+                            index1: {
+                                multiEntry: true,
+                                keyPath: ['']
+                            }
+                        }
+                    }
+                }}).catch(function (err) {
+                    expect(err.name).to.equal('InvalidAccessError');
+                    done();
+                });
+            });
         });
 
         it('should catch bad args to delete', function (done) {
