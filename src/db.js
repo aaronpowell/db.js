@@ -61,7 +61,7 @@
     }
 
     const IndexQuery = function (table, db, indexName, preexistingError) {
-        let modifyObj = false;
+        let modifyObj = null;
 
         const runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
@@ -227,7 +227,7 @@
                 };
             };
             const modify = function (update) {
-                modifyObj = update;
+                modifyObj = update && typeof update === 'object' ? update : null;
                 return {
                     execute
                 };

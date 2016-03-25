@@ -12,6 +12,7 @@
     bad IDBKeyRange-related call.
 - Fix: Error reporting with `Server.query().range()`.
 - Fix: Actually implement documented chaining of (short) event handlers
+- Validation: Tighter checking on argument to `modify` method
 - Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
