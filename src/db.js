@@ -60,221 +60,6 @@
         return key;
     }
 
-    const Server = function (db, name, noServerMethods, version) {
-        let closed = false;
-
-        this.getIndexedDB = () => db;
-        this.isClosed = () => closed;
-
-        this.add = function (table, ...args) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-
-                const records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-
-                const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records, this);
-                transaction.onerror = e => {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
-                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                    e.preventDefault();
-                    reject(e);
-                };
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-                records.forEach(function (record) {
-                    let req;
-                    if (record.item && record.key) {
-                        const key = record.key;
-                        record = record.item;
-                        req = store.add(record, key);
-                    } else {
-                        req = store.add(record);
-                    }
-
-                    req.onsuccess = function (e) {
-                        const target = e.target;
-                        let keyPath = target.source.keyPath;
-                        if (keyPath === null) {
-                            keyPath = '__id__';
-                        }
-                        Object.defineProperty(record, keyPath, {
-                            value: target.result,
-                            enumerable: true
-                        });
-                    };
-                });
-            });
-        };
-
-        this.update = function (table, ...args) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-
-                const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records, this);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-                const records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        const key = record.key;
-                        record = record.item;
-                        store.put(record, key);
-                    } else {
-                        store.put(record);
-                    }
-                });
-            });
-        };
-
-        this.remove = function (table, key) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(key);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-                store.delete(key);
-            });
-        };
-
-        this.clear = function (table) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve();
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-                store.clear();
-            });
-        };
-
-        this.close = function () {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                }
-                db.close();
-                closed = true;
-                delete dbCache[name][version];
-                resolve();
-            });
-        };
-
-        this.get = function (table, key) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                }
-                const req = store.get(key);
-                req.onsuccess = e => resolve(e.target.result);
-            });
-        };
-
-        this.query = function (table, index) {
-            const error = closed ? 'Database has been closed' : null;
-            return new IndexQuery(table, db, index, error);
-        };
-
-        this.count = function (table, key) {
-            return new Promise((resolve, reject) => {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                }
-                const req = key === undefined ? store.count() : store.count(key);
-                req.onsuccess = e => resolve(e.target.result);
-            });
-        };
-
-        this.addEventListener = function (eventName, handler) {
-            if (!serverEvents.includes(eventName)) {
-                throw new Error('Unrecognized event type ' + eventName);
-            }
-            db.addEventListener(eventName, handler);
-        };
-
-        this.removeEventListener = function (eventName, handler) {
-            if (!serverEvents.includes(eventName)) {
-                throw new Error('Unrecognized event type ' + eventName);
-            }
-            db.removeEventListener(eventName, handler);
-        };
-
-        serverEvents.forEach(function (evName) {
-            this[evName] = function (handler) {
-                this.addEventListener(evName, handler);
-                return this;
-            };
-        }, this);
-
-        if (noServerMethods) {
-            return;
-        }
-
-        let err;
-        [].some.call(db.objectStoreNames, storeName => {
-            if (this[storeName]) {
-                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
-                this.close();
-                return true;
-            }
-            this[storeName] = {};
-            const keys = Object.keys(this);
-            keys.filter(key => !(([...serverEvents, 'close', 'addEventListener', 'removeEventListener']).includes(key)))
-                .map(key =>
-                    this[storeName][key] = (...args) => this[key](storeName, ...args)
-                );
-        });
-        return err;
-    };
-
     const IndexQuery = function (table, db, indexName, preexistingError) {
         let modifyObj = false;
 
@@ -501,6 +286,221 @@
         this.all = function () {
             return this.filter();
         };
+    };
+
+    const Server = function (db, name, noServerMethods, version) {
+        let closed = false;
+
+        this.getIndexedDB = () => db;
+        this.isClosed = () => closed;
+
+        this.add = function (table, ...args) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                const records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+
+                const transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.oncomplete = () => resolve(records, this);
+                transaction.onerror = e => {
+                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                records.forEach(function (record) {
+                    let req;
+                    if (record.item && record.key) {
+                        const key = record.key;
+                        record = record.item;
+                        req = store.add(record, key);
+                    } else {
+                        req = store.add(record);
+                    }
+
+                    req.onsuccess = function (e) {
+                        const target = e.target;
+                        let keyPath = target.source.keyPath;
+                        if (keyPath === null) {
+                            keyPath = '__id__';
+                        }
+                        Object.defineProperty(record, keyPath, {
+                            value: target.result,
+                            enumerable: true
+                        });
+                    };
+                });
+            });
+        };
+
+        this.update = function (table, ...args) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+
+                const transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.oncomplete = () => resolve(records, this);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                const records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+                records.forEach(function (record) {
+                    if (record.item && record.key) {
+                        const key = record.key;
+                        record = record.item;
+                        store.put(record, key);
+                    } else {
+                        store.put(record);
+                    }
+                });
+            });
+        };
+
+        this.remove = function (table, key) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                const transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.oncomplete = () => resolve(key);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                store.delete(key);
+            });
+        };
+
+        this.clear = function (table) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                const transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                store.clear();
+            });
+        };
+
+        this.close = function () {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                }
+                db.close();
+                closed = true;
+                delete dbCache[name][version];
+                resolve();
+            });
+        };
+
+        this.get = function (table, key) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                const transaction = db.transaction(table);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
+                const req = store.get(key);
+                req.onsuccess = e => resolve(e.target.result);
+            });
+        };
+
+        this.query = function (table, index) {
+            const error = closed ? 'Database has been closed' : null;
+            return new IndexQuery(table, db, index, error);
+        };
+
+        this.count = function (table, key) {
+            return new Promise((resolve, reject) => {
+                if (closed) {
+                    reject('Database has been closed');
+                    return;
+                }
+                const transaction = db.transaction(table);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                }
+                const req = key === undefined ? store.count() : store.count(key);
+                req.onsuccess = e => resolve(e.target.result);
+            });
+        };
+
+        this.addEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.addEventListener(eventName, handler);
+        };
+
+        this.removeEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.removeEventListener(eventName, handler);
+        };
+
+        serverEvents.forEach(function (evName) {
+            this[evName] = function (handler) {
+                this.addEventListener(evName, handler);
+                return this;
+            };
+        }, this);
+
+        if (noServerMethods) {
+            return;
+        }
+
+        let err;
+        [].some.call(db.objectStoreNames, storeName => {
+            if (this[storeName]) {
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                this.close();
+                return true;
+            }
+            this[storeName] = {};
+            const keys = Object.keys(this);
+            keys.filter(key => !(([...serverEvents, 'close', 'addEventListener', 'removeEventListener']).includes(key)))
+                .map(key =>
+                    this[storeName][key] = (...args) => this[key](storeName, ...args)
+                );
+        });
+        return err;
     };
 
     const createSchema = function (e, schema, db, reject, server, version) {

@@ -79,8 +79,256 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return key;
     }
 
+    var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
+        var _this = this;
+
+        var modifyObj = false;
+
+        var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
+            return new Promise(function (resolve, reject) {
+                var keyRange = void 0;
+                try {
+                    keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                } catch (e) {
+                    reject(e);
+                }
+                var results = [];
+                var indexArgs = [keyRange];
+                var counter = 0;
+
+                var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
+                transaction.oncomplete = function () {
+                    return resolve(results);
+                };
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+
+                var store = transaction.objectStore(table);
+                var index = indexName ? store.index(indexName) : store;
+
+                limitRange = limitRange || null;
+                filters = filters || [];
+                if (cursorType !== 'count') {
+                    indexArgs.push(direction || 'next');
+                }
+
+                // Create a function that will set in the modifyObj properties into
+                // the passed record.
+                var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
+
+                var modifyRecord = function modifyRecord(record) {
+                    modifyKeys.forEach(function (key) {
+                        var val = modifyObj[key];
+                        if (typeof val === 'function') {
+                            val = val(record);
+                        }
+                        record[key] = val;
+                    });
+                    return record;
+                };
+
+                index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+                    var cursor = e.target.result;
+                    if (typeof cursor === 'number') {
+                        results = cursor;
+                    } else if (cursor) {
+                        if (limitRange !== null && limitRange[0] > counter) {
+                            counter = limitRange[0];
+                            cursor.advance(limitRange[0]);
+                        } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
+                            // Out of limit range... skip
+                        } else {
+                                (function () {
+                                    var matchFilter = true;
+                                    var result = 'value' in cursor ? cursor.value : cursor.key;
+
+                                    filters.forEach(function (filter) {
+                                        if (!filter || !filter.length) {
+                                            // Invalid filter do nothing
+                                        } else if (filter.length === 2) {
+                                                matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                            } else {
+                                                matchFilter = matchFilter && filter[0](result);
+                                            }
+                                    });
+
+                                    if (matchFilter) {
+                                        counter++;
+                                        // If we're doing a modify, run it now
+                                        if (modifyObj) {
+                                            result = modifyRecord(result);
+                                            cursor.update(result);
+                                        }
+                                        results.push(mapper(result));
+                                    }
+                                    cursor.continue();
+                                })();
+                            }
+                    }
+                };
+            });
+        };
+
+        var Query = function Query(type, args, queuedError) {
+            var direction = 'next';
+            var cursorType = 'openCursor';
+            var filters = [];
+            var limitRange = null;
+            var mapper = defaultMapper;
+            var unique = false;
+            var error = preexistingError || queuedError;
+
+            var execute = function execute() {
+                if (error) {
+                    return Promise.reject(error);
+                }
+                return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
+            };
+
+            var limit = function limit() {
+                for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+                    args[_key] = arguments[_key];
+                }
+
+                limitRange = args.slice(0, 2);
+                if (limitRange.length === 1) {
+                    limitRange.unshift(0);
+                }
+
+                return {
+                    execute: execute
+                };
+            };
+            var count = function count() {
+                direction = null;
+                cursorType = 'count';
+
+                return {
+                    execute: execute
+                };
+            };
+
+            var keys = function keys() {
+                cursorType = 'openKeyCursor';
+
+                return {
+                    desc: desc,
+                    execute: execute,
+                    filter: filter,
+                    distinct: distinct,
+                    map: map
+                };
+            };
+            var filter = function filter() {
+                for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+                    args[_key2] = arguments[_key2];
+                }
+
+                filters.push(args.slice(0, 2));
+
+                return {
+                    keys: keys,
+                    execute: execute,
+                    filter: filter,
+                    desc: desc,
+                    distinct: distinct,
+                    modify: modify,
+                    limit: limit,
+                    map: map
+                };
+            };
+            var desc = function desc() {
+                direction = 'prev';
+
+                return {
+                    keys: keys,
+                    execute: execute,
+                    filter: filter,
+                    distinct: distinct,
+                    modify: modify,
+                    map: map
+                };
+            };
+            var distinct = function distinct() {
+                unique = true;
+                return {
+                    keys: keys,
+                    count: count,
+                    execute: execute,
+                    filter: filter,
+                    desc: desc,
+                    modify: modify,
+                    map: map
+                };
+            };
+            var modify = function modify(update) {
+                modifyObj = update;
+                return {
+                    execute: execute
+                };
+            };
+            var map = function map(fn) {
+                mapper = fn;
+
+                return {
+                    execute: execute,
+                    count: count,
+                    keys: keys,
+                    filter: filter,
+                    desc: desc,
+                    distinct: distinct,
+                    modify: modify,
+                    limit: limit,
+                    map: map
+                };
+            };
+
+            return {
+                execute: execute,
+                count: count,
+                keys: keys,
+                filter: filter,
+                desc: desc,
+                distinct: distinct,
+                modify: modify,
+                limit: limit,
+                map: map
+            };
+        };
+
+        ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
+            _this[name] = function () {
+                return Query(name, arguments);
+            };
+        });
+
+        this.range = function (opts) {
+            var error = void 0;
+            var keyRange = [null, null];
+            try {
+                keyRange = mongoDBToKeyRangeArgs(opts);
+            } catch (e) {
+                error = e;
+            }
+            return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));
+        };
+
+        this.filter = function () {
+            var query = Query(null, null);
+            return query.filter.apply(query, arguments);
+        };
+
+        this.all = function () {
+            return this.filter();
+        };
+    };
+
     var Server = function Server(db, name, noServerMethods, version) {
-        var _this3 = this;
+        var _this4 = this;
 
         var closed = false;
 
@@ -92,12 +340,12 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.add = function (table) {
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
+            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+                args[_key3 - 1] = arguments[_key3];
             }
 
             return new Promise(function (resolve, reject) {
-                var _this = this;
+                var _this2 = this;
 
                 if (closed) {
                     reject('Database has been closed');
@@ -110,7 +358,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
-                    return resolve(records, _this);
+                    return resolve(records, _this2);
                 };
                 transaction.onerror = function (e) {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
@@ -149,12 +397,12 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.update = function (table) {
-            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                args[_key2 - 1] = arguments[_key2];
+            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                args[_key4 - 1] = arguments[_key4];
             }
 
             return new Promise(function (resolve, reject) {
-                var _this2 = this;
+                var _this3 = this;
 
                 if (closed) {
                     reject('Database has been closed');
@@ -163,7 +411,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
-                    return resolve(records, _this2);
+                    return resolve(records, _this3);
                 };
                 transaction.onerror = function (e) {
                     return reject(e);
@@ -331,274 +579,26 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         var err = void 0;
         [].some.call(db.objectStoreNames, function (storeName) {
-            if (_this3[storeName]) {
+            if (_this4[storeName]) {
                 err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
-                _this3.close();
+                _this4.close();
                 return true;
             }
-            _this3[storeName] = {};
-            var keys = Object.keys(_this3);
+            _this4[storeName] = {};
+            var keys = Object.keys(_this4);
             keys.filter(function (key) {
                 return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
             }).map(function (key) {
-                return _this3[storeName][key] = function () {
-                    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-                        args[_key3] = arguments[_key3];
+                return _this4[storeName][key] = function () {
+                    for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+                        args[_key5] = arguments[_key5];
                     }
 
-                    return _this3[key].apply(_this3, [storeName].concat(args));
+                    return _this4[key].apply(_this4, [storeName].concat(args));
                 };
             });
         });
         return err;
-    };
-
-    var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
-        var _this4 = this;
-
-        var modifyObj = false;
-
-        var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
-            return new Promise(function (resolve, reject) {
-                var keyRange = void 0;
-                try {
-                    keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
-                } catch (e) {
-                    reject(e);
-                }
-                var results = [];
-                var indexArgs = [keyRange];
-                var counter = 0;
-
-                var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-                transaction.oncomplete = function () {
-                    return resolve(results);
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                var index = indexName ? store.index(indexName) : store;
-
-                limitRange = limitRange || null;
-                filters = filters || [];
-                if (cursorType !== 'count') {
-                    indexArgs.push(direction || 'next');
-                }
-
-                // Create a function that will set in the modifyObj properties into
-                // the passed record.
-                var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
-
-                var modifyRecord = function modifyRecord(record) {
-                    modifyKeys.forEach(function (key) {
-                        var val = modifyObj[key];
-                        if (typeof val === 'function') {
-                            val = val(record);
-                        }
-                        record[key] = val;
-                    });
-                    return record;
-                };
-
-                index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
-                    var cursor = e.target.result;
-                    if (typeof cursor === 'number') {
-                        results = cursor;
-                    } else if (cursor) {
-                        if (limitRange !== null && limitRange[0] > counter) {
-                            counter = limitRange[0];
-                            cursor.advance(limitRange[0]);
-                        } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
-                            // Out of limit range... skip
-                        } else {
-                                (function () {
-                                    var matchFilter = true;
-                                    var result = 'value' in cursor ? cursor.value : cursor.key;
-
-                                    filters.forEach(function (filter) {
-                                        if (!filter || !filter.length) {
-                                            // Invalid filter do nothing
-                                        } else if (filter.length === 2) {
-                                                matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                            } else {
-                                                matchFilter = matchFilter && filter[0](result);
-                                            }
-                                    });
-
-                                    if (matchFilter) {
-                                        counter++;
-                                        // If we're doing a modify, run it now
-                                        if (modifyObj) {
-                                            result = modifyRecord(result);
-                                            cursor.update(result);
-                                        }
-                                        results.push(mapper(result));
-                                    }
-                                    cursor.continue();
-                                })();
-                            }
-                    }
-                };
-            });
-        };
-
-        var Query = function Query(type, args, queuedError) {
-            var direction = 'next';
-            var cursorType = 'openCursor';
-            var filters = [];
-            var limitRange = null;
-            var mapper = defaultMapper;
-            var unique = false;
-            var error = preexistingError || queuedError;
-
-            var execute = function execute() {
-                if (error) {
-                    return Promise.reject(error);
-                }
-                return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
-            };
-
-            var limit = function limit() {
-                for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-                    args[_key4] = arguments[_key4];
-                }
-
-                limitRange = args.slice(0, 2);
-                if (limitRange.length === 1) {
-                    limitRange.unshift(0);
-                }
-
-                return {
-                    execute: execute
-                };
-            };
-            var count = function count() {
-                direction = null;
-                cursorType = 'count';
-
-                return {
-                    execute: execute
-                };
-            };
-
-            var keys = function keys() {
-                cursorType = 'openKeyCursor';
-
-                return {
-                    desc: desc,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    map: map
-                };
-            };
-            var filter = function filter() {
-                for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-                    args[_key5] = arguments[_key5];
-                }
-
-                filters.push(args.slice(0, 2));
-
-                return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
-                };
-            };
-            var desc = function desc() {
-                direction = 'prev';
-
-                return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    distinct: distinct,
-                    modify: modify,
-                    map: map
-                };
-            };
-            var distinct = function distinct() {
-                unique = true;
-                return {
-                    keys: keys,
-                    count: count,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    modify: modify,
-                    map: map
-                };
-            };
-            var modify = function modify(update) {
-                modifyObj = update;
-                return {
-                    execute: execute
-                };
-            };
-            var map = function map(fn) {
-                mapper = fn;
-
-                return {
-                    execute: execute,
-                    count: count,
-                    keys: keys,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
-                    limit: limit,
-                    map: map
-                };
-            };
-
-            return {
-                execute: execute,
-                count: count,
-                keys: keys,
-                filter: filter,
-                desc: desc,
-                distinct: distinct,
-                modify: modify,
-                limit: limit,
-                map: map
-            };
-        };
-
-        ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
-            _this4[name] = function () {
-                return Query(name, arguments);
-            };
-        });
-
-        this.range = function (opts) {
-            var error = void 0;
-            var keyRange = [null, null];
-            try {
-                keyRange = mongoDBToKeyRangeArgs(opts);
-            } catch (e) {
-                error = e;
-            }
-            return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));
-        };
-
-        this.filter = function () {
-            var query = Query(null, null);
-            return query.filter.apply(query, arguments);
-        };
-
-        this.all = function () {
-            return this.filter();
-        };
     };
 
     var createSchema = function createSchema(e, schema, db, reject, server, version) {
