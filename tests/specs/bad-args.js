@@ -188,6 +188,33 @@
             });
         });
 
+        describe('query', function () {
+            it('should catch a bad modify object method', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query().all().modify({
+                        key1: function () {
+                            throw new Error('Problem modifying');
+                        }
+                    }).execute().catch(function (err) {
+                        expect(err.message).to.equal('Problem modifying');
+                        s.close();
+                        done();
+                    });
+                });
+            });
+            it('should catch a bad map function', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query().all().map(function () {
+                        throw new Error('Problem mapping');
+                    }).execute().catch(function (err) {
+                        expect(err.message).to.equal('Problem mapping');
+                        s.close();
+                        done();
+                    });
+                });
+            });
+        });
+
         it('delete: should catch bad args', function (done) {
             var spec = this;
             db.open({server: this.dbName}).then(function (s) {

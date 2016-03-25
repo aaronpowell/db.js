@@ -426,8 +426,8 @@ returned records automatically. This is done by adding `.modify()` at
 the end of the query (right before `.execute()`).
 
 `modify` only runs updates on objects matched by the query, and still returns
-the same results to the `done()` function (however, the results will have the
-modifications applied to them).
+the same results to the `Promise`'s `then()` method (however, the results will
+have the modifications applied to them).
 
 Examples:
 

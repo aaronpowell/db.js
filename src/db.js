@@ -70,6 +70,7 @@
                     keyRange = type ? IDBKeyRange[type](...args) : null;
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 let results = [];
                 const indexArgs = [keyRange];
@@ -130,10 +131,20 @@
                                 counter++;
                                 // If we're doing a modify, run it now
                                 if (modifyObj) {
-                                    result = modifyRecord(result);
+                                    try {
+                                        result = modifyRecord(result);
+                                    } catch (err) {
+                                        reject(err);
+                                        return;
+                                    }
                                     cursor.update(result);
                                 }
-                                results.push(mapper(result));
+                                try {
+                                    results.push(mapper(result));
+                                } catch (err) {
+                                    reject(err);
+                                    return;
+                                }
                             }
                             cursor.continue();
                         }
@@ -438,6 +449,7 @@
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 const req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
@@ -464,6 +476,7 @@
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 const req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = e => resolve(e.target.result);

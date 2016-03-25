@@ -82,7 +82,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
         var _this = this;
 
-        var modifyObj = false;
+        var modifyObj = null;
 
         var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
@@ -91,6 +91,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 var results = [];
                 var indexArgs = [keyRange];
@@ -142,7 +143,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
                             // Out of limit range... skip
                         } else {
-                                (function () {
+                                var _ret = function () {
                                     var matchFilter = true;
                                     var result = 'value' in cursor ? cursor.value : cursor.key;
 
@@ -160,13 +161,29 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                         counter++;
                                         // If we're doing a modify, run it now
                                         if (modifyObj) {
-                                            result = modifyRecord(result);
+                                            try {
+                                                result = modifyRecord(result);
+                                            } catch (err) {
+                                                reject(err);
+                                                return {
+                                                    v: void 0
+                                                };
+                                            }
                                             cursor.update(result);
                                         }
-                                        results.push(mapper(result));
+                                        try {
+                                            results.push(mapper(result));
+                                        } catch (err) {
+                                            reject(err);
+                                            return {
+                                                v: void 0
+                                            };
+                                        }
                                     }
                                     cursor.continue();
-                                })();
+                                }();
+
+                                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
                             }
                     }
                 };
@@ -266,7 +283,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
             };
             var modify = function modify(update) {
-                modifyObj = update;
+                modifyObj = update && (typeof update === 'undefined' ? 'undefined' : _typeof(update)) === 'object' ? update : null;
                 return {
                     execute: execute
                 };
@@ -521,6 +538,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 var req = store.get(key);
                 req.onsuccess = function (e) {
@@ -553,6 +571,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
+                    return;
                 }
                 var req = key === undefined ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
