@@ -1,3 +1,4 @@
+/*global guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('web workers', function () {
@@ -30,7 +31,7 @@
         });
 
         it('should open a created db in a web worker', function (done) {
-            var tw = new Worker('../test-worker.js');
+            var tw = new Worker('test-worker.js');
             tw.onmessage = function (e) {
                 expect(e.data).to.be.true;
                 tw.terminate();
@@ -41,11 +42,11 @@
 
         it('should open a created db in a service worker', function (done) {
             var spec = this;
-            navigator.serviceWorker.register('../test-worker.js').then(function() {
+            navigator.serviceWorker.register('test-worker.js').then(function () {
                 return navigator.serviceWorker.ready;
             }).then(function (serviceWorker) {
                 var messageChannel = new MessageChannel();
-                messageChannel.port1.onmessage = function(e) {
+                messageChannel.port1.onmessage = function (e) {
                     expect(e.data).to.be.true;
                     done();
                 };

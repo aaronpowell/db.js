@@ -1,4 +1,4 @@
-/*global window, console, jasmine */
+/*global window, console, guid */
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
@@ -177,7 +177,7 @@
             });
         });
 
-        it('should remove object stores no longer defined in the schema', function(done){
+        it('should remove object stores no longer defined in the schema', function (done) {
             var spec = this;
             db.open({
                 server: this.dbName,
@@ -190,12 +190,12 @@
                 s.close();
 
                 db.open({
-                   server: spec.dbName,
-                   version: newVersion,
-                   schema: {
+                    server: spec.dbName,
+                    version: newVersion,
+                    schema: {
                         test_2: {}
                     }
-                }).then(function(s){
+                }).then(function (s) {
                     s.close();
 
                     var req = indexedDB.open(spec.dbName);
@@ -215,6 +215,5 @@
                 done(err);
             });
         });
-
     });
 }(window.db, window.describe, window.it, window.expect, window.beforeEach, window.afterEach));

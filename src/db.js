@@ -279,7 +279,11 @@
 
         var runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
-                var keyRange = type ? IDBKeyRange[type](...args) : null;
+                try {
+                    var keyRange = type ? IDBKeyRange[type](...args) : null;
+                } catch (e) {
+                    reject(e);
+                }
                 var results = [];
                 var indexArgs = [keyRange];
                 var counter = 0;
@@ -499,10 +503,6 @@
     };
 
     var createSchema = function (e, schema, db) {
-        if (typeof schema === 'function') {
-            schema = schema();
-        }
-
         if (!schema || schema.length === 0) {
             return;
         }
@@ -536,7 +536,7 @@
         }
     };
 
-    var open = function (e, server, noServerMethods, version, schema) {
+    var open = function (e, server, noServerMethods, version) {
         var db = e.target.result;
         dbCache[server][version] = db;
 
@@ -547,8 +547,11 @@
     var db = {
         version: '0.14.0',
         open: function (options) {
-            var server = options.server;
-            var version = options.version || 1;
+            let server = options.server;
+            let version = options.version || 1;
+            let schema = options.schema;
+            let noServerMethods = options.noServerMethods;
+
             if (!dbCache[server]) {
                 dbCache[server] = {};
             }
@@ -558,13 +561,21 @@
                         target: {
                             result: dbCache[server][version]
                         }
-                    }, server, options.noServerMethods, version, options.schema)
+                    }, server, noServerMethods, version)
                     .then(resolve, reject);
                 } else {
+                    if (typeof schema === 'function') {
+                        try {
+                            schema = schema();
+                        } catch (e) {
+                            reject(e);
+                            return;
+                        }
+                    }
                     let request = indexedDB.open(server, version);
 
-                    request.onsuccess = e => open(e, server, options.noServerMethods, version, options.schema).then(resolve, reject);
-                    request.onupgradeneeded = e => createSchema(e, options.schema, e.target.result);
+                    request.onsuccess = e => open(e, server, noServerMethods, version).then(resolve, reject);
+                    request.onupgradeneeded = e => createSchema(e, schema, e.target.result);
                     request.onerror = e => reject(e);
                     request.onblocked = e => {
                         var resume = new Promise(function (res, rej) {
@@ -574,7 +585,7 @@
                             //   the user unblocks by closing the blocking
                             //   connection
                             request.onsuccess = (ev) => {
-                                open(ev, server, options.noServerMethods, version, options.schema)
+                                open(ev, server, noServerMethods, version)
                                     .then(res, rej);
                             };
                             request.onerror = e => rej(e);

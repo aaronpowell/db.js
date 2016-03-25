@@ -1,4 +1,4 @@
-/*global window*/
+/*global window, guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     var key1, key2;
