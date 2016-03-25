@@ -329,7 +329,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
             } catch (e) {
-                keyRange = [0, [0, 0]];
                 error = e;
             }
             return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));

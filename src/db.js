@@ -284,7 +284,6 @@
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
             } catch (e) {
-                keyRange = [0, [0, 0]];
                 error = e;
             }
             return Query(...keyRange, error);
