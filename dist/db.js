@@ -655,29 +655,29 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             var table = schema[tableName];
             var store = void 0;
             if (db.objectStoreNames.contains(tableName)) {
-                store = e.currentTarget.transaction.objectStore(tableName);
+                store = e.currentTarget.transaction.objectStore(tableName); // Shouldn't throw
             } else {
-                // Errors for which we are not concerned and why:
-                // `InvalidStateError` - We are in the upgrade transaction.
-                // `ConstraintError` - We are just starting (and probably never too large anyways) for a key generator.
-                // `ConstraintError` - The above condition should prevent the name already existing.
-                //
-                // Possible errors:
-                // `TransactionInactiveError` - if the upgrade had already aborted,
-                //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
-                //      the store but then abort the transaction.
-                // `SyntaxError` - if an invalid `table.key.keyPath` is supplied.
-                // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
-                //      empty string or any sequence (empty or otherwise).
-                try {
-                    store = db.createObjectStore(tableName, table.key);
-                } catch (err) {
-                    db.close();
-                    delete dbCache[server][version];
-                    reject(err);
-                    return true;
+                    // Errors for which we are not concerned and why:
+                    // `InvalidStateError` - We are in the upgrade transaction.
+                    // `ConstraintError` - We are just starting (and probably never too large anyways) for a key generator.
+                    // `ConstraintError` - The above condition should prevent the name already existing.
+                    //
+                    // Possible errors:
+                    // `TransactionInactiveError` - if the upgrade had already aborted,
+                    //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                    //      the store but then abort the transaction.
+                    // `SyntaxError` - if an invalid `table.key.keyPath` is supplied.
+                    // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
+                    //      empty string or any sequence (empty or otherwise).
+                    try {
+                        store = db.createObjectStore(tableName, table.key);
+                    } catch (err) {
+                        db.close();
+                        delete dbCache[server][version];
+                        reject(err);
+                        return true;
+                    }
                 }
-            }
 
             Object.keys(table.indexes || {}).some(function (indexKey) {
                 try {

@@ -551,7 +551,7 @@
             const table = schema[tableName];
             let store;
             if (db.objectStoreNames.contains(tableName)) {
-                store = e.currentTarget.transaction.objectStore(tableName);
+                store = e.currentTarget.transaction.objectStore(tableName); // Shouldn't throw
             } else {
                 // Errors for which we are not concerned and why:
                 // `InvalidStateError` - We are in the upgrade transaction.
