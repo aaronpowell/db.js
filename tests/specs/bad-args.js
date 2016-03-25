@@ -181,6 +181,9 @@
                         return s.names.query().range({badKey: ''}).execute();
                     }).catch(function (err) {
                         expect(err.message).to.have.string('is not valid key');
+                        return s.names.query().only(null).execute();
+                    }).catch(function (err) {
+                        expect(err.name).to.have.string('DataError');
                         s.close();
                         done();
                     });
