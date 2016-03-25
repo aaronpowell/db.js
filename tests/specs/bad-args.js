@@ -51,7 +51,7 @@
         });
 
         describe('open', function () {
-            it('should catch bad schema arg', function (done) {
+            it('should catch throwing schema arg', function (done) {
                 db.open({server: this.dbName, schema: function () {
                     throw new Error('Bad schema');
                 }}).catch(function (err) {
