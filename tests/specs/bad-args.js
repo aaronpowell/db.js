@@ -74,7 +74,7 @@
             });
         });
 
-        describe('createSchema', function () {
+        describe('open: createSchema', function () {
             it('should catch bad key paths', function (done) {
                 db.open({server: this.dbName, version: 2, schema: {
                     test: {
@@ -131,7 +131,26 @@
             });
         });
 
-        it('should catch bad args to delete', function (done) {
+        describe('Server', function () {
+            it('addEventListener', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    try {
+                        s.addEventListener('badEvent', function () {});
+                    } catch (err) {
+                        expect(err.message).to.have.string('Unrecognized event type');
+                    }
+                    try {
+                        s.removeEventListener('badEvent', function () {});
+                    } catch (err) {
+                        expect(err.message).to.have.string('Unrecognized event type');
+                        s.close();
+                        done();
+                    }
+                });
+            });
+        });
+
+        it('delete: should catch bad args', function (done) {
             var spec = this;
             db.open({server: this.dbName}).then(function (s) {
                 db.delete(spec.dbName).catch(function (err) { // Other arguments (or missing arguments) do not throw
@@ -142,7 +161,7 @@
             });
         });
 
-        it('should catch bad args to cmp', function (done) {
+        it('cmp: should catch bad args', function (done) {
             db.cmp(key1, null).catch(function (err) {
                 expect(err.name).to.equal('DataError');
                 done();
