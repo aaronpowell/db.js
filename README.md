@@ -145,6 +145,8 @@ server.people.update({
 });
 ```
 
+`put` is also available as an alias of `update`.
+
 #### Removing
 
 ```js
@@ -152,6 +154,8 @@ server.people.remove(1).then(function (key) {
     // item removed
 });
 ```
+
+`delete` is also available as an alias of `remove`.
 
 ##### Clearing
 

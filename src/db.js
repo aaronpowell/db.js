@@ -273,6 +273,7 @@
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
             } catch (e) {
+                keyRange = [0, [0, 0]];
                 error = e;
             }
             return Query(...keyRange, error);
@@ -369,6 +370,10 @@
             });
         };
 
+        this.put = function (...args) {
+            return this.update(...args);
+        };
+
         this.remove = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
@@ -383,6 +388,10 @@
                 const store = transaction.objectStore(table);
                 store.delete(key);
             });
+        };
+
+        this.delete = function (...args) {
+            return this.remove(...args);
         };
 
         this.clear = function (table) {
@@ -437,7 +446,7 @@
 
         this.query = function (table, index) {
             const error = closed ? new Error('Database has been closed') : null;
-            return new IndexQuery(table, db, index, error);
+            return new IndexQuery(table, db, index, error); // Does not throw by itself
         };
 
         this.count = function (table, key) {

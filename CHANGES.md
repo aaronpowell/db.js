@@ -3,10 +3,14 @@
 ## Unreleased
 
 - Breaking change: Change `db.cmp()` to return a Promise to deliver the result
+- Breaking change: Ensure Promise rejections return Error objects rather
+    than strings
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
+- API addition: Add Server aliases, `put` and `delete`.
 - Fix: Ensure there is a promise rejection for a bad schema callback or
-    bad IDBKeyRange-related call
+    bad IDBKeyRange-related call.
+- Fix: Error reporting with `Server.query().range()`.
 - Fix: Actually implement documented chaining of (short) event handlers
 - Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing

@@ -312,6 +312,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
             } catch (e) {
+                keyRange = [0, [0, 0]];
                 error = e;
             }
             return Query.apply(undefined, _toConsumableArray(keyRange).concat([error]));
@@ -436,6 +437,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             });
         };
 
+        this.put = function () {
+            return this.update.apply(this, arguments);
+        };
+
         this.remove = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
@@ -456,6 +461,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var store = transaction.objectStore(table);
                 store.delete(key);
             });
+        };
+
+        this.delete = function () {
+            return this.remove.apply(this, arguments);
         };
 
         this.clear = function (table) {
@@ -522,7 +531,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         this.query = function (table, index) {
             var error = closed ? new Error('Database has been closed') : null;
-            return new IndexQuery(table, db, index, error);
+            return new IndexQuery(table, db, index, error); // Does not throw by itself
         };
 
         this.count = function (table, key) {

@@ -72,6 +72,13 @@
                     });
                 };
             });
+            it('should treat version 0 as 1 being supplied (if db.js did not, it should throw an error)', function (done) {
+                db.open({server: this.dbName, version: 0}).then(function (s) {
+                    expect(s).to.be.defined;
+                    s.close();
+                    done();
+                });
+            });
         });
 
         describe('open: createSchema', function () {
@@ -151,7 +158,7 @@
             it('should catch Server errors related to connection already being closed', function (done) {
                 db.open({server: this.dbName}).then(function (s) {
                     s.close();
-                    ['count', 'get', 'close', 'clear', 'remove', 'update', 'add', 'query'].reduce(function (promise, method) {
+                    ['count', 'get', 'close', 'clear', 'remove', 'delete', 'update', 'put', 'add', 'query'].reduce(function (promise, method) {
                         return promise.catch(function (err) {
                             expect(err.message).to.equal('Database has been closed');
                             return s[method]();
@@ -161,6 +168,21 @@
                             expect(err.message).to.equal('Database has been closed');
                             done();
                         });
+                    });
+                });
+            });
+            it('should catch bad range keys', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.get({badKey: ''}).catch(function (err) {
+                        expect(err.message).to.have.string('are conflicted keys');
+                        return s.names.count({badKey: ''});
+                    }).catch(function (err) {
+                        expect(err.message).to.have.string('are conflicted keys');
+                        return s.names.query().range({badKey: ''}).execute();
+                    }).catch(function (err) {
+                        expect(err.message).to.have.string('is not valid key');
+                        s.close();
+                        done();
                     });
                 });
             });
