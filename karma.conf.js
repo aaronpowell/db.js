@@ -26,7 +26,8 @@ module.exports = function (config) {
             'node_modules/jquery/dist/jquery.min.js',
             'tests/helpers/**/*.js',
             'tests/specs/**/*.js',
-            'tests/test-worker.js'
+            'tests/test-worker.js',
+            'tests/helpers/other-dbjs-instance.html'
         ],
 
         // list of files to exclude
@@ -42,13 +43,19 @@ module.exports = function (config) {
         replacerPreprocessor: {
             replacer: function (file, content) {
                 return content
-                        // PhantomJS issue with paths: https://github.com/ariya/phantomjs/issues/14119
+                        // PhantomJS has issue with paths: https://github.com/ariya/phantomjs/issues/14119
                         .replace(/(importScripts\(")\//g, '$1../')
                         .replace(/(new Worker\(')/g, '$1/base/tests/')
+                        .replace(/(ifr\.src = ')(helpers\/other-dbjs-instance\.html')/, '$1base/tests/$2')
+                        // PhantomJS has issue with frames and `postMessage` (perhaps partly related to the frame loading first): https://github.com/ariya/phantomjs/issues/14127
+                        .replace(/ifr\.contentWindow(\.postMessage)/, 'self$1')
+                        .replace(/parent(\.postMessage)/g, 'self$1')
+                        // PhantomJS gets blocked events even when versionchange event handlers close connections: https://github.com/ariya/phantomjs/issues/14126
+                        .replace(/\}\)\.then\(function \(s\) \{ \/\/ Chrome and Firefox/g, '}).catch(function (err) {if (err.type === \'blocked\') {return err.resume;}\n' + ' '.repeat(20) + '$&')
                         // Apparently an access issue here; colon being added to URL; for a more complete solution, see https://www.npmjs.com/package/karma-json-fixtures-preprocessor
                         .replace(/\$\.getJSON\('foo'\);/g, '$.Deferred().resolve();')
                         // Karma or PhantomJS is executing twice, once in window scope without importScripts: https://github.com/karma-runner/karma/issues/1518
-                        .replace(/(importScripts\("..\/node_modules)/, 'if (typeof importScripts !== \'function\') {return;}\n$1')
+                        .replace(/(importScripts\("\.\.\/node_modules)/, 'if (typeof importScripts !== \'function\') {return;}\n$1')
                         // Escape tests for sake of PhantomJS: https://github.com/ariya/phantomjs/issues/14118
                         .replace(/(navigator\.serviceWorker\.register)/g, 'if (!navigator.serviceWorker) {done();return;}\n$1');
             }
