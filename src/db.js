@@ -297,7 +297,7 @@
         this.add = function (table, ...args) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
 
@@ -344,7 +344,7 @@
         this.update = function (table, ...args) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
 
@@ -372,7 +372,7 @@
         this.remove = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 const transaction = db.transaction(table, transactionModes.readwrite);
@@ -388,7 +388,7 @@
         this.clear = function (table) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 const transaction = db.transaction(table, transactionModes.readwrite);
@@ -404,7 +404,7 @@
         this.close = function () {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                 }
                 db.close();
                 closed = true;
@@ -416,7 +416,7 @@
         this.get = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 const transaction = db.transaction(table);
@@ -436,14 +436,14 @@
         };
 
         this.query = function (table, index) {
-            const error = closed ? 'Database has been closed' : null;
+            const error = closed ? new Error('Database has been closed') : null;
             return new IndexQuery(table, db, index, error);
         };
 
         this.count = function (table, key) {
             return new Promise((resolve, reject) => {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 const transaction = db.transaction(table);

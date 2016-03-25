@@ -132,7 +132,7 @@
         });
 
         describe('Server', function () {
-            it('addEventListener', function (done) {
+            it('should catch addEventListener/removeEventListener errors', function (done) {
                 db.open({server: this.dbName}).then(function (s) {
                     try {
                         s.addEventListener('badEvent', function () {});
@@ -146,6 +146,22 @@
                         s.close();
                         done();
                     }
+                });
+            });
+            it('should catch Server errors related to connection already being closed', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.close();
+                    ['count', 'get', 'close', 'clear', 'remove', 'update', 'add', 'query'].reduce(function (promise, method) {
+                        return promise.catch(function (err) {
+                            expect(err.message).to.equal('Database has been closed');
+                            return s[method]();
+                        });
+                    }, Promise.reject(new Error('Database has been closed'))).then(function (queryResult) {
+                        queryResult.all().execute().catch(function (err) {
+                            expect(err.message).to.equal('Database has been closed');
+                            done();
+                        });
+                    });
                 });
             });
         });

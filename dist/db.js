@@ -348,7 +348,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var _this2 = this;
 
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
 
@@ -405,7 +405,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var _this3 = this;
 
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
 
@@ -439,7 +439,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         this.remove = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 var transaction = db.transaction(table, transactionModes.readwrite);
@@ -461,7 +461,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         this.clear = function (table) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 var transaction = db.transaction(table, transactionModes.readwrite);
@@ -483,7 +483,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         this.close = function () {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                 }
                 db.close();
                 closed = true;
@@ -495,7 +495,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         this.get = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 var transaction = db.transaction(table);
@@ -521,14 +521,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.query = function (table, index) {
-            var error = closed ? 'Database has been closed' : null;
+            var error = closed ? new Error('Database has been closed') : null;
             return new IndexQuery(table, db, index, error);
         };
 
         this.count = function (table, key) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
-                    reject('Database has been closed');
+                    reject(new Error('Database has been closed'));
                     return;
                 }
                 var transaction = db.transaction(table);
