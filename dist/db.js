@@ -5,12 +5,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _idbSchema = require('idb-schema');
-
-var _idbSchema2 = _interopRequireDefault(_idbSchema);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 (function (local) {
@@ -364,7 +358,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
-                var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                try {
+                    var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                } catch (e) {
+                    reject(e);
+                }
                 var results = [];
                 var indexArgs = [keyRange];
                 var counter = 0;
@@ -648,7 +646,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             var version = options.version || 1;
             var schema = options.schema;
             var noServerMethods = options.noServerMethods;
-            var idbschema = void 0;
 
             if (!dbCache[server]) {
                 dbCache[server] = {};
@@ -662,31 +659,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     }, server, noServerMethods, version).then(resolve, reject);
                 } else {
                     var _ret = function () {
-                        if (options.schemaBuilder) {
-                            idbschema = new _idbSchema2.default();
-                            var idbschemaVersion = idbschema.version();
-                            try {
-                                options.schemaBuilder(idbschema);
-                                if (options.version && idbschemaVersion < version) {
-                                    throw new Error('Your highest schema building (IDBSchema) version must not be less than a designated version.');
-                                }
-                                if (!options.version && idbschemaVersion > version) {
-                                    options.version = idbschemaVersion;
-                                }
-                            } catch (e) {
-                                reject(e);
-                                return {
-                                    v: void 0
-                                };
-                            }
-                        }
                         if (typeof schema === 'function') {
                             try {
                                 schema = schema();
                             } catch (e) {
                                 reject(e);
                                 return {
-                                    v: void 0
+                                    v: undefined
                                 };
                             }
                         }
@@ -695,7 +674,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         request.onsuccess = function (e) {
                             return _open(e, server, noServerMethods, version).then(resolve, reject);
                         };
-                        request.onupgradeneeded = idbschema ? idbschema.callback() : function (e) {
+                        request.onupgradeneeded = function (e) {
                             return createSchema(e, schema, e.target.result);
                         };
                         request.onerror = function (e) {
@@ -780,376 +759,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     }
 })(self);
 
-
-},{"idb-schema":2}],2:[function(require,module,exports){
-'use strict';
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _objectValues = require('object-values');
-
-var _objectValues2 = _interopRequireDefault(_objectValues);
-
-var _isInteger = require('is-integer');
-
-var _isInteger2 = _interopRequireDefault(_isInteger);
-
-var _isPlainObj = require('is-plain-obj');
-
-var _isPlainObj2 = _interopRequireDefault(_isPlainObj);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Maximum version value (unsigned long long)
- * http://www.w3.org/TR/IndexedDB/#events
- */
-
-var MAX_VERSION = Math.pow(2, 32) - 1;
-
-/**
- * Export `Schema`.
- */
-
-var Schema = (function () {
-  function Schema() {
-    _classCallCheck(this, Schema);
-
-    this._stores = {};
-    this._current = {};
-    this._versions = {};
-    this.version(1);
-  }
-
-  /**
-   * Get/Set new version.
-   *
-   * @param {Number} [version]
-   * @return {Schema|Number}
-   */
-
-  _createClass(Schema, [{
-    key: 'version',
-    value: function version(_version) {
-      if (!arguments.length) return this._current.version;
-      if (!(0, _isInteger2.default)(_version) || _version < 1 || _version < this.version() || _version > MAX_VERSION) {
-        throw new TypeError('invalid version');
-      }
-
-      this._current = { version: _version, store: null };
-      this._versions[_version] = {
-        stores: [], // db.createObjectStore
-        dropStores: [], // db.deleteObjectStore
-        indexes: [], // store.createIndex
-        dropIndexes: [], // store.deleteIndex
-        callbacks: [],
-        version: _version };
-
-      // version
-      return this;
-    }
-
-    /**
-     * Add store.
-     *
-     * @param {String} name
-     * @param {Object} [opts] { key: null, increment: false }
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'addStore',
-    value: function addStore(name) {
-      var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-      if (typeof name !== 'string' || !name) throw new TypeError('"name" is required');
-      if (this._stores[name]) throw new TypeError('"' + name + '" store is already defined');
-
-      var store = {
-        name: name,
-        indexes: {},
-        keyPath: opts.key || opts.keyPath || null,
-        autoIncrement: opts.increment || opts.autoIncrement || false
-      };
-      if (store.autoIncrement && !store.keyPath) {
-        throw new TypeError('set keyPath in order to use autoIncrement');
-      }
-
-      this._stores[name] = store;
-      this._versions[this.version()].stores.push(store);
-      this._current.store = store;
-
-      return this;
-    }
-
-    /**
-     * Delete store.
-     *
-     * @param {String} name
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'delStore',
-    value: function delStore(name) {
-      if (typeof name !== 'string' || !name) throw new TypeError('"name" is required');
-      var store = this._stores[name];
-      if (!store) throw new TypeError('"' + name + '" store is not defined');
-      delete this._stores[name];
-      this._versions[this.version()].dropStores.push(store);
-      this._current.store = null;
-      return this;
-    }
-
-    /**
-     * Change current store.
-     *
-     * @param {String} name
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'getStore',
-    value: function getStore(name) {
-      if (typeof name !== 'string' || !name) throw new TypeError('"name" is required');
-      if (!this._stores[name]) throw new TypeError('"' + name + '" store is not defined');
-      this._current.store = this._stores[name];
-      return this;
-    }
-
-    /**
-     * Add index.
-     *
-     * @param {String} name
-     * @param {String|Array} field
-     * @param {Object} [opts] { unique: false, multi: false }
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'addIndex',
-    value: function addIndex(name, field) {
-      var opts = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-      if (typeof name !== 'string' || !name) throw new TypeError('"name" is required');
-      if (typeof field !== 'string' && !Array.isArray(field)) {
-        throw new TypeError('"field" is required');
-      }
-      var store = this._current.store;
-      if (!store) throw new TypeError('set current store using "getStore" or "addStore"');
-      if (store.indexes[name]) throw new TypeError('"' + name + '" index is already defined');
-
-      var index = {
-        name: name,
-        field: field,
-        storeName: store.name,
-        multiEntry: opts.multi || opts.multiEntry || false,
-        unique: opts.unique || false
-      };
-      store.indexes[name] = index;
-      this._versions[this.version()].indexes.push(index);
-
-      return this;
-    }
-
-    /**
-     * Delete index.
-     *
-     * @param {String} name
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'delIndex',
-    value: function delIndex(name) {
-      if (typeof name !== 'string' || !name) throw new TypeError('"name" is required');
-      var index = this._current.store.indexes[name];
-      if (!index) throw new TypeError('"' + name + '" index is not defined');
-      delete this._current.store.indexes[name];
-      this._versions[this.version()].dropIndexes.push(index);
-      return this;
-    }
-
-    /**
-     * Add a callback to be executed at the end of the `upgradeneeded` event.
-     * Callback will be supplied the `upgradeneeded` event object.
-     *
-     * @param {Function} cb
-     * @return {Schema}
-     */
-
-  }, {
-    key: 'addCallback',
-    value: function addCallback(cb) {
-      this._versions[this.version()].callbacks.push(cb);
-      return this;
-    }
-
-    /**
-     * Generate onupgradeneeded callback.
-     *
-     * @return {Function}
-     */
-
-  }, {
-    key: 'callback',
-    value: function callback() {
-      var versions = (0, _objectValues2.default)(_clone(this._versions)).sort(function (a, b) {
-        return a.version - b.version;
-      });
-      return function onupgradeneeded(e) {
-        var oldVersion = e.oldVersion > MAX_VERSION ? 0 : e.oldVersion; // Safari bug
-        var db = e.target.result;
-        var tr = e.target.transaction;
-
-        versions.forEach(function (versionSchema) {
-          if (oldVersion >= versionSchema.version) return;
-
-          versionSchema.stores.forEach(function (s) {
-            // Only pass the options that are explicitly specified to createObjectStore() otherwise IE/Edge
-            // can throw an InvalidAccessError - see https://msdn.microsoft.com/en-us/library/hh772493(v=vs.85).aspx
-            var opts = {};
-            if (s.keyPath) opts.keyPath = s.keyPath;
-            if (s.autoIncrement) opts.autoIncrement = s.autoIncrement;
-            db.createObjectStore(s.name, opts);
-          });
-
-          versionSchema.dropStores.forEach(function (s) {
-            db.deleteObjectStore(s.name);
-          });
-
-          versionSchema.indexes.forEach(function (i) {
-            tr.objectStore(i.storeName).createIndex(i.name, i.field, {
-              unique: i.unique,
-              multiEntry: i.multiEntry
-            });
-          });
-
-          versionSchema.dropIndexes.forEach(function (i) {
-            tr.objectStore(i.storeName).deleteIndex(i.name);
-          });
-
-          versionSchema.callbacks.forEach(function (cb) {
-            cb(e);
-          });
-        });
-      };
-    }
-
-    /**
-     * Get a description of the stores.
-     * It creates a deep clone of `this._stores` object
-     * and transform it to an array.
-     *
-     * @return {Array}
-     */
-
-  }, {
-    key: 'stores',
-    value: function stores() {
-      return (0, _objectValues2.default)(_clone(this._stores)).map(function (store) {
-        store.indexes = (0, _objectValues2.default)(store.indexes).map(function (index) {
-          delete index.storeName;
-          return index;
-        });
-        return store;
-      });
-    }
-
-    /**
-     * Clone `this` to new schema object.
-     *
-     * @return {Schema} - new object
-     */
-
-  }, {
-    key: 'clone',
-    value: function clone() {
-      var _this = this;
-
-      var schema = new Schema();
-      Object.keys(this).forEach(function (key) {
-        return schema[key] = _clone(_this[key]);
-      });
-      return schema;
-    }
-  }]);
-
-  return Schema;
-})();
-
-/**
- * Clone `obj`.
- * https://github.com/component/clone/blob/master/index.js
- */
-
-exports.default = Schema;
-function _clone(obj) {
-  if (Array.isArray(obj)) {
-    return obj.map(function (val) {
-      return _clone(val);
-    });
-  }
-  if ((0, _isPlainObj2.default)(obj)) {
-    return Object.keys(obj).reduce(function (copy, key) {
-      copy[key] = _clone(obj[key]);
-      return copy;
-    }, {});
-  }
-  return obj;
-}
-module.exports = exports['default'];
-},{"is-integer":4,"is-plain-obj":5,"object-values":7}],3:[function(require,module,exports){
-'use strict';
-var numberIsNan = require('number-is-nan');
-
-module.exports = Number.isFinite || function (val) {
-	return !(typeof val !== 'number' || numberIsNan(val) || val === Infinity || val === -Infinity);
-};
-
-},{"number-is-nan":6}],4:[function(require,module,exports){
-// https://github.com/paulmillr/es6-shim
-// http://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.isinteger
-var isFinite = require("is-finite");
-module.exports = Number.isInteger || function(val) {
-  return typeof val === "number" &&
-    isFinite(val) &&
-    Math.floor(val) === val;
-};
-
-},{"is-finite":3}],5:[function(require,module,exports){
-'use strict';
-var toString = Object.prototype.toString;
-
-module.exports = function (x) {
-	var prototype;
-	return toString.call(x) === '[object Object]' && (prototype = Object.getPrototypeOf(x), prototype === null || prototype === Object.getPrototypeOf({}));
-};
-
-},{}],6:[function(require,module,exports){
-'use strict';
-module.exports = Number.isNaN || function (x) {
-	return x !== x;
-};
-
-},{}],7:[function(require,module,exports){
-'use strict';
-module.exports = function (obj) {
-	var keys = Object.keys(obj);
-	var ret = [];
-
-	for (var i = 0; i < keys.length; i++) {
-		ret.push(obj[keys[i]]);
-	}
-
-	return ret;
-};
 
 },{}]},{},[1])(1)
 });
