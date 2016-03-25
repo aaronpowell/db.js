@@ -164,6 +164,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                             try {
                                                 result = modifyRecord(result);
                                             } catch (err) {
+                                                transaction.abort();
                                                 reject(err);
                                                 return {
                                                     v: void 0
@@ -174,6 +175,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                         try {
                                             results.push(mapper(result));
                                         } catch (err) {
+                                            transaction.abort();
                                             reject(err);
                                             return {
                                                 v: void 0
@@ -536,6 +538,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
+                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -569,6 +572,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
+                    transaction.abort();
                     reject(e);
                     return;
                 }

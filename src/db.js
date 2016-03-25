@@ -134,6 +134,7 @@
                                     try {
                                         result = modifyRecord(result);
                                     } catch (err) {
+                                        transaction.abort();
                                         reject(err);
                                         return;
                                     }
@@ -142,6 +143,7 @@
                                 try {
                                     results.push(mapper(result));
                                 } catch (err) {
+                                    transaction.abort();
                                     reject(err);
                                     return;
                                 }
@@ -447,6 +449,7 @@
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
+                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -474,6 +477,7 @@
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
+                    transaction.abort();
                     reject(e);
                     return;
                 }
