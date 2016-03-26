@@ -108,7 +108,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return reject(e);
                 };
 
-                var store = transaction.objectStore(table);
+                var store = transaction.objectStore(table); // if bad, db.transaction will reject first
                 var index = indexName ? store.index(indexName) : store;
 
                 limitRange = limitRange || null;

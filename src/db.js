@@ -81,7 +81,7 @@
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
-                const store = transaction.objectStore(table);
+                const store = transaction.objectStore(table); // if bad, db.transaction will reject first
                 const index = indexName ? store.index(indexName) : store;
 
                 limitRange = limitRange || null;

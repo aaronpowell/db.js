@@ -187,6 +187,37 @@
                     });
                 });
             });
+            it('Bad store names (to db.transaction)', function (done) {
+                var nonexistentStore = 'nonexistentStore';
+                db.open({server: this.dbName}).then(function (s) {
+                    var item = {
+                        firstName: 'Aaron',
+                        lastName: 'Powell'
+                    };
+                    s.add(nonexistentStore, item).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.update(nonexistentStore, {firstName: 'Alex', lastName: 'Zamir'});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.remove(nonexistentStore, 1);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.clear(nonexistentStore);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.get(nonexistentStore, 1);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.count(nonexistentStore);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        return s.query(nonexistentStore).all().execute();
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        done();
+                    });
+                });
+            });
         });
 
         describe('query', function () {
