@@ -356,6 +356,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return closed;
         };
 
+        this.query = function (table, index) {
+            var error = closed ? new Error('Database has been closed') : null;
+            return new IndexQuery(table, db, index, error); // Does not throw by itself
+        };
+
         this.add = function (table) {
             for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
                 args[_key3 - 1] = arguments[_key3];
@@ -548,11 +553,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return resolve(e.target.result);
                 };
             });
-        };
-
-        this.query = function (table, index) {
-            var error = closed ? new Error('Database has been closed') : null;
-            return new IndexQuery(table, db, index, error); // Does not throw by itself
         };
 
         this.count = function (table, key) {

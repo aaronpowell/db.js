@@ -305,6 +305,11 @@
         this.getIndexedDB = () => db;
         this.isClosed = () => closed;
 
+        this.query = function (table, index) {
+            const error = closed ? new Error('Database has been closed') : null;
+            return new IndexQuery(table, db, index, error); // Does not throw by itself
+        };
+
         this.add = function (table, ...args) {
             return new Promise(function (resolve, reject) {
                 if (closed) {
@@ -457,11 +462,6 @@
                 const req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
             });
-        };
-
-        this.query = function (table, index) {
-            const error = closed ? new Error('Database has been closed') : null;
-            return new IndexQuery(table, db, index, error); // Does not throw by itself
         };
 
         this.count = function (table, key) {
