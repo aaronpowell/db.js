@@ -94,8 +94,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var results = [];
-                var indexArgs = [keyRange];
                 var counter = 0;
+                var indexArgs = [keyRange];
 
                 var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
                 transaction.oncomplete = function () {

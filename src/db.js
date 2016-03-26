@@ -73,8 +73,8 @@
                     return;
                 }
                 let results = [];
-                const indexArgs = [keyRange];
                 let counter = 0;
+                const indexArgs = [keyRange];
 
                 const transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
                 transaction.oncomplete = () => resolve(results);
