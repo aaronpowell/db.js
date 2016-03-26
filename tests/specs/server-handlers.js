@@ -1,7 +1,9 @@
 /*global guid*/
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
-    describe('handlers', function () {
+    describe('server.handlers', function () {
+        this.timeout(5000);
+
         var initialVersion = 2;
         var newVersion = 10;
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -142,6 +144,7 @@
             this.server.addEventListener('error', function (vce) {
                 expect(vce.type).to.equal('error');
                 expect(bubbleCount).to.equal(2);
+                vce.preventDefault(); // Needed by Firefox
                 done();
             });
 
@@ -170,6 +173,7 @@
                 expect(true).to.be.false;
             }
             function errorHandler (vce) {
+                vce.preventDefault(); // Needed by Firefox
                 incAndTest();
             }
             function versionChange1 (vce) {

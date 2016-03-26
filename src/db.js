@@ -134,7 +134,6 @@
                                     try {
                                         result = modifyRecord(result);
                                     } catch (err) {
-                                        transaction.abort();
                                         reject(err);
                                         return;
                                     }
@@ -143,7 +142,6 @@
                                 try {
                                     results.push(mapper(result));
                                 } catch (err) {
-                                    transaction.abort();
                                     reject(err);
                                     return;
                                 }
@@ -449,7 +447,6 @@
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
-                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -477,7 +474,6 @@
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
-                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -528,7 +524,7 @@
         return err;
     };
 
-    const createSchema = function (e, schema, db, reject, server, version) {
+    const createSchema = function (e, schema, db, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -547,6 +543,7 @@
             }
         }
 
+        let ret;
         Object.keys(schema).some(function (tableName) {
             const table = schema[tableName];
             let store;
@@ -568,9 +565,9 @@
                 try {
                     store = db.createObjectStore(tableName, table.key);
                 } catch (err) {
-                    db.close();
-                    delete dbCache[server][version];
-                    reject(err);
+                    // db.close();
+                    // delete dbCache[server][version];
+                    ret = err;
                     return true;
                 }
             }
@@ -595,14 +592,15 @@
                     try {
                         store.createIndex(indexKey, index.keyPath || index.key || indexKey, index);
                     } catch (err2) {
-                        db.close();
-                        delete dbCache[server][version];
-                        reject(err2);
+                        // db.close();
+                        // delete dbCache[server][version];
+                        ret = err2;
                         return true;
                     }
                 }
             });
         });
+        return ret;
     };
 
     const open = function (e, server, noServerMethods, version) {
@@ -641,11 +639,24 @@
                             return;
                         }
                     }
-                    let request = indexedDB.open(server, version);
+                    const request = indexedDB.open(server, version);
 
                     request.onsuccess = e => open(e, server, noServerMethods, version).then(resolve, reject);
-                    request.onupgradeneeded = e => createSchema(e, schema, e.target.result, reject, server, version);
-                    request.onerror = e => reject(e);
+                    request.onupgradeneeded = e => {
+                        let err = createSchema(e, schema, e.target.result, server, version);
+                        if (err) {
+                            // Firefox throws `AbortError` errors when doing such operations as `close`
+                            //   within `upgradeneeded`, so we have known errors execute instead in `onsuccess`;
+                            //   see http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event
+                            request.onsuccess = e => {
+                                reject(err);
+                            };
+                        }
+                    };
+                    request.onerror = e => {
+                        e.preventDefault(); // For Firefox BadVersion errors; see https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                        reject(e);
+                    };
                     request.onblocked = e => {
                         const resume = new Promise(function (res, rej) {
                             // We overwrite handlers rather than make a new
@@ -673,6 +684,10 @@
                 request.onsuccess = e => resolve(e);
                 request.onerror = e => reject(e); // No errors currently
                 request.onblocked = e => {
+                    // The following addresses part of https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                    e = e.oldVersion === 1 || typeof Proxy === 'undefined' ? e : new Proxy(e, {get: function (target, name) {
+                        return name === 'newVersion' ? null : target[name];
+                    }});
                     const resume = new Promise(function (res, rej) {
                         // We overwrite handlers rather than make a new
                         //   delete() since the original request is still
@@ -680,7 +695,7 @@
                         //   the user unblocks by closing the blocking
                         //   connection
                         request.onsuccess = ev => {
-                            // Attempt to workaround Firefox event version problem: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                            // The following are needed currently by PhantomJS: https://github.com/ariya/phantomjs/issues/14141
                             if (!('newVersion' in ev)) {
                                 ev.newVersion = e.newVersion;
                             }

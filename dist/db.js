@@ -164,7 +164,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                             try {
                                                 result = modifyRecord(result);
                                             } catch (err) {
-                                                transaction.abort();
                                                 reject(err);
                                                 return {
                                                     v: void 0
@@ -175,7 +174,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                         try {
                                             results.push(mapper(result));
                                         } catch (err) {
-                                            transaction.abort();
                                             reject(err);
                                             return {
                                                 v: void 0
@@ -538,7 +536,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
-                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -572,7 +569,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
-                    transaction.abort();
                     reject(e);
                     return;
                 }
@@ -632,7 +628,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return err;
     };
 
-    var createSchema = function createSchema(e, schema, db, reject, server, version) {
+    var createSchema = function createSchema(e, schema, db, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -651,6 +647,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             }
         }
 
+        var ret = void 0;
         Object.keys(schema).some(function (tableName) {
             var table = schema[tableName];
             var store = void 0;
@@ -672,9 +669,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     try {
                         store = db.createObjectStore(tableName, table.key);
                     } catch (err) {
-                        db.close();
-                        delete dbCache[server][version];
-                        reject(err);
+                        // db.close();
+                        // delete dbCache[server][version];
+                        ret = err;
                         return true;
                     }
                 }
@@ -699,14 +696,15 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     try {
                         store.createIndex(indexKey, index.keyPath || index.key || indexKey, index);
                     } catch (err2) {
-                        db.close();
-                        delete dbCache[server][version];
-                        reject(err2);
+                        // db.close();
+                        // delete dbCache[server][version];
+                        ret = err2;
                         return true;
                     }
                 }
             });
         });
+        return ret;
     };
 
     var _open = function _open(e, server, noServerMethods, version) {
@@ -753,10 +751,19 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                             return _open(e, server, noServerMethods, version).then(resolve, reject);
                         };
                         request.onupgradeneeded = function (e) {
-                            return createSchema(e, schema, e.target.result, reject, server, version);
+                            var err = createSchema(e, schema, e.target.result, server, version);
+                            if (err) {
+                                // Firefox throws `AbortError` errors when doing such operations as `close`
+                                //   within `upgradeneeded`, so we have known errors execute instead in `onsuccess`;
+                                //   see http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event
+                                request.onsuccess = function (e) {
+                                    reject(err);
+                                };
+                            }
                         };
                         request.onerror = function (e) {
-                            return reject(e);
+                            e.preventDefault(); // For Firefox BadVersion errors; see https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                            reject(e);
                         };
                         request.onblocked = function (e) {
                             var resume = new Promise(function (res, rej) {
@@ -793,6 +800,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return reject(e);
                 }; // No errors currently
                 request.onblocked = function (e) {
+                    // The following addresses part of https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                    e = e.oldVersion === 1 || typeof Proxy === 'undefined' ? e : new Proxy(e, { get: function get(target, name) {
+                            return name === 'newVersion' ? null : target[name];
+                        } });
                     var resume = new Promise(function (res, rej) {
                         // We overwrite handlers rather than make a new
                         //   delete() since the original request is still
@@ -800,7 +811,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         //   the user unblocks by closing the blocking
                         //   connection
                         request.onsuccess = function (ev) {
-                            // Attempt to workaround Firefox event version problem: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                            // The following are needed currently by PhantomJS: https://github.com/ariya/phantomjs/issues/14141
                             if (!('newVersion' in ev)) {
                                 ev.newVersion = e.newVersion;
                             }

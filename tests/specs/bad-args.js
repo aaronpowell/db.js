@@ -3,13 +3,17 @@
     'use strict';
     var key1, key2; // eslint-disable-line no-unused-vars
     describe('bad args', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {
             this.dbName = guid();
-
             var req = indexedDB.open(this.dbName);
+            req.onsuccess = function () {
+                req.result.close();
+                done();
+            };
             req.onupgradeneeded = function () {
                 var objStore = req.result.createObjectStore('names', {autoIncrement: true});
                 var person1 = {name: 'Alex'};
@@ -21,33 +25,24 @@
                     var addReq2 = objStore.add(person2);
                     addReq2.onsuccess = function (e2) {
                         key2 = e2.target.result;
-                        req.result.close();
-                        done();
                     };
                 };
             };
+            req.onerror = function (e) {
+                console.log('error: ' + e);
+            };
             req.onblocked = function (e) {
-                done(e);
+                console.log('blocked: ' + e);
             };
         });
 
-        afterEach(function (done) {
+        afterEach(function () {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             this.server = undefined;
 
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-            req.onerror = function (e) {
-                console.log('failed to delete db', arguments);
-            };
-            req.onblocked = function (e) {
-                console.log('db blocked', arguments);
-            };
+            indexedDB.deleteDatabase(this.dbName);
         });
 
         describe('open', function () {
@@ -62,14 +57,16 @@
             it('should catch an attempt to (auto-load) a schema with a conflicting name (when there is no noServerMethods)', function (done) {
                 var spec = this;
                 var req = indexedDB.open(this.dbName, 2);
-                req.onupgradeneeded = function () {
-                    var storeNameConflictingWithMethod = 'count';
-                    req.result.createObjectStore(storeNameConflictingWithMethod);
+                req.onsuccess = function () {
                     req.result.close();
                     db.open({server: spec.dbName, version: 2}).catch(function (err) {
                         expect(err.message).to.have.string('conflicts with db.js method names');
                         done();
                     });
+                };
+                req.onupgradeneeded = function () {
+                    var storeNameConflictingWithMethod = 'count';
+                    req.result.createObjectStore(storeNameConflictingWithMethod);
                 };
             });
             it('should treat version 0 as 1 being supplied (if db.js did not, it should throw an error)', function (done) {
@@ -163,7 +160,8 @@
                             expect(err.message).to.equal('Database has been closed');
                             return s[method]();
                         });
-                    }, Promise.reject(new Error('Database has been closed'))).then(function (queryResult) {
+                    }, Promise.reject(new Error('Database has been closed')))
+                    .then(function (queryResult) {
                         queryResult.all().execute().catch(function (err) {
                             expect(err.message).to.equal('Database has been closed');
                             done();
@@ -218,21 +216,30 @@
             });
         });
 
-        it('delete: should catch bad args', function (done) {
-            var spec = this;
-            db.open({server: this.dbName}).then(function (s) {
-                db.delete(spec.dbName).catch(function (err) { // Other arguments (or missing arguments) do not throw
-                    expect(err.type).to.equal('blocked');
-                    s.close();
-                    done();
+        describe('delete', function () {
+            it('should catch bad args', function (done) {
+                var spec = this;
+                var caught = false;
+                db.open({server: this.dbName}).then(function (s) {
+                    db.delete(spec.dbName).catch(function (err) { // Other arguments (or missing arguments) do not throw
+                        expect(err.type).to.equal('blocked');
+                        s.close();
+                        caught = true;
+                        return err.resume;
+                    }).then(function () {
+                        expect(caught).to.be.true;
+                        done();
+                    });
                 });
             });
         });
 
-        it('cmp: should catch bad args', function (done) {
-            db.cmp(key1, null).catch(function (err) {
-                expect(err.name).to.equal('DataError');
-                done();
+        describe('cmp', function () {
+            it('cmp: should catch bad args', function (done) {
+                db.cmp(key1, null).catch(function (err) {
+                    expect(err.name).to.equal('DataError');
+                    done();
+                });
             });
         });
     });

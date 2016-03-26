@@ -3,6 +3,7 @@
     'use strict';
     var key1, key2;
     describe('db.cmp', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -10,6 +11,9 @@
             this.dbName = guid();
 
             var req = indexedDB.open(this.dbName);
+            req.onsuccess = function () {
+                req.result.close();
+            };
             req.onupgradeneeded = function () {
                 var objStore = req.result.createObjectStore('names', {autoIncrement: true});
                 var person1 = {name: 'Alex'};
@@ -21,7 +25,6 @@
                     var addReq2 = objStore.add(person2);
                     addReq2.onsuccess = function (e2) {
                         key2 = e2.target.result;
-                        req.result.close();
                         done();
                     };
                 };
