@@ -5,6 +5,7 @@
 - Breaking change: Change `db.cmp()` to return a Promise to deliver the result
 - Breaking change: Ensure Promise rejections return Error objects rather
     than strings
+- Breaking change: Change bad keys error message
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.

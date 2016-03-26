@@ -50,7 +50,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 case 'lte':
                     name = 'upperBound';break;
                 default:
-                    throw new TypeError('`' + key + '` is not valid key');
+                    throw new TypeError('`' + key + '` is not a valid key');
             }
             return [name, [val, inclusive]];
         }
@@ -393,10 +393,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     if (record.item && record.key) {
                         var key = record.key;
                         record = record.item;
-                        req = store.add(record, key);
+                        req = store.add(record, key); // Safe to add since in readwrite
                     } else {
-                        req = store.add(record);
-                    }
+                            req = store.add(record);
+                        }
 
                     req.onsuccess = function (e) {
                         var target = e.target;

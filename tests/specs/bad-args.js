@@ -155,33 +155,63 @@
             it('should catch Server errors related to connection already being closed', function (done) {
                 db.open({server: this.dbName}).then(function (s) {
                     s.close();
-                    ['count', 'get', 'close', 'clear', 'remove', 'delete', 'update', 'put', 'add', 'query'].reduce(function (promise, method) {
+                    var ct = 0;
+                    var serverMethods = ['count', 'get', 'close', 'clear', 'remove', 'delete', 'update', 'put', 'add', 'query'];
+                    serverMethods.reduce(function (promise, method) {
                         return promise.catch(function (err) {
                             expect(err.message).to.equal('Database has been closed');
+                            ct++;
                             return s[method]();
                         });
                     }, Promise.reject(new Error('Database has been closed')))
                     .then(function (queryResult) {
                         queryResult.all().execute().catch(function (err) {
+                            expect(ct).to.equal(serverMethods.length);
                             expect(err.message).to.equal('Database has been closed');
                             done();
                         });
                     });
                 });
             });
+
             it('should catch bad range keys', function (done) {
+                var ct = 0;
+                var item = {
+                    firstName: 'Aaron',
+                    lastName: 'Powell'
+                };
                 db.open({server: this.dbName}).then(function (s) {
                     s.names.get({badKey: ''}).catch(function (err) {
-                        expect(err.message).to.have.string('are conflicted keys');
+                        expect(err.message).to.have.string('is not a valid key');
+                        ct++;
                         return s.names.count({badKey: ''});
                     }).catch(function (err) {
-                        expect(err.message).to.have.string('are conflicted keys');
+                        expect(err.message).to.have.string('is not a valid key');
+                        ct++;
                         return s.names.query().range({badKey: ''}).execute();
                     }).catch(function (err) {
-                        expect(err.message).to.have.string('is not valid key');
+                        expect(err.message).to.have.string('is not a valid key');
+                        ct++;
                         return s.names.query().only(null).execute();
                     }).catch(function (err) {
-                        expect(err.name).to.have.string('DataError');
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.delete({badKey: ''});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.add({key: {badKey: ''}, item: item});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        item = {
+                            firstName: 'Mia',
+                            lastName: 'Zamir'
+                        };
+                        return s.names.update({key: {badKey: ''}, item: item});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        expect(ct).to.equal(6);
                         s.close();
                         done();
                     });
@@ -189,6 +219,7 @@
             });
             it('Bad store names (to db.transaction)', function (done) {
                 var nonexistentStore = 'nonexistentStore';
+                var ct = 0;
                 db.open({server: this.dbName}).then(function (s) {
                     var item = {
                         firstName: 'Aaron',
@@ -196,24 +227,31 @@
                     };
                     s.add(nonexistentStore, item).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.update(nonexistentStore, {firstName: 'Alex', lastName: 'Zamir'});
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.remove(nonexistentStore, 1);
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.clear(nonexistentStore);
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.get(nonexistentStore, 1);
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.count(nonexistentStore);
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        ct++;
                         return s.query(nonexistentStore).all().execute();
                     }).catch(function (err) {
                         expect(err.name).to.equal('NotFoundError');
+                        expect(ct).to.equal(6);
                         done();
                     });
                 });

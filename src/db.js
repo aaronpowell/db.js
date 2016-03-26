@@ -36,7 +36,7 @@
                 break;
             case 'gte': name = 'lowerBound'; break;
             case 'lte': name = 'upperBound'; break;
-            default: throw new TypeError('`' + key + '` is not valid key');
+            default: throw new TypeError('`' + key + '` is not a valid key');
             }
             return [name, [val, inclusive]];
         }
@@ -332,7 +332,7 @@
                     if (record.item && record.key) {
                         const key = record.key;
                         record = record.item;
-                        req = store.add(record, key);
+                        req = store.add(record, key); // Safe to add since in readwrite
                     } else {
                         req = store.add(record);
                     }
