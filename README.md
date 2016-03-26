@@ -572,8 +572,23 @@ library.
 # Contributor notes
 
 - `npm install` to install all the dependencies
+
+In browser:
+
 - `npm run grunt test:local` to run the mocha server
 - Open (`http://localhost:9999/tests`)[] to run the mocha tests
+
+In Node.js:
+
+- `npm test`
+
+or to avoid Saucelabs if set up:
+
+- `npm run grunt phantom`
+
+or to also avoid PhantomJS:
+
+- `npm run grunt dev`
 
 # License
 
