@@ -685,7 +685,7 @@
                 request.onerror = e => reject(e); // No errors currently
                 request.onblocked = e => {
                     // The following addresses part of https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
-                    e = e.oldVersion === 1 || typeof Proxy === 'undefined' ? e : new Proxy(e, {get: function (target, name) {
+                    e = e.newVersion === null || typeof Proxy === 'undefined' ? e : new Proxy(e, {get: function (target, name) {
                         return name === 'newVersion' ? null : target[name];
                     }});
                     const resume = new Promise(function (res, rej) {

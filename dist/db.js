@@ -801,7 +801,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }; // No errors currently
                 request.onblocked = function (e) {
                     // The following addresses part of https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
-                    e = e.oldVersion === 1 || typeof Proxy === 'undefined' ? e : new Proxy(e, { get: function get(target, name) {
+                    e = e.newVersion === null || typeof Proxy === 'undefined' ? e : new Proxy(e, { get: function get(target, name) {
                             return name === 'newVersion' ? null : target[name];
                         } });
                     var resume = new Promise(function (res, rej) {
