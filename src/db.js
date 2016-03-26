@@ -374,7 +374,11 @@
                         record = record.item;
                         store.put(record, key);
                     } else {
-                        store.put(record);
+                        try {
+                            store.put(record); // Can throw DataError, e.g., if function passed in
+                        } catch (err) {
+                            reject(err);
+                        }
                     }
                 });
             });

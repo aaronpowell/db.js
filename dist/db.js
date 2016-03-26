@@ -447,7 +447,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         record = record.item;
                         store.put(record, key);
                     } else {
-                        store.put(record);
+                        try {
+                            store.put(record); // Can throw DataError, e.g., if function passed in
+                        } catch (err) {
+                            reject(err);
+                        }
                     }
                 });
             });

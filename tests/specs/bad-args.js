@@ -174,6 +174,24 @@
                 });
             });
 
+            it('should catch bad values', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    var caught = false;
+                    var badValue = function () {};
+                    // var badValue = NaN // This should cause an error to be thrown (a DataError error) per draft spec but doesn't in Chrome, Firefox, or PhantomJS
+                    s.names.put(badValue).catch(function (err) {
+                        expect(err.name).to.equal('DataCloneError');
+                        // expect(err.name).to.equal('DataError'); // Will change to this per draft spec
+                        caught = true;
+                        return s.names.add(badValue);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataCloneError');
+                        expect(caught).to.be.true;
+                        done();
+                    });
+                });
+            });
+
             it('should catch bad range keys', function (done) {
                 var ct = 0;
                 var item = {
