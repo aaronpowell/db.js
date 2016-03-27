@@ -72,6 +72,9 @@
                     reject(e);
                     return;
                 }
+                filters = filters || [];
+                limitRange = limitRange || null;
+
                 let results = [];
                 let counter = 0;
                 const indexArgs = [keyRange];
@@ -82,10 +85,8 @@
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table); // if bad, db.transaction will reject first
-                const index = indexName ? store.index(indexName) : store;
+                const index = typeof indexName === 'string' ? store.index(indexName) : store;
 
-                limitRange = limitRange || null;
-                filters = filters || [];
                 if (cursorType !== 'count') {
                     indexArgs.push(direction || 'next');
                 }
@@ -103,14 +104,14 @@
                     return record;
                 };
 
-                index[cursorType](...indexArgs).onsuccess = function (e) {
+                index[cursorType](...indexArgs).onsuccess = function (e) { // indexArgs are already validated
                     const cursor = e.target.result;
                     if (typeof cursor === 'number') {
                         results = cursor;
                     } else if (cursor) {
                         if (limitRange !== null && limitRange[0] > counter) {
                             counter = limitRange[0];
-                            cursor.advance(limitRange[0]);
+                            cursor.advance(limitRange[0]); // Will throw on 0, but condition above prevents since counter always 0+
                         } else if (limitRange !== null && counter >= (limitRange[0] + limitRange[1])) {
                             // Out of limit range... skip
                         } else {
@@ -133,11 +134,11 @@
                                 if (modifyObj) {
                                     try {
                                         result = modifyRecord(result);
+                                        cursor.update(result); // `result` should only be a "structured clone"-able object
                                     } catch (err) {
                                         reject(err);
                                         return;
                                     }
-                                    cursor.update(result);
                                 }
                                 try {
                                     results.push(mapper(result));
@@ -154,13 +155,13 @@
         };
 
         const Query = function (type, args, queuedError) {
+            const filters = [];
             let direction = 'next';
             let cursorType = 'openCursor';
-            const filters = [];
             let limitRange = null;
             let mapper = defaultMapper;
             let unique = false;
-            const error = preexistingError || queuedError;
+            let error = preexistingError || queuedError;
 
             const execute = function () {
                 if (error) {
@@ -171,6 +172,7 @@
 
             const limit = function (...args) {
                 limitRange = args.slice(0, 2);
+                error = limitRange.some(val => typeof val !== 'number') ? new Error('limit() arguments must be numeric') : error;
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }

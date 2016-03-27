@@ -93,6 +93,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     reject(e);
                     return;
                 }
+                filters = filters || [];
+                limitRange = limitRange || null;
+
                 var results = [];
                 var counter = 0;
                 var indexArgs = [keyRange];
@@ -109,10 +112,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 var store = transaction.objectStore(table); // if bad, db.transaction will reject first
-                var index = indexName ? store.index(indexName) : store;
+                var index = typeof indexName === 'string' ? store.index(indexName) : store;
 
-                limitRange = limitRange || null;
-                filters = filters || [];
                 if (cursorType !== 'count') {
                     indexArgs.push(direction || 'next');
                 }
@@ -133,67 +134,68 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+                    // indexArgs are already validated
                     var cursor = e.target.result;
                     if (typeof cursor === 'number') {
                         results = cursor;
                     } else if (cursor) {
                         if (limitRange !== null && limitRange[0] > counter) {
                             counter = limitRange[0];
-                            cursor.advance(limitRange[0]);
+                            cursor.advance(limitRange[0]); // Will throw on 0, but condition above prevents since counter always 0+
                         } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
-                            // Out of limit range... skip
-                        } else {
-                                var _ret = function () {
-                                    var matchFilter = true;
-                                    var result = 'value' in cursor ? cursor.value : cursor.key;
+                                // Out of limit range... skip
+                            } else {
+                                    var _ret = function () {
+                                        var matchFilter = true;
+                                        var result = 'value' in cursor ? cursor.value : cursor.key;
 
-                                    filters.forEach(function (filter) {
-                                        if (!filter || !filter.length) {
-                                            // Invalid filter do nothing
-                                        } else if (filter.length === 2) {
-                                                matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                            } else {
-                                                matchFilter = matchFilter && filter[0](result);
+                                        filters.forEach(function (filter) {
+                                            if (!filter || !filter.length) {
+                                                // Invalid filter do nothing
+                                            } else if (filter.length === 2) {
+                                                    matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                                } else {
+                                                    matchFilter = matchFilter && filter[0](result);
+                                                }
+                                        });
+
+                                        if (matchFilter) {
+                                            counter++;
+                                            // If we're doing a modify, run it now
+                                            if (modifyObj) {
+                                                try {
+                                                    result = modifyRecord(result);
+                                                    cursor.update(result); // `result` should only be a "structured clone"-able object
+                                                } catch (err) {
+                                                    reject(err);
+                                                    return {
+                                                        v: void 0
+                                                    };
+                                                }
                                             }
-                                    });
-
-                                    if (matchFilter) {
-                                        counter++;
-                                        // If we're doing a modify, run it now
-                                        if (modifyObj) {
                                             try {
-                                                result = modifyRecord(result);
+                                                results.push(mapper(result));
                                             } catch (err) {
                                                 reject(err);
                                                 return {
                                                     v: void 0
                                                 };
                                             }
-                                            cursor.update(result);
                                         }
-                                        try {
-                                            results.push(mapper(result));
-                                        } catch (err) {
-                                            reject(err);
-                                            return {
-                                                v: void 0
-                                            };
-                                        }
-                                    }
-                                    cursor.continue();
-                                }();
+                                        cursor.continue();
+                                    }();
 
-                                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-                            }
+                                    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+                                }
                     }
                 };
             });
         };
 
         var Query = function Query(type, args, queuedError) {
+            var filters = [];
             var direction = 'next';
             var cursorType = 'openCursor';
-            var filters = [];
             var limitRange = null;
             var mapper = defaultMapper;
             var unique = false;
@@ -212,6 +214,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }
 
                 limitRange = args.slice(0, 2);
+                error = limitRange.some(function (val) {
+                    return typeof val !== 'number';
+                }) ? new Error('limit() arguments must be numeric') : error;
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }

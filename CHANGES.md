@@ -9,10 +9,12 @@
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
-- Fix: Ensure there is a promise rejection for a bad schema callback or
-    bad IDBKeyRange-related call.
+- Fix: Ensure limit() arguments are numeric
+- Fix: Ensure there is a promise rejection for a bad schema callback,
+    bad IDBKeyRange-related call, or bad `modify` result;.
 - Fix: Error reporting with `Server.query().range()`.
 - Fix: Actually implement documented chaining of (short) event handlers
+- Fix: Allow empty string index in `Server.query()`.
 - Validation: Tighter checking on argument to `modify` method
 - Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing

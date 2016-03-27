@@ -206,14 +206,6 @@
                     }).catch(function (err) {
                         expect(err.message).to.have.string('is not a valid key');
                         ct++;
-                        return s.names.query().range({badKey: ''}).execute();
-                    }).catch(function (err) {
-                        expect(err.message).to.have.string('is not a valid key');
-                        ct++;
-                        return s.names.query().only(null).execute();
-                    }).catch(function (err) {
-                        expect(err.name).to.equal('DataError');
-                        ct++;
                         return s.names.delete({badKey: ''});
                     }).catch(function (err) {
                         expect(err.name).to.equal('DataError');
@@ -229,7 +221,7 @@
                         return s.names.update({key: {badKey: ''}, item: item});
                     }).catch(function (err) {
                         expect(err.name).to.equal('DataError');
-                        expect(ct).to.equal(6);
+                        expect(ct).to.equal(4);
                         s.close();
                         done();
                     });
@@ -296,6 +288,55 @@
                         throw new Error('Problem mapping');
                     }).execute().catch(function (err) {
                         expect(err.message).to.equal('Problem mapping');
+                        s.close();
+                        done();
+                    });
+                });
+            });
+            it('should catch bad indexes', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query('nonexistentIndex').all().execute().catch(function (err) {
+                        expect(err.name).to.equal('NotFoundError');
+                        done();
+                    });
+                });
+            });
+            it('should catch bad limit arguments', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query().all().limit('bad', 'limit', 'args').execute().catch(function (err) {
+                        expect(err.message).to.equal('limit() arguments must be numeric');
+                        done();
+                    });
+                });
+            });
+            it('should catch bad modify() arguments', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query().all().modify({badModifier: function () {
+                        return function badModifiedResult () {};
+                    }}).execute().catch(function (err) {
+                        expect(err.name).to.equal('DataCloneError');
+                        done();
+                    });
+                });
+            });
+            it('should catch bad range keys (on cursor)', function (done) {
+                var ct = 0;
+                db.open({server: this.dbName}).then(function (s) {
+                    s.names.query().range({badKey: ''}).execute().catch(function (err) {
+                        expect(err.message).to.have.string('is not a valid key');
+                        ct++;
+                        return s.names.query().only(null).execute();
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.query().only(null).keys().execute();
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.query().only(null).count().execute();
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        expect(ct).to.equal(3);
                         s.close();
                         done();
                     });
