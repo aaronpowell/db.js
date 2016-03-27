@@ -578,8 +578,6 @@
                 try {
                     store = db.createObjectStore(tableName, table.key);
                 } catch (err) {
-                    // db.close();
-                    // delete dbCache[server][version];
                     ret = err;
                     return true;
                 }
@@ -605,8 +603,6 @@
                     try {
                         store.createIndex(indexKey, index.keyPath || index.key || indexKey, index);
                     } catch (err2) {
-                        // db.close();
-                        // delete dbCache[server][version];
                         ret = err2;
                         return true;
                     }
