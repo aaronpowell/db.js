@@ -10,6 +10,11 @@
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
+- API change: Allow ``{item:...}`` without `key` for sake of unambiguity
+- API change: Allow add/update {item:...} to be of any value including
+    `undefined` or `null`
+- API change: Allow Mongoifying of add/update/remove keys
+- API change: Disallow key in `count()` if null;
 - Cross-browser support: Auto-wrap user-supplied `Server.error()` and
     `Server.addEventListener('error', ...)` handlers with `preventDefault`
     so as to avoid hard `ConstraintError` aborts in Firefox.
@@ -28,8 +33,8 @@
 - Fix: Allow empty string index in `Server.query()`.
 - Validation: Tighter checking on argument to `modify` method (ensure is
     an object) and on index creation objects (issue #149)
-- Docs: Badges, CHANGES, clarify `delete` and `modify` methods and `schema`
-    property behavior
+- Docs: Badges, CHANGES, clarify `add`, `update`, `delete`, and `modify`
+    methods and `schema` property behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
     testing `versionchange` events in another window, testing bad args,

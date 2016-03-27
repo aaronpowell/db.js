@@ -133,6 +133,20 @@ server.people.add({
 });
 ```
 
+Multiple items can be added as additional arguments to `add`. Another way
+multiple items can be added is when an array is supplied for any of the
+arguments in which case, its top level contents will be treated as separate
+items. If you want unambiguous results where the data to be added could
+itself be an array, be sure to wrap item supplied in your argument within
+an array.
+
+Note also when `add` is provided with objects containing a property `item`
+(and optionally a `key` property), the value of `item` will be treated as the
+record to be added, while any `key` will be used as the key. To supply
+unambiguous items (where you are not sure whether `item` may exist on the
+record to be added), you may wish to consistently wrap your items within an
+object with an `item` property even if you are not supplying a `key`.
+
 #### Updating
 
 ```js
@@ -144,6 +158,10 @@ server.people.update({
     // item added or updated
 });
 ```
+
+As with `add`, `update` shares the same behaviors as far as flattening of
+the top level of array arguments and checking of `item`/`key` properties,
+so if you need unambiguous results, please see the discussion above.
 
 `put` is also available as an alias of `update`.
 

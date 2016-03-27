@@ -349,7 +349,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
     };
 
-    var Server = function Server(db, name, noServerMethods, version) {
+    var Server = function Server(db, name, version, noServerMethods) {
         var _this4 = this;
 
         var closed = false;
@@ -398,15 +398,33 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 var store = transaction.objectStore(table);
-                records.forEach(function (record) {
-                    var req = void 0;
-                    if (record.item && record.key) {
-                        var key = record.key;
+                records.some(function (record) {
+                    var req = void 0,
+                        key = void 0;
+                    if (hasOwn.call(record, 'item')) {
+                        key = record.key;
                         record = record.item;
-                        req = store.add(record, key); // Safe to add since in readwrite
-                    } else {
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
+                        }
+                    }
+
+                    try {
+                        // Safe to add since in readwrite
+                        if (key != null) {
+                            req = store.add(record, key);
+                        } else {
                             req = store.add(record);
                         }
+                    } catch (e) {
+                        reject(e);
+                        return true;
+                    }
 
                     req.onsuccess = function (e) {
                         var target = e.target;
@@ -436,6 +454,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
 
+                var records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
                     return resolve(records, _this3);
@@ -448,20 +470,31 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 var store = transaction.objectStore(table);
-                var records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        var key = record.key;
+
+                records.some(function (record) {
+                    var key = void 0;
+                    if (hasOwn.call(record, 'item')) {
+                        key = record.key;
                         record = record.item;
-                        store.put(record, key);
-                    } else {
-                        try {
-                            store.put(record); // Can throw DataError, e.g., if function passed in
-                        } catch (err) {
-                            reject(err);
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
                         }
+                    }
+                    try {
+                        // These can throw DataError, e.g., if function passed in
+                        if (key != null) {
+                            store.put(record, key);
+                        } else {
+                            store.put(record);
+                        }
+                    } catch (err) {
+                        reject(err);
+                        return true;
                     }
                 });
             });
@@ -477,6 +510,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     reject(new Error('Database has been closed'));
                     return;
                 }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
                     return resolve(key);
@@ -489,7 +529,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 var store = transaction.objectStore(table);
-                store.delete(key);
+                try {
+                    store.delete(key);
+                } catch (err) {
+                    reject(err);
+                }
             });
         };
 
@@ -538,6 +582,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     reject(new Error('Database has been closed'));
                     return;
                 }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
                 var transaction = db.transaction(table);
                 transaction.onerror = function (e) {
                     return reject(e);
@@ -548,12 +599,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var store = transaction.objectStore(table);
 
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                    return;
-                }
                 var req = store.get(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
@@ -567,6 +612,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     reject(new Error('Database has been closed'));
                     return;
                 }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
                 var transaction = db.transaction(table);
                 transaction.onerror = function (e) {
                     return reject(e);
@@ -576,13 +628,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 var store = transaction.objectStore(table);
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                    return;
-                }
-                var req = key === undefined ? store.count() : store.count(key);
+                var req = key == null ? store.count() : store.count(key);
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
@@ -720,11 +766,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return ret;
     };
 
-    var _open = function _open(e, server, noServerMethods, version) {
+    var _open = function _open(e, server, version, noServerMethods) {
         var db = e.target.result;
         dbCache[server][version] = db;
 
-        var s = new Server(db, server, noServerMethods, version);
+        var s = new Server(db, server, version, noServerMethods);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
@@ -745,7 +791,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         target: {
                             result: dbCache[server][version]
                         }
-                    }, server, noServerMethods, version).then(resolve, reject);
+                    }, server, version, noServerMethods).then(resolve, reject);
                 } else {
                     var _ret2 = function () {
                         if (typeof schema === 'function') {
@@ -761,7 +807,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         var request = indexedDB.open(server, version);
 
                         request.onsuccess = function (e) {
-                            return _open(e, server, noServerMethods, version).then(resolve, reject);
+                            return _open(e, server, version, noServerMethods).then(resolve, reject);
                         };
                         request.onupgradeneeded = function (e) {
                             var err = createSchema(e, schema, e.target.result, server, version);
@@ -786,7 +832,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                 //   the user unblocks by closing the blocking
                                 //   connection
                                 request.onsuccess = function (ev) {
-                                    _open(ev, server, noServerMethods, version).then(res, rej);
+                                    _open(ev, server, version, noServerMethods).then(res, rej);
                                 };
                                 request.onerror = function (e) {
                                     return rej(e);

@@ -208,11 +208,11 @@
                         ct++;
                         return s.names.delete({badKey: ''});
                     }).catch(function (err) {
-                        expect(err.name).to.equal('DataError');
+                        expect(err.message).to.have.string('is not a valid key');
                         ct++;
                         return s.names.add({key: {badKey: ''}, item: item});
                     }).catch(function (err) {
-                        expect(err.name).to.equal('DataError');
+                        expect(err.message).to.have.string('is not a valid key');
                         ct++;
                         item = {
                             firstName: 'Mia',
@@ -220,7 +220,7 @@
                         };
                         return s.names.update({key: {badKey: ''}, item: item});
                     }).catch(function (err) {
-                        expect(err.name).to.equal('DataError');
+                        expect(err.message).to.have.string('is not a valid key');
                         expect(ct).to.equal(4);
                         s.close();
                         done();

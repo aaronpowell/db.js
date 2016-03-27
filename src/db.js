@@ -334,14 +334,31 @@
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table);
-                records.forEach(function (record) {
-                    let req;
-                    if (record.item && record.key) {
-                        const key = record.key;
+                records.some(function (record) {
+                    let req, key;
+                    if (hasOwn.call(record, 'item')) {
+                        key = record.key;
                         record = record.item;
-                        req = store.add(record, key); // Safe to add since in readwrite
-                    } else {
-                        req = store.add(record);
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
+                        }
+                    }
+
+                    try {
+                        // Safe to add since in readwrite
+                        if (key != null) {
+                            req = store.add(record, key);
+                        } else {
+                            req = store.add(record);
+                        }
+                    } catch (e) {
+                        reject(e);
+                        return true;
                     }
 
                     req.onsuccess = function (e) {
@@ -366,26 +383,41 @@
                     return;
                 }
 
+                const records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+
                 const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve(records, this);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table);
-                const records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        const key = record.key;
+
+                records.some(function (record) {
+                    let key;
+                    if (hasOwn.call(record, 'item')) {
+                        key = record.key;
                         record = record.item;
-                        store.put(record, key);
-                    } else {
-                        try {
-                            store.put(record); // Can throw DataError, e.g., if function passed in
-                        } catch (err) {
-                            reject(err);
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
                         }
+                    }
+                    try {
+                        // These can throw DataError, e.g., if function passed in
+                        if (key != null) {
+                            store.put(record, key);
+                        } else {
+                            store.put(record);
+                        }
+                    } catch (err) {
+                        reject(err);
+                        return true;
                     }
                 });
             });
@@ -401,13 +433,24 @@
                     reject(new Error('Database has been closed'));
                     return;
                 }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
                 const transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = () => resolve(key);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table);
-                store.delete(key);
+                try {
+                    store.delete(key);
+                } catch (err) {
+                    reject(err);
+                }
             });
         };
 
@@ -450,18 +493,19 @@
                     reject(new Error('Database has been closed'));
                     return;
                 }
-                const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
-
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
                     return;
                 }
+
+                const transaction = db.transaction(table);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+
                 const req = store.get(key);
                 req.onsuccess = e => resolve(e.target.result);
             });
@@ -473,18 +517,19 @@
                     reject(new Error('Database has been closed'));
                     return;
                 }
-                const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-
-                const store = transaction.objectStore(table);
                 try {
                     key = mongoifyKey(key);
                 } catch (e) {
                     reject(e);
                     return;
                 }
-                const req = key === undefined ? store.count() : store.count(key);
+
+                const transaction = db.transaction(table);
+                transaction.onerror = e => reject(e);
+                transaction.onabort = e => reject(e);
+
+                const store = transaction.objectStore(table);
+                const req = key == null ? store.count() : store.count(key);
                 req.onsuccess = e => resolve(e.target.result);
             });
         };
