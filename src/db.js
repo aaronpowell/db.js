@@ -301,7 +301,7 @@
         };
     };
 
-    const Server = function (db, name, noServerMethods, version) {
+    const Server = function (db, name, version, noServerMethods) {
         let closed = false;
 
         this.getIndexedDB = () => db;
@@ -613,11 +613,11 @@
         return ret;
     };
 
-    const open = function (e, server, noServerMethods, version) {
+    const open = function (e, server, version, noServerMethods) {
         const db = e.target.result;
         dbCache[server][version] = db;
 
-        const s = new Server(db, server, noServerMethods, version);
+        const s = new Server(db, server, version, noServerMethods);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
@@ -638,7 +638,7 @@
                         target: {
                             result: dbCache[server][version]
                         }
-                    }, server, noServerMethods, version)
+                    }, server, version, noServerMethods)
                     .then(resolve, reject);
                 } else {
                     if (typeof schema === 'function') {
@@ -651,7 +651,7 @@
                     }
                     const request = indexedDB.open(server, version);
 
-                    request.onsuccess = e => open(e, server, noServerMethods, version).then(resolve, reject);
+                    request.onsuccess = e => open(e, server, version, noServerMethods).then(resolve, reject);
                     request.onupgradeneeded = e => {
                         let err = createSchema(e, schema, e.target.result, server, version);
                         if (err) {
@@ -675,7 +675,7 @@
                             //   the user unblocks by closing the blocking
                             //   connection
                             request.onsuccess = (ev) => {
-                                open(ev, server, noServerMethods, version)
+                                open(ev, server, version, noServerMethods)
                                     .then(res, rej);
                             };
                             request.onerror = e => rej(e);
