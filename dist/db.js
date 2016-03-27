@@ -747,7 +747,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return err;
     };
 
-    var createSchema = function createSchema(e, schema, db, server, version) {
+    var createSchema = function createSchema(e, request, schema, db, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -762,7 +762,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 //      should be without risk in this loop
                 // `NotFoundError` - since we are iterating the dynamically updated
                 //      `objectStoreNames`
-                e.currentTarget.transaction.db.deleteObjectStore(name);
+                db.deleteObjectStore(name);
             }
         }
 
@@ -771,7 +771,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             var table = schema[tableName];
             var store = void 0;
             if (db.objectStoreNames.contains(tableName)) {
-                store = e.currentTarget.transaction.objectStore(tableName); // Shouldn't throw
+                store = request.transaction.objectStore(tableName); // Shouldn't throw
             } else {
                     // Errors for which we are not concerned and why:
                     // `InvalidStateError` - We are in the upgrade transaction.
@@ -874,7 +874,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                             reject(e);
                         };
                         request.onupgradeneeded = function (e) {
-                            var err = createSchema(e, schema, e.target.result, server, version);
+                            var err = createSchema(e, request, schema, e.target.result, server, version);
                             if (err) {
                                 reject(err);
                             }
