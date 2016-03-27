@@ -379,6 +379,9 @@
                         if (keyPath === null) {
                             keyPath = '__id__';
                         }
+                        if (hasOwn.call(record, keyPath)) {
+                            return;
+                        }
                         Object.defineProperty(record, keyPath, {
                             value: target.result,
                             enumerable: true
@@ -407,7 +410,7 @@
                 const store = transaction.objectStore(table);
 
                 records.some(function (record) {
-                    let key;
+                    let req, key;
                     if (isObject(record) && hasOwn.call(record, 'item')) {
                         key = record.key;
                         record = record.item;
@@ -423,14 +426,32 @@
                     try {
                         // These can throw DataError, e.g., if function passed in
                         if (key != null) {
-                            store.put(record, key);
+                            req = store.put(record, key);
                         } else {
-                            store.put(record);
+                            req = store.put(record);
                         }
                     } catch (err) {
                         reject(err);
                         return true;
                     }
+
+                    req.onsuccess = function (e) {
+                        if (!isObject(record)) {
+                            return;
+                        }
+                        const target = e.target;
+                        let keyPath = target.source.keyPath;
+                        if (keyPath === null) {
+                            keyPath = '__id__';
+                        }
+                        if (hasOwn.call(record, keyPath)) {
+                            return;
+                        }
+                        Object.defineProperty(record, keyPath, {
+                            value: target.result,
+                            enumerable: true
+                        });
+                    };
                 });
             });
         };

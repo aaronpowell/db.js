@@ -163,6 +163,8 @@ As with `add`, `update` shares the same behaviors as far as flattening of
 the top level of array arguments and checking of `item`/`key` properties,
 so if you need unambiguous results, please see the discussion above.
 
+Using `update` will cause a record to be added if it does not yet exist.
+
 `put` is also available as an alias of `update`.
 
 #### Removing

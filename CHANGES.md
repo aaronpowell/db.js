@@ -31,6 +31,11 @@
 - Fix: Ensure `limit()` arguments are numeric
 - Fix: Actually implement documented chaining of (short) event handlers
 - Fix: Allow empty string index in `Server.query()`.
+- Fix: Ensure the records from the `put` in `update()` have a `keyPath`
+    property getter (as with `add()`) in case this was called without
+    an `add()`
+- Fix: Avoid adding `keyPath` property to `add`/`update` records if property
+    is already present;
 - Validation: Tighter checking on argument to `modify` method (ensure is
     an object) and on index creation objects (issue #149)
 - Docs: Badges, CHANGES, clarify `add`, `update`, `delete`, and `modify`
