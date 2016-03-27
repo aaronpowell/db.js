@@ -2,27 +2,38 @@
 
 ## Unreleased
 
-- Breaking change: Change `db.cmp()` to return a Promise to deliver the result
-- Breaking change (minor): Ensure Promise rejections return Error objects
+- Breaking change: Change `db.cmp()` to return a `Promise` to deliver
+    the result
+- Breaking change (minor): Ensure `Promise` rejections return `Error` objects
     rather than strings
 - Breaking change (minor): Change bad keys error message
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
-- API change: Auto-wrap user-supplied `Server.error()` and
+- Cross-browser support: Auto-wrap user-supplied `Server.error()` and
     `Server.addEventListener('error', ...)` handlers with `preventDefault`
     so as to avoid hard `ConstraintError` aborts in Firefox.
-- Fix: Ensure limit() arguments are numeric
+- Cross-browser support: move rejected errors' execution from
+    `onupgradeneeded` to `onsuccess` (Firefox)
+- Cross-browser support (minor): wrap `delete` `onblocked` event's
+    `newVersion` (=null) with `Proxy` but avoid using using `Proxy`
+    if not present for sake of PhantomJS or older browsers (Firefox);
+    could not wrap `oldVersion`, however.
 - Fix: Ensure there is a promise rejection for a bad schema callback,
-    bad IDBKeyRange-related call, or bad `modify` result.
-- Fix: Error reporting with `Server.query().range()`.
+    bad `IDBKeyRange`-related call, bad `createObjectStore`, bad index
+    creation, bad function on `modify()` object, bad `modify` result,
+    bad `map()` function, and bad `put()`.
+- Fix: Ensure `limit()` arguments are numeric
 - Fix: Actually implement documented chaining of (short) event handlers
 - Fix: Allow empty string index in `Server.query()`.
-- Validation: Tighter checking on argument to `modify` method
-- Docs: Badges, CHANGES, clarify `delete` behavior
+- Validation: Tighter checking on argument to `modify` method (ensure is
+    an object) and on index creation objects (issue #149)
+- Docs: Badges, CHANGES, clarify `delete` and `modify` methods and `schema`
+    property behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
-    testing `versionchange` events in another window, testing bad args)
+    testing `versionchange` events in another window, testing bad args,
+    ensure Firefox is passing as well as Chrome)
 
 ## 0.14.0 (March 8, 2016)
 
