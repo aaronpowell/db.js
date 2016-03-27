@@ -342,6 +342,44 @@
                     });
                 });
             });
+            it('should catch bad filters (with add)', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    var caught = false;
+                    s.names.add(null).then(function () {
+                        s.names.query().filter('name', 'Alex').execute().catch(function (err) {
+                            expect(err.name).to.equal('TypeError');
+                            caught = true;
+                            return s.names.query().filter(function () {
+                                throw new Error('Bad filter function');
+                            }).execute();
+                        }).catch(function (err) {
+                            expect(caught).to.equal(true);
+                            expect(err.name).to.equal('Error');
+                            s.close();
+                            done();
+                        });
+                    });
+                });
+            });
+            it('should catch bad filters (with update)', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    var caught = false;
+                    s.names.update(null).then(function () {
+                        s.names.query().filter('name', 'Alex').execute().catch(function (err) {
+                            expect(err.name).to.equal('TypeError');
+                            caught = true;
+                            return s.names.query().filter(function () {
+                                throw new Error('Bad filter function');
+                            }).execute();
+                        }).catch(function (err) {
+                            expect(caught).to.equal(true);
+                            expect(err.name).to.equal('Error');
+                            s.close();
+                            done();
+                        });
+                    });
+                });
+            });
         });
 
         describe('delete', function () {

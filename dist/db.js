@@ -27,6 +27,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     var dbCache = {};
     var serverEvents = ['abort', 'error', 'versionchange'];
 
+    function isObject(item) {
+        return item && (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object';
+    }
+
     function mongoDBToKeyRangeArgs(opts) {
         var keys = Object.keys(opts).sort();
         if (keys.length === 1) {
@@ -149,15 +153,23 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                         var matchFilter = true;
                                         var result = 'value' in cursor ? cursor.value : cursor.key;
 
-                                        filters.forEach(function (filter) {
-                                            if (!filter || !filter.length) {
-                                                // Invalid filter do nothing
-                                            } else if (filter.length === 2) {
-                                                    matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                                } else {
-                                                    matchFilter = matchFilter && filter[0](result);
-                                                }
-                                        });
+                                        try {
+                                            filters.forEach(function (filter) {
+                                                if (!filter || !filter.length) {
+                                                    // Invalid filter do nothing
+                                                } else if (filter.length === 2) {
+                                                        matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                                    } else {
+                                                        matchFilter = matchFilter && filter[0](result);
+                                                    }
+                                            });
+                                        } catch (err) {
+                                            // Could be filter on non-object or error in filter function
+                                            reject(err);
+                                            return {
+                                                v: void 0
+                                            };
+                                        }
 
                                         if (matchFilter) {
                                             counter++;
@@ -399,7 +411,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 records.some(function (record) {
                     var req = void 0,
                         key = void 0;
-                    if (hasOwn.call(record, 'item')) {
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
                         key = record.key;
                         record = record.item;
                         if (key != null) {
@@ -425,6 +437,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     }
 
                     req.onsuccess = function (e) {
+                        if (!isObject(record)) {
+                            return;
+                        }
                         var target = e.target;
                         var keyPath = target.source.keyPath;
                         if (keyPath === null) {
@@ -469,7 +484,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 records.some(function (record) {
                     var key = void 0;
-                    if (hasOwn.call(record, 'item')) {
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
                         key = record.key;
                         record = record.item;
                         if (key != null) {

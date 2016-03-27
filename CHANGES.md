@@ -10,8 +10,8 @@
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
-- API change: Allow ``{item:...}`` without `key` for sake of unambiguity
-- API change: Allow add/update {item:...} to be of any value including
+- API change: Allow `{item:...}` without `key` for sake of unambiguity
+- API change: Allow `add`/`update` items to be of any value including
     `undefined` or `null`
 - API change: Allow Mongoifying of add/update/remove keys
 - API change: Disallow key in `count()` if null;
@@ -27,7 +27,7 @@
 - Fix: Ensure there is a promise rejection for a bad schema callback,
     bad `IDBKeyRange`-related call, bad `createObjectStore`, bad index
     creation, bad function on `modify()` object, bad `modify` result,
-    bad `map()` function, and bad `put()`.
+    bad `map()` function, bad `filter`, and bad `update()`.
 - Fix: Ensure `limit()` arguments are numeric
 - Fix: Actually implement documented chaining of (short) event handlers
 - Fix: Allow empty string index in `Server.query()`.

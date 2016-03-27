@@ -18,6 +18,10 @@
     const dbCache = {};
     const serverEvents = ['abort', 'error', 'versionchange'];
 
+    function isObject (item) {
+        return item && typeof item === 'object';
+    }
+
     function mongoDBToKeyRangeArgs (opts) {
         const keys = Object.keys(opts).sort();
         if (keys.length === 1) {
@@ -118,15 +122,20 @@
                             let matchFilter = true;
                             let result = 'value' in cursor ? cursor.value : cursor.key;
 
-                            filters.forEach(function (filter) {
-                                if (!filter || !filter.length) {
-                                    // Invalid filter do nothing
-                                } else if (filter.length === 2) {
-                                    matchFilter = matchFilter && (result[filter[0]] === filter[1]);
-                                } else {
-                                    matchFilter = matchFilter && filter[0](result);
-                                }
-                            });
+                            try {
+                                filters.forEach(function (filter) {
+                                    if (!filter || !filter.length) {
+                                        // Invalid filter do nothing
+                                    } else if (filter.length === 2) {
+                                        matchFilter = matchFilter && (result[filter[0]] === filter[1]);
+                                    } else {
+                                        matchFilter = matchFilter && filter[0](result);
+                                    }
+                                });
+                            } catch (err) { // Could be filter on non-object or error in filter function
+                                reject(err);
+                                return;
+                            }
 
                             if (matchFilter) {
                                 counter++;
@@ -336,7 +345,7 @@
                 const store = transaction.objectStore(table);
                 records.some(function (record) {
                     let req, key;
-                    if (hasOwn.call(record, 'item')) {
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
                         key = record.key;
                         record = record.item;
                         if (key != null) {
@@ -362,6 +371,9 @@
                     }
 
                     req.onsuccess = function (e) {
+                        if (!isObject(record)) {
+                            return;
+                        }
                         const target = e.target;
                         let keyPath = target.source.keyPath;
                         if (keyPath === null) {
@@ -396,7 +408,7 @@
 
                 records.some(function (record) {
                     let key;
-                    if (hasOwn.call(record, 'item')) {
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
                         key = record.key;
                         record = record.item;
                         if (key != null) {
