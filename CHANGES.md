@@ -3,9 +3,9 @@
 ## Unreleased
 
 - Breaking change: Change `db.cmp()` to return a Promise to deliver the result
-- Breaking change: Ensure Promise rejections return Error objects rather
-    than strings
-- Breaking change: Change bad keys error message
+- Breaking change (minor): Ensure Promise rejections return Error objects
+    rather than strings
+- Breaking change (minor): Change bad keys error message
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
@@ -14,7 +14,7 @@
     so as to avoid hard `ConstraintError` aborts in Firefox.
 - Fix: Ensure limit() arguments are numeric
 - Fix: Ensure there is a promise rejection for a bad schema callback,
-    bad IDBKeyRange-related call, or bad `modify` result;.
+    bad IDBKeyRange-related call, or bad `modify` result.
 - Fix: Error reporting with `Server.query().range()`.
 - Fix: Actually implement documented chaining of (short) event handlers
 - Fix: Allow empty string index in `Server.query()`.
@@ -22,7 +22,7 @@
 - Docs: Badges, CHANGES, clarify `delete` behavior
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
-    testing `verionchange` events in another window, testing bad args)
+    testing `versionchange` events in another window, testing bad args)
 
 ## 0.14.0 (March 8, 2016)
 

@@ -523,6 +523,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             return new Promise(function (resolve, reject) {
                 if (closed) {
                     reject(new Error('Database has been closed'));
+                    return;
                 }
                 db.close();
                 closed = true;

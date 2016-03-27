@@ -435,6 +435,7 @@
             return new Promise(function (resolve, reject) {
                 if (closed) {
                     reject(new Error('Database has been closed'));
+                    return;
                 }
                 db.close();
                 closed = true;
