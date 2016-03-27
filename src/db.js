@@ -324,7 +324,7 @@
                 }, []);
 
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records, this);
+                transaction.oncomplete = () => resolve(records);
                 transaction.onerror = e => {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
@@ -388,7 +388,7 @@
                 }, []);
 
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records, this);
+                transaction.oncomplete = () => resolve(records);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
 

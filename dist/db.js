@@ -350,7 +350,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var Server = function Server(db, name, version, noServerMethods) {
-        var _this4 = this;
+        var _this2 = this;
 
         var closed = false;
 
@@ -372,8 +372,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             }
 
             return new Promise(function (resolve, reject) {
-                var _this2 = this;
-
                 if (closed) {
                     reject(new Error('Database has been closed'));
                     return;
@@ -385,7 +383,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
-                    return resolve(records, _this2);
+                    return resolve(records);
                 };
                 transaction.onerror = function (e) {
                     // prevent Firefox from throwing a ConstraintError and aborting (hard)
@@ -447,8 +445,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             }
 
             return new Promise(function (resolve, reject) {
-                var _this3 = this;
-
                 if (closed) {
                     reject(new Error('Database has been closed'));
                     return;
@@ -460,7 +456,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
                 transaction.oncomplete = function () {
-                    return resolve(records, _this3);
+                    return resolve(records);
                 };
                 transaction.onerror = function (e) {
                     return reject(e);
@@ -669,22 +665,22 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
         var err = void 0;
         [].some.call(db.objectStoreNames, function (storeName) {
-            if (_this4[storeName]) {
+            if (_this2[storeName]) {
                 err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
-                _this4.close();
+                _this2.close();
                 return true;
             }
-            _this4[storeName] = {};
-            var keys = Object.keys(_this4);
+            _this2[storeName] = {};
+            var keys = Object.keys(_this2);
             keys.filter(function (key) {
                 return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
             }).map(function (key) {
-                return _this4[storeName][key] = function () {
+                return _this2[storeName][key] = function () {
                     for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
                         args[_key5] = arguments[_key5];
                     }
 
-                    return _this4[key].apply(_this4, [storeName].concat(args));
+                    return _this2[key].apply(_this2, [storeName].concat(args));
                 };
             });
         });
