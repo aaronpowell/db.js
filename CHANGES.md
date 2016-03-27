@@ -9,6 +9,9 @@
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API addition: Add Server aliases, `put` and `delete`.
+- API change: Auto-wrap user-supplied `Server.error()` and
+    `Server.addEventListener('error', ...)` handlers with `preventDefault`
+    so as to avoid hard `ConstraintError` aborts in Firefox.
 - Fix: Ensure limit() arguments are numeric
 - Fix: Ensure there is a promise rejection for a bad schema callback,
     bad IDBKeyRange-related call, or bad `modify` result;.

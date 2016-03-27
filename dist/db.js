@@ -592,6 +592,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             if (!serverEvents.includes(eventName)) {
                 throw new Error('Unrecognized event type ' + eventName);
             }
+            if (eventName === 'error') {
+                db.addEventListener(eventName, function (e) {
+                    e.preventDefault(); // Needed by Firefox to prevent hard abort with ConstraintError
+                    handler(e);
+                });
+                return;
+            }
             db.addEventListener(eventName, handler);
         };
 

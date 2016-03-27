@@ -144,7 +144,6 @@
             this.server.addEventListener('error', function (vce) {
                 expect(vce.type).to.equal('error');
                 expect(bubbleCount).to.equal(2);
-                vce.preventDefault(); // Needed by Firefox
                 done();
             });
 
@@ -173,7 +172,6 @@
                 expect(true).to.be.false;
             }
             function errorHandler (vce) {
-                vce.preventDefault(); // Needed by Firefox
                 incAndTest();
             }
             function versionChange1 (vce) {
