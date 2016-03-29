@@ -192,6 +192,34 @@
                 });
             });
 
+            it('should catch bad keys', function (done) {
+                db.open({server: this.dbName}).then(function (s) {
+                    var ct = 0;
+                    var badKey = function () {};
+                    s.names.get(badKey).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.count(badKey);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.add({key: badKey, item: ''});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.put({key: badKey, item: ''});
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        ct++;
+                        return s.names.remove(badKey);
+                    }).catch(function (err) {
+                        expect(err.name).to.equal('DataError');
+                        expect(ct).to.equal(4);
+                        done();
+                    });
+                });
+            });
+
             it('should catch bad range keys', function (done) {
                 var ct = 0;
                 var item = {

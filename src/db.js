@@ -84,9 +84,9 @@
                 const indexArgs = [keyRange];
 
                 const transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-                transaction.oncomplete = () => resolve(results);
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
+                transaction.oncomplete = () => resolve(results);
 
                 const store = transaction.objectStore(table); // if bad, db.transaction will reject first
                 const index = typeof indexName === 'string' ? store.index(indexName) : store;
@@ -333,14 +333,14 @@
                 }, []);
 
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records);
                 transaction.onerror = e => {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                    // prevent throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
                     e.preventDefault();
                     reject(e);
                 };
                 transaction.onabort = e => reject(e);
+                transaction.oncomplete = () => resolve(records);
 
                 const store = transaction.objectStore(table);
                 records.some(function (record) {
@@ -403,9 +403,14 @@
                 }, []);
 
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(records);
-                transaction.onerror = e => reject(e);
+                transaction.onerror = e => {
+                    // prevent throwing aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
                 transaction.onabort = e => reject(e);
+                transaction.oncomplete = () => resolve(records);
 
                 const store = transaction.objectStore(table);
 
@@ -474,9 +479,14 @@
                 }
 
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve(key);
-                transaction.onerror = e => reject(e);
+                transaction.onerror = e => {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
                 transaction.onabort = e => reject(e);
+                transaction.oncomplete = () => resolve(key);
 
                 const store = transaction.objectStore(table);
                 try {
@@ -498,9 +508,9 @@
                     return;
                 }
                 const transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = () => resolve();
                 transaction.onerror = e => reject(e);
                 transaction.onabort = e => reject(e);
+                transaction.oncomplete = () => resolve();
 
                 const store = transaction.objectStore(table);
                 store.clear();
@@ -534,12 +544,22 @@
                 }
 
                 const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
+                transaction.onerror = e => {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table);
 
-                const req = store.get(key);
+                let req;
+                try {
+                    req = store.get(key);
+                } catch (err) {
+                    reject(err);
+                }
                 req.onsuccess = e => resolve(e.target.result);
             });
         };
@@ -558,11 +578,21 @@
                 }
 
                 const transaction = db.transaction(table);
-                transaction.onerror = e => reject(e);
+                transaction.onerror = e => {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
                 transaction.onabort = e => reject(e);
 
                 const store = transaction.objectStore(table);
-                const req = key == null ? store.count() : store.count(key);
+                let req;
+                try {
+                    req = key == null ? store.count() : store.count(key);
+                } catch (err) {
+                    reject(err);
+                }
                 req.onsuccess = e => resolve(e.target.result);
             });
         };

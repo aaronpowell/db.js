@@ -105,14 +105,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 var indexArgs = [keyRange];
 
                 var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-                transaction.oncomplete = function () {
-                    return resolve(results);
-                };
                 transaction.onerror = function (e) {
                     return reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(results);
                 };
 
                 var store = transaction.objectStore(table); // if bad, db.transaction will reject first
@@ -394,17 +394,17 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }, []);
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(records);
-                };
                 transaction.onerror = function (e) {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
+                    // prevent throwing a ConstraintError and aborting (hard)
                     // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
                     e.preventDefault();
                     reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(records);
                 };
 
                 var store = transaction.objectStore(table);
@@ -473,14 +473,17 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }, []);
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(records);
-                };
                 transaction.onerror = function (e) {
-                    return reject(e);
+                    // prevent throwing aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(records);
                 };
 
                 var store = transaction.objectStore(table);
@@ -551,14 +554,17 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 }
 
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(key);
-                };
                 transaction.onerror = function (e) {
-                    return reject(e);
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(key);
                 };
 
                 var store = transaction.objectStore(table);
@@ -581,14 +587,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                     return;
                 }
                 var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve();
-                };
                 transaction.onerror = function (e) {
                     return reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve();
                 };
 
                 var store = transaction.objectStore(table);
@@ -624,7 +630,10 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table);
                 transaction.onerror = function (e) {
-                    return reject(e);
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
@@ -632,7 +641,12 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var store = transaction.objectStore(table);
 
-                var req = store.get(key);
+                var req = void 0;
+                try {
+                    req = store.get(key);
+                } catch (err) {
+                    reject(err);
+                }
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
@@ -654,14 +668,22 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 var transaction = db.transaction(table);
                 transaction.onerror = function (e) {
-                    return reject(e);
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
                 };
 
                 var store = transaction.objectStore(table);
-                var req = key == null ? store.count() : store.count(key);
+                var req = void 0;
+                try {
+                    req = key == null ? store.count() : store.count(key);
+                } catch (err) {
+                    reject(err);
+                }
                 req.onsuccess = function (e) {
                     return resolve(e.target.result);
                 };
