@@ -730,20 +730,19 @@
                     const request = indexedDB.open(server, version);
 
                     request.onsuccess = e => open(e, server, version, noServerMethods).then(resolve, reject);
+                    request.onerror = e => {
+                        // Prevent default for `BadVersion` and `AbortError` errors, etc.
+                        // These are not necessarily reported in console in Chrome but present; see
+                        //  https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                        //  http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event/36266502
+                        e.preventDefault();
+                        reject(e);
+                    };
                     request.onupgradeneeded = e => {
                         let err = createSchema(e, schema, e.target.result, server, version);
                         if (err) {
-                            // Firefox throws `AbortError` errors when doing such operations as `close`
-                            //   within `upgradeneeded`, so we have known errors execute instead in `onsuccess`;
-                            //   see http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event
-                            request.onsuccess = e => {
-                                reject(err);
-                            };
+                            reject(err);
                         }
-                    };
-                    request.onerror = e => {
-                        e.preventDefault(); // For Firefox BadVersion errors; see https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                        reject(e);
                     };
                     request.onblocked = e => {
                         const resume = new Promise(function (res, rej) {

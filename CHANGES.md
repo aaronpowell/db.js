@@ -18,8 +18,9 @@
 - Cross-browser support: Auto-wrap user-supplied `Server.error()` and
     `Server.addEventListener('error', ...)` handlers with `preventDefault`
     so as to avoid hard `ConstraintError` aborts in Firefox.
-- Cross-browser support: move rejected errors' execution from
-    `onupgradeneeded` to `onsuccess` (Firefox)
+- Cross-browser support: add `preventDefault` in error listener so that
+    `onupgradeneeded` errors will not become reported in Firefox (though it
+    will occur regardless)
 - Cross-browser support (minor): wrap `delete` `onblocked` event's
     `newVersion` (=null) with `Proxy` but avoid using using `Proxy`
     if not present for sake of PhantomJS or older browsers (Firefox);

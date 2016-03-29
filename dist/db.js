@@ -842,20 +842,19 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         request.onsuccess = function (e) {
                             return _open(e, server, version, noServerMethods).then(resolve, reject);
                         };
+                        request.onerror = function (e) {
+                            // Prevent default for `BadVersion` and `AbortError` errors, etc.
+                            // These are not necessarily reported in console in Chrome but present; see
+                            //  https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                            //  http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event/36266502
+                            e.preventDefault();
+                            reject(e);
+                        };
                         request.onupgradeneeded = function (e) {
                             var err = createSchema(e, schema, e.target.result, server, version);
                             if (err) {
-                                // Firefox throws `AbortError` errors when doing such operations as `close`
-                                //   within `upgradeneeded`, so we have known errors execute instead in `onsuccess`;
-                                //   see http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event
-                                request.onsuccess = function (e) {
-                                    reject(err);
-                                };
+                                reject(err);
                             }
-                        };
-                        request.onerror = function (e) {
-                            e.preventDefault(); // For Firefox BadVersion errors; see https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                            reject(e);
                         };
                         request.onblocked = function (e) {
                             var resume = new Promise(function (res, rej) {
