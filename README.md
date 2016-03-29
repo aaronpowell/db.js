@@ -330,6 +330,40 @@ server.people.query('answer')
     });
 ```
 
+Note that IndexedDB allows you to use array keys within ranges (and
+other methods where a key is accepted) as long as you have created
+your store with an array `keyPath` (and optionally with an index
+`keyPath`).
+
+```js
+
+// The definition:
+schema: {
+    people: {
+        key: {
+            keyPath: ['lastName', 'firstName']
+        },
+        indexes: {
+            name: {
+                keyPath: ['lastName', 'firstName']
+            },
+            lastName: {},
+            firstName: {}
+        }
+    }
+}
+
+// ...elsewhere...
+
+// The query:
+s.test.query('name')
+    .only(['Zamir', 'Brett'])
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
+```
+
 ##### Limiting cursor range
 
 Unlike key ranges which filter by the range of present values,

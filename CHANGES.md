@@ -45,11 +45,12 @@
 - Validation: Tighter checking on argument to `modify` method (ensure is
     an object) and on index creation objects (issue #149)
 - Docs: Badges, CHANGES, clarify `add`, `update`, `delete`, `filter` and
-    `modify` methods and `schema` property behavior
+    `modify` methods, `schema` property behavior, and querying with ranges.
 - Testing improvements: Travis/Karma/PhantomJS/Grunt (including allowing
     override of Saucekey env var., overcoming PhantomJS issues with workers,
     testing `versionchange` events in another window, testing bad args,
-    ensure Firefox is passing as well as Chrome)
+    testing array and nested `keyPath`'s and indexes, ensure Firefox is
+    passing as well as Chrome)
 
 ## 0.14.0 (March 8, 2016)
 
