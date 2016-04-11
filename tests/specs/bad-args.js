@@ -76,6 +76,30 @@
                     done();
                 });
             });
+            it('should catch when keyPath is an array and multiEntry=true', function (done) {
+                db.open({
+                    server: this.dbName,
+                    version: 2,
+                    schema: {
+                        test: {
+                            key: {
+                                keyPath: ['lastName', 'firstName']
+                            },
+                            indexes: {
+                                name: {
+                                    keyPath: ['lastName', 'firstName'],
+                                    multiEntry: true
+                                },
+                                lastName: {},
+                                firstName: {}
+                            }
+                        }
+                    }
+                }).catch(function (err) {
+                    expect(err.name).to.equal('InvalidAccessError');
+                    done();
+                });
+            });
         });
 
         describe('open: createSchema', function () {
