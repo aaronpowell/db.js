@@ -41,6 +41,7 @@
     an `add()`
 - Fix: Avoid adding `keyPath` property to `add`/`update` records if property
     is already present;
+- Fix: Provide refactoring for IndexedDBShim (issue #87).
 - Validation: Tighter checking on argument to `modify` method (ensure is
     an object) and on index creation objects (issue #149)
 - Docs: Badges, CHANGES, clarify `add`, `update`, `delete`, `filter` and
