@@ -655,7 +655,7 @@
         return err;
     };
 
-    const createSchema = function (e, schema, db, server, version) {
+    const createSchema = function (e, request, schema, db, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
@@ -670,7 +670,7 @@
                 //      should be without risk in this loop
                 // `NotFoundError` - since we are iterating the dynamically updated
                 //      `objectStoreNames`
-                e.currentTarget.transaction.db.deleteObjectStore(name);
+                db.deleteObjectStore(name);
             }
         }
 
@@ -679,7 +679,7 @@
             const table = schema[tableName];
             let store;
             if (db.objectStoreNames.contains(tableName)) {
-                store = e.currentTarget.transaction.objectStore(tableName); // Shouldn't throw
+                store = request.transaction.objectStore(tableName); // Shouldn't throw
             } else {
                 // Errors for which we are not concerned and why:
                 // `InvalidStateError` - We are in the upgrade transaction.
@@ -778,7 +778,7 @@
                         reject(e);
                     };
                     request.onupgradeneeded = e => {
-                        let err = createSchema(e, schema, e.target.result, server, version);
+                        let err = createSchema(e, request, schema, e.target.result, server, version);
                         if (err) {
                             reject(err);
                         }
