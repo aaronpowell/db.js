@@ -253,6 +253,9 @@ server.people.query('specialProperty')
 
 ##### Querying with filtering
 
+Note that unlike the other methods after a query, `filter` can
+be executed multiple times.
+
 ###### Filter with property and value
 
 ```js
@@ -272,6 +275,21 @@ server.people.query()
     .execute()
     .then(function (results) {
         // do something with the results
+    });
+```
+
+##### Querying for distinct values
+
+Will return only one record:
+
+```js
+server.people
+    .query('firstName')
+    .only('Aaron')
+    .distinct()
+    .execute()
+    .then(function (data) {
+        //
     });
 ```
 
@@ -309,21 +327,6 @@ server.people.query('answer')
     .range({gte: 30, lte: 50})
     .then(function (results) {
         // do something with the results
-    });
-```
-
-##### Querying for distinct values
-
-Will return only one record:
-
-```js
-server.people
-    .query('firstName')
-    .only('Aaron')
-    .distinct()
-    .execute()
-    .then(function (data) {
-        //
     });
 ```
 

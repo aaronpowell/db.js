@@ -155,13 +155,11 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                                         try {
                                             filters.forEach(function (filter) {
-                                                if (!filter || !filter.length) {
-                                                    // Invalid filter do nothing
-                                                } else if (filter.length === 2) {
-                                                        matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                                    } else {
-                                                        matchFilter = matchFilter && filter[0](result);
-                                                    }
+                                                if (typeof filter[0] === 'function') {
+                                                    matchFilter = matchFilter && filter[0](result);
+                                                } else {
+                                                    matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                                }
                                             });
                                         } catch (err) {
                                             // Could be filter on non-object or error in filter function
@@ -220,23 +218,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 return runQuery(type, args, cursorType, unique ? direction + 'unique' : direction, limitRange, filters, mapper);
             };
 
-            var limit = function limit() {
-                for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-                    args[_key] = arguments[_key];
-                }
-
-                limitRange = args.slice(0, 2);
-                error = limitRange.some(function (val) {
-                    return typeof val !== 'number';
-                }) ? new Error('limit() arguments must be numeric') : error;
-                if (limitRange.length === 1) {
-                    limitRange.unshift(0);
-                }
-
-                return {
-                    execute: execute
-                };
-            };
             var count = function count() {
                 direction = null;
                 cursorType = 'count';
@@ -251,86 +232,106 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
                 return {
                     desc: desc,
+                    distinct: distinct,
                     execute: execute,
                     filter: filter,
-                    distinct: distinct,
-                    map: map
-                };
-            };
-            var filter = function filter() {
-                for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-                    args[_key2] = arguments[_key2];
-                }
-
-                filters.push(args.slice(0, 2));
-
-                return {
-                    keys: keys,
-                    execute: execute,
-                    filter: filter,
-                    desc: desc,
-                    distinct: distinct,
-                    modify: modify,
                     limit: limit,
                     map: map
                 };
             };
+
+            var limit = function limit(start, end) {
+                limitRange = !end ? [0, start] : [start, end];
+                error = limitRange.some(function (val) {
+                    return typeof val !== 'number';
+                }) ? new Error('limit() arguments must be numeric') : error;
+
+                return {
+                    desc: desc,
+                    distinct: distinct,
+                    filter: filter,
+                    keys: keys,
+                    execute: execute,
+                    map: map,
+                    modify: modify
+                };
+            };
+
+            var filter = function filter(prop, val) {
+                filters.push([prop, val]);
+
+                return {
+                    desc: desc,
+                    distinct: distinct,
+                    execute: execute,
+                    filter: filter,
+                    keys: keys,
+                    limit: limit,
+                    map: map,
+                    modify: modify
+                };
+            };
+
             var desc = function desc() {
                 direction = 'prev';
 
                 return {
-                    keys: keys,
+                    distinct: distinct,
                     execute: execute,
                     filter: filter,
-                    distinct: distinct,
-                    modify: modify,
-                    map: map
+                    keys: keys,
+                    limit: limit,
+                    map: map,
+                    modify: modify
                 };
             };
+
             var distinct = function distinct() {
                 unique = true;
                 return {
-                    keys: keys,
                     count: count,
+                    desc: desc,
                     execute: execute,
                     filter: filter,
-                    desc: desc,
-                    modify: modify,
-                    map: map
+                    keys: keys,
+                    limit: limit,
+                    map: map,
+                    modify: modify
                 };
             };
+
             var modify = function modify(update) {
                 modifyObj = update && (typeof update === 'undefined' ? 'undefined' : _typeof(update)) === 'object' ? update : null;
                 return {
                     execute: execute
                 };
             };
+
             var map = function map(fn) {
                 mapper = fn;
 
                 return {
-                    execute: execute,
                     count: count,
-                    keys: keys,
-                    filter: filter,
                     desc: desc,
                     distinct: distinct,
-                    modify: modify,
+                    execute: execute,
+                    filter: filter,
+                    keys: keys,
                     limit: limit,
-                    map: map
+                    modify: modify
                 };
             };
 
             return {
-                execute: execute,
                 count: count,
-                keys: keys,
-                filter: filter,
                 desc: desc,
                 distinct: distinct,
-                modify: modify,
+                execute: execute,
+                filter: filter,
+                keys: keys,
                 limit: limit,
-                map: map
+                map: map,
+                modify: modify
             };
         };
 
@@ -379,8 +380,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.add = function (table) {
-            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-                args[_key3 - 1] = arguments[_key3];
+            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                args[_key - 1] = arguments[_key];
             }
 
             return new Promise(function (resolve, reject) {
@@ -458,8 +459,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
 
         this.update = function (table) {
-            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                args[_key4 - 1] = arguments[_key4];
+            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                args[_key2 - 1] = arguments[_key2];
             }
 
             return new Promise(function (resolve, reject) {
@@ -735,8 +736,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
             }).map(function (key) {
                 return _this2[storeName][key] = function () {
-                    for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-                        args[_key5] = arguments[_key5];
+                    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+                        args[_key3] = arguments[_key3];
                     }
 
                     return _this2[key].apply(_this2, [storeName].concat(args));
@@ -830,7 +831,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     };
 
     var db = {
-        version: '0.14.0',
+        version: '0.15.0',
         open: function open(options) {
             var server = options.server;
             var version = options.version || 1;
