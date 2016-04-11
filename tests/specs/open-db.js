@@ -2,6 +2,8 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('db.open', function () {
+        this.timeout(5000);
+
         var initialVersion = 1;
         var newVersion = 2;
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||

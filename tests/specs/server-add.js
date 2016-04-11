@@ -3,6 +3,8 @@
     'use strict';
 
     describe('server.add', function () {
+        this.timeout(5000);
+
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -81,6 +83,7 @@
     });
 
     describe('server.add-non-autoincrement key', function () {
+        this.timeout(10000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -106,23 +109,13 @@
             });
         });
 
-        afterEach(function (done) {
+        afterEach(function () {
             if (this.server && !this.server.isClosed()) {
                 this.server.close();
             }
             this.server = undefined;
 
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-            req.onerror = function () {
-                console.log('failed to delete db', arguments);
-            };
-            req.onblocked = function () {
-                console.log('db blocked', arguments);
-            };
+            indexedDB.deleteDatabase(this.dbName);
         });
 
         it('should insert a new item into the object store (non-autoincrement key)', function (done) {
@@ -142,6 +135,8 @@
     });
 
     describe('server.add no keyPath', function () {
+        this.timeout(5000);
+
         var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
         beforeEach(function (done) {

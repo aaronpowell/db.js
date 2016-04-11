@@ -27,12 +27,17 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
     var dbCache = {};
     var serverEvents = ['abort', 'error', 'versionchange'];
 
+    function isObject(item) {
+        return item && (typeof item === 'undefined' ? 'undefined' : _typeof(item)) === 'object';
+    }
+
     function mongoDBToKeyRangeArgs(opts) {
         var keys = Object.keys(opts).sort();
         if (keys.length === 1) {
             var key = keys[0];
             var val = opts[key];
-            var name, inclusive;
+            var name = void 0,
+                inclusive = void 0;
             switch (key) {
                 case 'eq':
                     name = 'only';break;
@@ -49,7 +54,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 case 'lte':
                     name = 'upperBound';break;
                 default:
-                    throw new TypeError('`' + key + '` is not valid key');
+                    throw new TypeError('`' + key + '` is not a valid key');
             }
             return [name, [val, inclusive]];
         }
@@ -78,323 +83,53 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         return key;
     }
 
-    var Server = function Server(db, name, noServerMethods, version) {
-        var _this3 = this;
-
-        var closed = false;
-
-        this.getIndexedDB = function () {
-            return db;
-        };
-        this.isClosed = function () {
-            return closed;
-        };
-
-        this.add = function (table) {
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
-            }
-
-            return new Promise(function (resolve, reject) {
-                var _this = this;
-
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-
-                var records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-
-                var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(records, _this);
-                };
-                transaction.onerror = function (e) {
-                    // prevent Firefox from throwing a ConstraintError and aborting (hard)
-                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-                    e.preventDefault();
-                    reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                records.forEach(function (record) {
-                    var req;
-                    if (record.item && record.key) {
-                        var key = record.key;
-                        record = record.item;
-                        req = store.add(record, key);
-                    } else {
-                        req = store.add(record);
-                    }
-
-                    req.onsuccess = function (e) {
-                        var target = e.target;
-                        var keyPath = target.source.keyPath;
-                        if (keyPath === null) {
-                            keyPath = '__id__';
-                        }
-                        Object.defineProperty(record, keyPath, {
-                            value: target.result,
-                            enumerable: true
-                        });
-                    };
-                });
-            });
-        };
-
-        this.update = function (table) {
-            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                args[_key2 - 1] = arguments[_key2];
-            }
-
-            return new Promise(function (resolve, reject) {
-                var _this2 = this;
-
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-
-                var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(records, _this2);
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                var records = args.reduce(function (records, aip) {
-                    return records.concat(aip);
-                }, []);
-                records.forEach(function (record) {
-                    if (record.item && record.key) {
-                        var key = record.key;
-                        record = record.item;
-                        store.put(record, key);
-                    } else {
-                        store.put(record);
-                    }
-                });
-            });
-        };
-
-        this.remove = function (table, key) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve(key);
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                store.delete(key);
-            });
-        };
-
-        this.clear = function (table) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                var transaction = db.transaction(table, transactionModes.readwrite);
-                transaction.oncomplete = function () {
-                    return resolve();
-                };
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                store.clear();
-            });
-        };
-
-        this.close = function () {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                }
-                db.close();
-                closed = true;
-                delete dbCache[name][version];
-                resolve();
-            });
-        };
-
-        this.get = function (table, key) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                var transaction = db.transaction(table);
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                }
-                var req = store.get(key);
-                req.onsuccess = function (e) {
-                    return resolve(e.target.result);
-                };
-            });
-        };
-
-        this.query = function (table, index) {
-            var error = closed ? 'Database has been closed' : null;
-            return new IndexQuery(table, db, index, error);
-        };
-
-        this.count = function (table, key) {
-            return new Promise(function (resolve, reject) {
-                if (closed) {
-                    reject('Database has been closed');
-                    return;
-                }
-                var transaction = db.transaction(table);
-                transaction.onerror = function (e) {
-                    return reject(e);
-                };
-                transaction.onabort = function (e) {
-                    return reject(e);
-                };
-
-                var store = transaction.objectStore(table);
-                try {
-                    key = mongoifyKey(key);
-                } catch (e) {
-                    reject(e);
-                }
-                var req = key === undefined ? store.count() : store.count(key);
-                req.onsuccess = function (e) {
-                    return resolve(e.target.result);
-                };
-            });
-        };
-
-        this.addEventListener = function (eventName, handler) {
-            if (!serverEvents.includes(eventName)) {
-                throw new Error('Unrecognized event type ' + eventName);
-            }
-            db.addEventListener(eventName, handler);
-        };
-
-        this.removeEventListener = function (eventName, handler) {
-            if (!serverEvents.includes(eventName)) {
-                throw new Error('Unrecognized event type ' + eventName);
-            }
-            db.removeEventListener(eventName, handler);
-        };
-
-        serverEvents.forEach(function (evName) {
-            this[evName] = function (handler) {
-                this.addEventListener(evName, handler);
-            };
-        }, this);
-
-        if (noServerMethods) {
-            return;
-        }
-
-        var err;
-        [].some.call(db.objectStoreNames, function (storeName) {
-            if (_this3[storeName]) {
-                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
-                _this3.close();
-                return true;
-            }
-            _this3[storeName] = {};
-            var keys = Object.keys(_this3);
-            keys.filter(function (key) {
-                return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
-            }).map(function (key) {
-                return _this3[storeName][key] = function () {
-                    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-                        args[_key3] = arguments[_key3];
-                    }
-
-                    return _this3[key].apply(_this3, [storeName].concat(args));
-                };
-            });
-        });
-        return err;
-    };
-
     var IndexQuery = function IndexQuery(table, db, indexName, preexistingError) {
-        var _this4 = this;
+        var _this = this;
 
-        var modifyObj = false;
+        var modifyObj = null;
 
         var runQuery = function runQuery(type, args, cursorType, direction, limitRange, filters, mapper) {
             return new Promise(function (resolve, reject) {
+                var keyRange = void 0;
                 try {
-                    var keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
+                    keyRange = type ? IDBKeyRange[type].apply(IDBKeyRange, _toConsumableArray(args)) : null;
                 } catch (e) {
                     reject(e);
+                    return;
                 }
+                filters = filters || [];
+                limitRange = limitRange || null;
+
                 var results = [];
-                var indexArgs = [keyRange];
                 var counter = 0;
+                var indexArgs = [keyRange];
 
                 var transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-                transaction.oncomplete = function () {
-                    return resolve(results);
-                };
                 transaction.onerror = function (e) {
                     return reject(e);
                 };
                 transaction.onabort = function (e) {
                     return reject(e);
                 };
+                transaction.oncomplete = function () {
+                    return resolve(results);
+                };
 
-                var store = transaction.objectStore(table);
-                var index = indexName ? store.index(indexName) : store;
+                var store = transaction.objectStore(table); // if bad, db.transaction will reject first
+                var index = typeof indexName === 'string' ? store.index(indexName) : store;
 
-                limitRange = limitRange || null;
-                filters = filters || [];
                 if (cursorType !== 'count') {
                     indexArgs.push(direction || 'next');
                 }
 
-                // create a function that will set in the modifyObj properties into
+                // Create a function that will set in the modifyObj properties into
                 // the passed record.
                 var modifyKeys = modifyObj ? Object.keys(modifyObj) : [];
 
                 var modifyRecord = function modifyRecord(record) {
                     modifyKeys.forEach(function (key) {
                         var val = modifyObj[key];
-                        if (val instanceof Function) {
+                        if (typeof val === 'function') {
                             val = val(record);
                         }
                         record[key] = val;
@@ -403,49 +138,76 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
 
                 index[cursorType].apply(index, indexArgs).onsuccess = function (e) {
+                    // indexArgs are already validated
                     var cursor = e.target.result;
                     if (typeof cursor === 'number') {
                         results = cursor;
                     } else if (cursor) {
                         if (limitRange !== null && limitRange[0] > counter) {
                             counter = limitRange[0];
-                            cursor.advance(limitRange[0]);
+                            cursor.advance(limitRange[0]); // Will throw on 0, but condition above prevents since counter always 0+
                         } else if (limitRange !== null && counter >= limitRange[0] + limitRange[1]) {
-                            // out of limit range... skip
-                        } else {
-                                var matchFilter = true;
-                                var result = 'value' in cursor ? cursor.value : cursor.key;
+                                // Out of limit range... skip
+                            } else {
+                                    var _ret = function () {
+                                        var matchFilter = true;
+                                        var result = 'value' in cursor ? cursor.value : cursor.key;
 
-                                filters.forEach(function (filter) {
-                                    if (!filter || !filter.length) {
-                                        // Invalid filter do nothing
-                                    } else if (filter.length === 2) {
-                                            matchFilter = matchFilter && result[filter[0]] === filter[1];
-                                        } else {
-                                            matchFilter = matchFilter && filter[0](result);
+                                        try {
+                                            filters.forEach(function (filter) {
+                                                if (!filter || !filter.length) {
+                                                    // Invalid filter do nothing
+                                                } else if (filter.length === 2) {
+                                                        matchFilter = matchFilter && result[filter[0]] === filter[1];
+                                                    } else {
+                                                        matchFilter = matchFilter && filter[0](result);
+                                                    }
+                                            });
+                                        } catch (err) {
+                                            // Could be filter on non-object or error in filter function
+                                            reject(err);
+                                            return {
+                                                v: void 0
+                                            };
                                         }
-                                });
 
-                                if (matchFilter) {
-                                    counter++;
-                                    // if we're doing a modify, run it now
-                                    if (modifyObj) {
-                                        result = modifyRecord(result);
-                                        cursor.update(result);
-                                    }
-                                    results.push(mapper(result));
+                                        if (matchFilter) {
+                                            counter++;
+                                            // If we're doing a modify, run it now
+                                            if (modifyObj) {
+                                                try {
+                                                    result = modifyRecord(result);
+                                                    cursor.update(result); // `result` should only be a "structured clone"-able object
+                                                } catch (err) {
+                                                    reject(err);
+                                                    return {
+                                                        v: void 0
+                                                    };
+                                                }
+                                            }
+                                            try {
+                                                results.push(mapper(result));
+                                            } catch (err) {
+                                                reject(err);
+                                                return {
+                                                    v: void 0
+                                                };
+                                            }
+                                        }
+                                        cursor.continue();
+                                    }();
+
+                                    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
                                 }
-                                cursor.continue();
-                            }
                     }
                 };
             });
         };
 
         var Query = function Query(type, args, queuedError) {
+            var filters = [];
             var direction = 'next';
             var cursorType = 'openCursor';
-            var filters = [];
             var limitRange = null;
             var mapper = defaultMapper;
             var unique = false;
@@ -459,11 +221,14 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
             };
 
             var limit = function limit() {
-                for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-                    args[_key4] = arguments[_key4];
+                for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+                    args[_key] = arguments[_key];
                 }
 
                 limitRange = args.slice(0, 2);
+                error = limitRange.some(function (val) {
+                    return typeof val !== 'number';
+                }) ? new Error('limit() arguments must be numeric') : error;
                 if (limitRange.length === 1) {
                     limitRange.unshift(0);
                 }
@@ -481,21 +246,20 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 };
             };
 
-            var _filter, desc, distinct, modify, _map;
             var keys = function keys() {
                 cursorType = 'openKeyCursor';
 
                 return {
                     desc: desc,
                     execute: execute,
-                    filter: _filter,
+                    filter: filter,
                     distinct: distinct,
-                    map: _map
+                    map: map
                 };
             };
-            _filter = function filter() {
-                for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-                    args[_key5] = arguments[_key5];
+            var filter = function filter() {
+                for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+                    args[_key2] = arguments[_key2];
                 }
 
                 filters.push(args.slice(0, 2));
@@ -503,57 +267,57 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 return {
                     keys: keys,
                     execute: execute,
-                    filter: _filter,
+                    filter: filter,
                     desc: desc,
                     distinct: distinct,
                     modify: modify,
                     limit: limit,
-                    map: _map
+                    map: map
                 };
             };
-            desc = function desc() {
+            var desc = function desc() {
                 direction = 'prev';
 
                 return {
                     keys: keys,
                     execute: execute,
-                    filter: _filter,
+                    filter: filter,
                     distinct: distinct,
                     modify: modify,
-                    map: _map
+                    map: map
                 };
             };
-            distinct = function distinct() {
+            var distinct = function distinct() {
                 unique = true;
                 return {
                     keys: keys,
                     count: count,
                     execute: execute,
-                    filter: _filter,
+                    filter: filter,
                     desc: desc,
                     modify: modify,
-                    map: _map
+                    map: map
                 };
             };
-            modify = function modify(update) {
-                modifyObj = update;
+            var modify = function modify(update) {
+                modifyObj = update && (typeof update === 'undefined' ? 'undefined' : _typeof(update)) === 'object' ? update : null;
                 return {
                     execute: execute
                 };
             };
-            _map = function map(fn) {
+            var map = function map(fn) {
                 mapper = fn;
 
                 return {
                     execute: execute,
                     count: count,
                     keys: keys,
-                    filter: _filter,
+                    filter: filter,
                     desc: desc,
                     distinct: distinct,
                     modify: modify,
                     limit: limit,
-                    map: _map
+                    map: map
                 };
             };
 
@@ -561,23 +325,23 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                 execute: execute,
                 count: count,
                 keys: keys,
-                filter: _filter,
+                filter: filter,
                 desc: desc,
                 distinct: distinct,
                 modify: modify,
                 limit: limit,
-                map: _map
+                map: map
             };
         };
 
         ['only', 'bound', 'upperBound', 'lowerBound'].forEach(function (name) {
-            _this4[name] = function () {
+            _this[name] = function () {
                 return Query(name, arguments);
             };
         });
 
         this.range = function (opts) {
-            var error;
+            var error = void 0;
             var keyRange = [null, null];
             try {
                 keyRange = mongoDBToKeyRangeArgs(opts);
@@ -597,45 +361,471 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         };
     };
 
-    var createSchema = function createSchema(e, schema, db) {
+    var Server = function Server(db, name, version, noServerMethods) {
+        var _this2 = this;
+
+        var closed = false;
+
+        this.getIndexedDB = function () {
+            return db;
+        };
+        this.isClosed = function () {
+            return closed;
+        };
+
+        this.query = function (table, index) {
+            var error = closed ? new Error('Database has been closed') : null;
+            return new IndexQuery(table, db, index, error); // Does not throw by itself
+        };
+
+        this.add = function (table) {
+            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+                args[_key3 - 1] = arguments[_key3];
+            }
+
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+
+                var records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.onerror = function (e) {
+                    // prevent throwing a ConstraintError and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(records);
+                };
+
+                var store = transaction.objectStore(table);
+                records.some(function (record) {
+                    var req = void 0,
+                        key = void 0;
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
+                        key = record.key;
+                        record = record.item;
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
+                        }
+                    }
+
+                    try {
+                        // Safe to add since in readwrite
+                        if (key != null) {
+                            req = store.add(record, key);
+                        } else {
+                            req = store.add(record);
+                        }
+                    } catch (e) {
+                        reject(e);
+                        return true;
+                    }
+
+                    req.onsuccess = function (e) {
+                        if (!isObject(record)) {
+                            return;
+                        }
+                        var target = e.target;
+                        var keyPath = target.source.keyPath;
+                        if (keyPath === null) {
+                            keyPath = '__id__';
+                        }
+                        if (hasOwn.call(record, keyPath)) {
+                            return;
+                        }
+                        Object.defineProperty(record, keyPath, {
+                            value: target.result,
+                            enumerable: true
+                        });
+                    };
+                });
+            });
+        };
+
+        this.update = function (table) {
+            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                args[_key4 - 1] = arguments[_key4];
+            }
+
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+
+                var records = args.reduce(function (records, aip) {
+                    return records.concat(aip);
+                }, []);
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.onerror = function (e) {
+                    // prevent throwing aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(records);
+                };
+
+                var store = transaction.objectStore(table);
+
+                records.some(function (record) {
+                    var req = void 0,
+                        key = void 0;
+                    if (isObject(record) && hasOwn.call(record, 'item')) {
+                        key = record.key;
+                        record = record.item;
+                        if (key != null) {
+                            try {
+                                key = mongoifyKey(key);
+                            } catch (e) {
+                                reject(e);
+                                return true;
+                            }
+                        }
+                    }
+                    try {
+                        // These can throw DataError, e.g., if function passed in
+                        if (key != null) {
+                            req = store.put(record, key);
+                        } else {
+                            req = store.put(record);
+                        }
+                    } catch (err) {
+                        reject(err);
+                        return true;
+                    }
+
+                    req.onsuccess = function (e) {
+                        if (!isObject(record)) {
+                            return;
+                        }
+                        var target = e.target;
+                        var keyPath = target.source.keyPath;
+                        if (keyPath === null) {
+                            keyPath = '__id__';
+                        }
+                        if (hasOwn.call(record, keyPath)) {
+                            return;
+                        }
+                        Object.defineProperty(record, keyPath, {
+                            value: target.result,
+                            enumerable: true
+                        });
+                    };
+                });
+            });
+        };
+
+        this.put = function () {
+            return this.update.apply(this, arguments);
+        };
+
+        this.remove = function (table, key) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.onerror = function (e) {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve(key);
+                };
+
+                var store = transaction.objectStore(table);
+                try {
+                    store.delete(key);
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        };
+
+        this.delete = function () {
+            return this.remove.apply(this, arguments);
+        };
+
+        this.clear = function (table) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+                var transaction = db.transaction(table, transactionModes.readwrite);
+                transaction.onerror = function (e) {
+                    return reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+                transaction.oncomplete = function () {
+                    return resolve();
+                };
+
+                var store = transaction.objectStore(table);
+                store.clear();
+            });
+        };
+
+        this.close = function () {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+                db.close();
+                closed = true;
+                delete dbCache[name][version];
+                resolve();
+            });
+        };
+
+        this.get = function (table, key) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
+                var transaction = db.transaction(table);
+                transaction.onerror = function (e) {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+
+                var store = transaction.objectStore(table);
+
+                var req = void 0;
+                try {
+                    req = store.get(key);
+                } catch (err) {
+                    reject(err);
+                }
+                req.onsuccess = function (e) {
+                    return resolve(e.target.result);
+                };
+            });
+        };
+
+        this.count = function (table, key) {
+            return new Promise(function (resolve, reject) {
+                if (closed) {
+                    reject(new Error('Database has been closed'));
+                    return;
+                }
+                try {
+                    key = mongoifyKey(key);
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+
+                var transaction = db.transaction(table);
+                transaction.onerror = function (e) {
+                    // prevent throwing and aborting (hard)
+                    // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                    e.preventDefault();
+                    reject(e);
+                };
+                transaction.onabort = function (e) {
+                    return reject(e);
+                };
+
+                var store = transaction.objectStore(table);
+                var req = void 0;
+                try {
+                    req = key == null ? store.count() : store.count(key);
+                } catch (err) {
+                    reject(err);
+                }
+                req.onsuccess = function (e) {
+                    return resolve(e.target.result);
+                };
+            });
+        };
+
+        this.addEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            if (eventName === 'error') {
+                db.addEventListener(eventName, function (e) {
+                    e.preventDefault(); // Needed by Firefox to prevent hard abort with ConstraintError
+                    handler(e);
+                });
+                return;
+            }
+            db.addEventListener(eventName, handler);
+        };
+
+        this.removeEventListener = function (eventName, handler) {
+            if (!serverEvents.includes(eventName)) {
+                throw new Error('Unrecognized event type ' + eventName);
+            }
+            db.removeEventListener(eventName, handler);
+        };
+
+        serverEvents.forEach(function (evName) {
+            this[evName] = function (handler) {
+                this.addEventListener(evName, handler);
+                return this;
+            };
+        }, this);
+
+        if (noServerMethods) {
+            return;
+        }
+
+        var err = void 0;
+        [].some.call(db.objectStoreNames, function (storeName) {
+            if (_this2[storeName]) {
+                err = new Error('The store name, "' + storeName + '", which you have attempted to load, conflicts with db.js method names."');
+                _this2.close();
+                return true;
+            }
+            _this2[storeName] = {};
+            var keys = Object.keys(_this2);
+            keys.filter(function (key) {
+                return ![].concat(serverEvents, ['close', 'addEventListener', 'removeEventListener']).includes(key);
+            }).map(function (key) {
+                return _this2[storeName][key] = function () {
+                    for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+                        args[_key5] = arguments[_key5];
+                    }
+
+                    return _this2[key].apply(_this2, [storeName].concat(args));
+                };
+            });
+        });
+        return err;
+    };
+
+    var createSchema = function createSchema(e, schema, db, server, version) {
         if (!schema || schema.length === 0) {
             return;
         }
 
         for (var i = 0; i < db.objectStoreNames.length; i++) {
             var name = db.objectStoreNames[i];
-            if (!schema.hasOwnProperty(name)) {
+            if (!hasOwn.call(schema, name)) {
+                // Errors for which we are not concerned and why:
+                // `InvalidStateError` - We are in the upgrade transaction.
+                // `TransactionInactiveError` (as by the upgrade having already
+                //      completed or somehow aborting) - since we've just started and
+                //      should be without risk in this loop
+                // `NotFoundError` - since we are iterating the dynamically updated
+                //      `objectStoreNames`
                 e.currentTarget.transaction.db.deleteObjectStore(name);
             }
         }
 
-        var tableName;
-        for (tableName in schema) {
+        var ret = void 0;
+        Object.keys(schema).some(function (tableName) {
             var table = schema[tableName];
-            var store;
-            if (!hasOwn.call(schema, tableName) || db.objectStoreNames.contains(tableName)) {
-                store = e.currentTarget.transaction.objectStore(tableName);
+            var store = void 0;
+            if (db.objectStoreNames.contains(tableName)) {
+                store = e.currentTarget.transaction.objectStore(tableName); // Shouldn't throw
             } else {
-                store = db.createObjectStore(tableName, table.key);
-            }
+                    // Errors for which we are not concerned and why:
+                    // `InvalidStateError` - We are in the upgrade transaction.
+                    // `ConstraintError` - We are just starting (and probably never too large anyways) for a key generator.
+                    // `ConstraintError` - The above condition should prevent the name already existing.
+                    //
+                    // Possible errors:
+                    // `TransactionInactiveError` - if the upgrade had already aborted,
+                    //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                    //      the store but then abort the transaction.
+                    // `SyntaxError` - if an invalid `table.key.keyPath` is supplied.
+                    // `InvalidAccessError` - if `table.key.autoIncrement` is `true` and `table.key.keyPath` is an
+                    //      empty string or any sequence (empty or otherwise).
+                    try {
+                        store = db.createObjectStore(tableName, table.key);
+                    } catch (err) {
+                        ret = err;
+                        return true;
+                    }
+                }
 
-            var indexKey;
-            for (indexKey in table.indexes) {
-                var index = table.indexes[indexKey];
+            Object.keys(table.indexes || {}).some(function (indexKey) {
                 try {
                     store.index(indexKey);
                 } catch (err) {
-                    store.createIndex(indexKey, index.key || indexKey, Object.keys(index).length ? index : { unique: false });
+                    var index = table.indexes[indexKey];
+                    index = index && (typeof index === 'undefined' ? 'undefined' : _typeof(index)) === 'object' ? index : {};
+                    // Errors for which we are not concerned and why:
+                    // `InvalidStateError` - We are in the upgrade transaction and store found above should not have already been deleted.
+                    // `ConstraintError` - We have already tried getting the index, so it shouldn't already exist
+                    //
+                    // Possible errors:
+                    // `TransactionInactiveError` - if the upgrade had already aborted,
+                    //      e.g., from a previous `QuotaExceededError` which is supposed to nevertheless return
+                    //      the index object but then abort the transaction.
+                    // `SyntaxError` - If the `keyPath` (second argument) is an invalid key path
+                    // `InvalidAccessError` - If `multiEntry` on `index` is `true` and
+                    //                          `keyPath` (second argument) is a sequence
+                    try {
+                        store.createIndex(indexKey, index.keyPath || index.key || indexKey, index);
+                    } catch (err2) {
+                        ret = err2;
+                        return true;
+                    }
                 }
-            }
-        }
+            });
+        });
+        return ret;
     };
 
-    var _open = function _open(e, server, noServerMethods, version) {
+    var _open = function _open(e, server, version, noServerMethods) {
         var db = e.target.result;
         dbCache[server][version] = db;
 
-        var s = new Server(db, server, noServerMethods, version);
+        var s = new Server(db, server, version, noServerMethods);
         return s instanceof Error ? Promise.reject(s) : Promise.resolve(s);
     };
 
@@ -656,29 +846,37 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         target: {
                             result: dbCache[server][version]
                         }
-                    }, server, noServerMethods, version).then(resolve, reject);
+                    }, server, version, noServerMethods).then(resolve, reject);
                 } else {
-                    var _ret = function () {
+                    var _ret2 = function () {
                         if (typeof schema === 'function') {
                             try {
                                 schema = schema();
                             } catch (e) {
                                 reject(e);
                                 return {
-                                    v: undefined
+                                    v: void 0
                                 };
                             }
                         }
                         var request = indexedDB.open(server, version);
 
                         request.onsuccess = function (e) {
-                            return _open(e, server, noServerMethods, version).then(resolve, reject);
-                        };
-                        request.onupgradeneeded = function (e) {
-                            return createSchema(e, schema, e.target.result);
+                            return _open(e, server, version, noServerMethods).then(resolve, reject);
                         };
                         request.onerror = function (e) {
-                            return reject(e);
+                            // Prevent default for `BadVersion` and `AbortError` errors, etc.
+                            // These are not necessarily reported in console in Chrome but present; see
+                            //  https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                            //  http://stackoverflow.com/questions/36225779/aborterror-within-indexeddb-upgradeneeded-event/36266502
+                            e.preventDefault();
+                            reject(e);
+                        };
+                        request.onupgradeneeded = function (e) {
+                            var err = createSchema(e, schema, e.target.result, server, version);
+                            if (err) {
+                                reject(err);
+                            }
                         };
                         request.onblocked = function (e) {
                             var resume = new Promise(function (res, rej) {
@@ -688,7 +886,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                                 //   the user unblocks by closing the blocking
                                 //   connection
                                 request.onsuccess = function (ev) {
-                                    _open(ev, server, noServerMethods, version).then(res, rej);
+                                    _open(ev, server, version, noServerMethods).then(res, rej);
                                 };
                                 request.onerror = function (e) {
                                     return rej(e);
@@ -699,22 +897,26 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         };
                     }();
 
-                    if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+                    if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
                 }
             });
         },
 
         delete: function _delete(dbName) {
             return new Promise(function (resolve, reject) {
-                var request = indexedDB.deleteDatabase(dbName);
+                var request = indexedDB.deleteDatabase(dbName); // Does not throw
 
                 request.onsuccess = function (e) {
                     return resolve(e);
                 };
                 request.onerror = function (e) {
                     return reject(e);
-                };
+                }; // No errors currently
                 request.onblocked = function (e) {
+                    // The following addresses part of https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                    e = e.newVersion === null || typeof Proxy === 'undefined' ? e : new Proxy(e, { get: function get(target, name) {
+                            return name === 'newVersion' ? null : target[name];
+                        } });
                     var resume = new Promise(function (res, rej) {
                         // We overwrite handlers rather than make a new
                         //   delete() since the original request is still
@@ -722,7 +924,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
                         //   the user unblocks by closing the blocking
                         //   connection
                         request.onsuccess = function (ev) {
-                            // Attempt to workaround Firefox event version problem: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                            // The following are needed currently by PhantomJS: https://github.com/ariya/phantomjs/issues/14141
                             if (!('newVersion' in ev)) {
                                 ev.newVersion = e.newVersion;
                             }
@@ -744,7 +946,13 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
         },
 
         cmp: function cmp(param1, param2) {
-            return indexedDB.cmp(param1, param2);
+            return new Promise(function (resolve, reject) {
+                try {
+                    resolve(indexedDB.cmp(param1, param2));
+                } catch (e) {
+                    reject(e);
+                }
+            });
         }
     };
 

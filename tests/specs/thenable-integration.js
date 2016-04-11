@@ -3,6 +3,7 @@
     'use strict';
 
     describe('thenable library promise integration', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -70,8 +71,8 @@
                   queryData = resolvedArray[1];
                   expect(queryData).to.not.be.undefined;
                   expect(queryData.length).to.equal(1);
-                  expect(queryData[ 0 ].firstName).to.equal('Aaron');
-                  expect(queryData[ 0 ].lastName).to.equal('Powell');
+                  expect(queryData[0].firstName).to.equal('Aaron');
+                  expect(queryData[0].lastName).to.equal('Powell');
                   done();
               });
         });

@@ -60,15 +60,16 @@ connection (unless it has been closed).
 
 - *schema* - Expects an object, or, if a function is supplied, a schema
 object should be returned). A schema object optionally has store names as
-keys (these stores will be auto-created if not yet added). The values of
-these schema objects should be objects, optionally with the property "key"
-and/or "indexes". The "key" property, if present, should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
+keys (these stores will be auto-created if not yet added and modified
+otherwise). The values of these schema objects should be objects, optionally
+with the property "key" and/or "indexes". The "key" property, if present,
+should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
 parameters (`keyPath` or `autoIncrement`). The "indexes" property should
 contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
-a `key` property on the provided parameter object. Note also that when a
+a `keyPath` property on the provided parameter object. Note also that when a
 schema is supplied for a new version, any object stores not present on
 the schema object will be deleted.
 
@@ -132,6 +133,20 @@ server.people.add({
 });
 ```
 
+Multiple items can be added as additional arguments to `add`. Another way
+multiple items can be added is when an array is supplied for any of the
+arguments in which case, its top level contents will be treated as separate
+items. If you want unambiguous results where the data to be added could
+itself be an array, be sure to wrap item supplied in your argument within
+an array.
+
+Note also when `add` is provided with objects containing a property `item`
+(and optionally a `key` property), the value of `item` will be treated as the
+record to be added, while any `key` will be used as the key. To supply
+unambiguous items (where you are not sure whether `item` may exist on the
+record to be added), you may wish to consistently wrap your items within an
+object with an `item` property even if you are not supplying a `key`.
+
 #### Updating
 
 ```js
@@ -144,6 +159,14 @@ server.people.update({
 });
 ```
 
+As with `add`, `update` shares the same behaviors as far as flattening of
+the top level of array arguments and checking of `item`/`key` properties,
+so if you need unambiguous results, please see the discussion above.
+
+Using `update` will cause a record to be added if it does not yet exist.
+
+`put` is also available as an alias of `update`.
+
 #### Removing
 
 ```js
@@ -151,6 +174,8 @@ server.people.remove(1).then(function (key) {
     // item removed
 });
 ```
+
+`delete` is also available as an alias of `remove`.
 
 ##### Clearing
 
@@ -421,8 +446,8 @@ returned records automatically. This is done by adding `.modify()` at
 the end of the query (right before `.execute()`).
 
 `modify` only runs updates on objects matched by the query, and still returns
-the same results to the `done()` function (however, the results will have the
-modifications applied to them).
+the same results to the `Promise`'s `then()` method (however, the results will
+have the modifications applied to them).
 
 Examples:
 
@@ -514,10 +539,15 @@ db.delete(dbName).then(function (ev) {
 });
 ```
 
-As with the `open` operation, a `delete` operation will not be able to
-execute so long as there are already opened blocking connections
+Note that, in line with the behavior of the `deleteDatabase` method of
+IndexedDB, `delete` will not actually produce an error if one attempts
+to delete a database which doesn't exist or even if a non-string is
+supplied.
+
+However, as with the `open` operation, a `delete` operation will
+produce an error so long as there are already opened blocking connections
 (i.e., those allowing for database modification) which are open elsewhere
-in the browser. You can recover as follows:
+in the browser. You can nevertheless recover as follows:
 
 ```js
 db.delete(dbName).catch(function (err) {
@@ -541,7 +571,9 @@ Returns `1` if the first key is greater than the second, `-1` if the first
 is less than the second, and `0` if the first is equal to the second.
 
 ```js
-db.cmp(key1, key2);
+db.cmp(key1, key2).then(function (ret) {
+    // Use `ret`
+});
 ```
 
 # Promise notes
@@ -560,8 +592,23 @@ library.
 # Contributor notes
 
 - `npm install` to install all the dependencies
+
+In browser:
+
 - `npm run grunt test:local` to run the mocha server
 - Open (`http://localhost:9999/tests`)[] to run the mocha tests
+
+In Node.js:
+
+- `npm test`
+
+or to avoid Saucelabs if set up:
+
+- `npm run grunt phantom`
+
+or to also avoid PhantomJS:
+
+- `npm run grunt dev`
 
 # License
 

@@ -2,6 +2,7 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('blocked events', function () {
+        this.timeout(5000);
         var initialVersion = 1;
         var newVersion = 2;
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
@@ -95,8 +96,9 @@
             var spec = this;
             var caught = false;
             db.delete(this.dbName).catch(function (err) {
-                expect(err.oldVersion).to.equal(initialVersion); // Problem in FF: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
+                // expect(err.oldVersion).to.equal(initialVersion); // Problem in FF: https://bugzilla.mozilla.org/show_bug.cgi?id=1220279
                 expect(err.newVersion).to.equal(null);
+                expect(err.type).to.equal('blocked');
                 spec.server.close(); // Ensure the last connection is closed so we can resume
                 caught = true;
                 return err.resume;

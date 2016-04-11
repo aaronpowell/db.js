@@ -3,6 +3,8 @@
     'use strict';
 
     describe('query', function () {
+        this.timeout(5000);
+
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -250,6 +252,8 @@
         });
 
         describe('index range query', function () {
+            this.timeout(10000);
+
             it('should allow matching exact values', function (done) {
                 this.server.query('test', 'firstName')
                     .only('Aaron')
@@ -709,6 +713,7 @@
     });
 
     describe('index.multiEntry', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 

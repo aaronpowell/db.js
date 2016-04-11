@@ -136,20 +136,23 @@ module.exports = function (grunt) {
     });
 
     var devJobs = ['eslint', 'babel', 'browserify', 'uglify', 'clean', 'jade'];
-    var testJobs = devJobs.concat('connect');
-    if (saucekey && !process.env.TRAVIS_PULL_REQUEST) {
-        console.info('adding Saucelabs integration');
-        testJobs.push('saucelabs-mocha');
-    }
-
+    var karmaJobs = devJobs.slice();
     if (process.env.TRAVIS_JOB_ID) {
-        testJobs.push('karma:ci');
+        karmaJobs.push('karma:ci');
     } else {
-        testJobs.push('karma:dev-single');
+        karmaJobs.push('karma:dev-single');
     }
 
     grunt.registerTask('dev', devJobs);
-    grunt.registerTask('test', testJobs);
+    grunt.registerTask('phantom', karmaJobs);
+    grunt.registerTask('test', function () {
+        var testJobs = karmaJobs.concat('connect');
+        if (saucekey && !process.env.TRAVIS_PULL_REQUEST) {
+            console.info('adding Saucelabs integration');
+            testJobs.push('saucelabs-mocha');
+        }
+        grunt.task.run(testJobs);
+    });
     grunt.registerTask('default', 'test');
     grunt.registerTask('test:local', function () {
         grunt.task.run(devJobs);

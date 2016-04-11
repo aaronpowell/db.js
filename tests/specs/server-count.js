@@ -2,6 +2,8 @@
 (function (db, describe, it, expect, beforeEach, afterEach) {
     'use strict';
     describe('server.count', function () {
+        this.timeout(5000);
+
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 

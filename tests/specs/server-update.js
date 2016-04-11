@@ -3,6 +3,7 @@
     'use strict';
 
     describe('server.update', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -165,9 +166,35 @@
                     });
             });
         });
+
+        it('should add the item if not yet added', function (done) {
+            var item = {
+                firstName: 'Aaron',
+                lastName: 'Powell'
+            };
+
+            var spec = this;
+
+            item.firstName = 'John';
+            item.lastName = 'Smith';
+            spec.server.test.update(item).then(function (/* records */) {
+                spec.server
+                    .test
+                    .get(item.id)
+                    .then(function (record) {
+                        expect(record).to.not.be.undefined;
+                        expect(record.id).to.equal(item.id);
+                        expect(record.firstName).to.equal(item.firstName);
+                        expect(record.lastName).to.equal(item.lastName);
+                        expect(record).not.to.equal(item);
+                        done();
+                    });
+            });
+        });
     });
 
     describe('server.update-custom-keys', function () {
+        this.timeout(5000);
         var indexedDB = window.indexedDB || window.webkitIndexedDB ||
             window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
