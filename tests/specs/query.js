@@ -762,7 +762,14 @@
                     age: 40,
                     tags: ['one', 'two', 'three', 'four']
                 };
-                spec.server.add('test', item1, item2, item3).then(function () {
+                var item4 = {
+                    id: 4,
+                    firstName: 'Brett',
+                    lastName: 'Zamir',
+                    age: 43,
+                    tags: ['two', 'three', 'four']
+                };
+                spec.server.add('test', item1, item2, item3, item4).then(function () {
                     done();
                 });
             });
@@ -800,7 +807,7 @@
                 .all()
                 .execute()
                 .then(function (data) {
-                    expect(data.length).to.equal(10);
+                    expect(data.length).to.equal(13);
                     done();
                 });
         });

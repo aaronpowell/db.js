@@ -70,6 +70,78 @@
             });
         });
 
+        it('should allow defining (and querying) array keyPaths and multi-segment indexes', function (done) {
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: ['lastName', 'firstName']
+                        },
+                        indexes: {
+                            name: {
+                                keyPath: ['lastName', 'firstName']
+                            },
+                            lastName: {},
+                            firstName: {}
+                        }
+                    }
+                }
+            }).then(function (s) {
+                s.test.add(
+                    {lastName: 'Zamir', firstName: 'Brett'},
+                    {lastName: 'Favre', firstName: 'Brett'},
+                    {lastName: 'Brett', firstName: 'George'},
+                    {lastName: 'Powell', firstName: 'Aaron'}
+                ).then(function () {
+                    return s.test.query()
+                        .only(['Zamir', 'Brett'])
+                        .execute();
+                }).then(function (results) {
+                    expect(results[0].lastName).to.equal('Zamir');
+                    expect(results.length).to.equal(1);
+                    s.close();
+                    done();
+                });
+            });
+        });
+
+        it('should allow defining (and querying) nested (dot-separated) keyPaths and indexes', function (done) {
+            db.open({
+                server: this.dbName,
+                version: 1,
+                schema: {
+                    test: {
+                        key: {
+                            keyPath: 'person.name.lastName'
+                        },
+                        indexes: {
+                            personName: {
+                                keyPath: 'person.name.lastName'
+                            }
+                        }
+                    }
+                }
+            }).then(function (s) {
+                s.test.add(
+                    {person: {name: {lastName: 'Zamir', firstName: 'Brett'}}},
+                    {person: {name: {lastName: 'Favre', firstName: 'Brett'}}},
+                    {person: {name: {lastName: 'Brett', firstName: 'George'}}},
+                    {person: {name: {lastName: 'Powell', firstName: 'Aaron'}}}
+                ).then(function () {
+                    return s.test.query('personName')
+                        .only('Zamir')
+                        .execute();
+                }).then(function (results) {
+                    expect(results.length).to.equal(1);
+                    expect(results[0].person.name.lastName).to.equal('Zamir');
+                    s.close();
+                    done();
+                });
+            });
+        });
+
         it('should allow adding indexes to an existing object store', function (done) {
             var spec = this;
             db.open({
