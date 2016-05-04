@@ -123,6 +123,7 @@
         it('should receive IDBDatabase error events', function (done) {
             this.server.close();
             var badVersion = 1;
+            // PhantomJS is currently failing here because it doesn't yet support DOMException as a constructor
             db.open({
                 server: this.dbName,
                 version: badVersion,
@@ -134,7 +135,7 @@
             }).catch(function (err) {
                 expect(err.oldVersion).to.be.undefined;
                 expect(err.newVersion).to.be.undefined;
-                expect(err.type).to.equal('error');
+                expect(err.name).to.equal('VersionError');
                 done();
             });
         });
