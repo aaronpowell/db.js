@@ -43,13 +43,21 @@
 
         it('should open a created db in a service worker', function (done) {
             var spec = this;
-            navigator.serviceWorker.register('test-worker.js').then(function () {
+            var registration;
+            navigator.serviceWorker.register('test-worker.js').then(function (reg) {
+                registration = reg;
                 return navigator.serviceWorker.ready;
             }).then(function (serviceWorker) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function (e) {
                     expect(e.data).to.be.true;
-                    done();
+                    registration.unregister().then(function (success) {
+                        if (!success) {
+                            console.log('Problem unregistering service worker');
+                            return;
+                        }
+                        done();
+                    });
                 };
 
                 var controller = navigator.serviceWorker.controller || serviceWorker.active;

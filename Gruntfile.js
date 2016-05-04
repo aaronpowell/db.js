@@ -76,7 +76,7 @@ module.exports = function (grunt) {
         },
 
         eslint: {
-            target: ['src/db.js', 'src/test-worker.js']
+            target: ['src/db.js', 'src/test-worker.js', 'src/idb-import']
         },
 
         babel: {
@@ -86,7 +86,8 @@ module.exports = function (grunt) {
             dist: {
                 files: {
                     'dist/db.js': 'src/db.js',
-                    'tests/test-worker.js': 'src/test-worker.js'
+                    'tests/test-worker.js': 'src/test-worker.js',
+                    'dist/idb-import.js': 'src/idb-import.js'
                 }
             }
         },
@@ -100,6 +101,11 @@ module.exports = function (grunt) {
                     browserifyOptions: {
                         standalone: 'db'
                     }
+                }
+            },
+            dest: {
+                files: {
+                    'dist/idb-import.js': 'dist/idb-import.js'
                 }
             }
         },
@@ -115,6 +121,14 @@ module.exports = function (grunt) {
                 },
                 files: {
                     'dist/db.min.js': ['dist/db.js']
+                }
+            },
+            idbImport: {
+                options: {
+                    sourceMapIn: 'dist/idb-import.js.map' // input sourcemap from a previous compilation
+                },
+                files: {
+                    'dist/idb-import.min.js': ['dist/idb-import.js']
                 }
             },
             testworker: {

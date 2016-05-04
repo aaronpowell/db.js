@@ -21,6 +21,7 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             'dist/db.min.js',
+            'dist/idb-import.min.js',
             'node_modules/chai/chai.js',
             'node_modules/babel-polyfill/dist/polyfill.js',
             'node_modules/jquery/dist/jquery.min.js',
