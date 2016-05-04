@@ -121,10 +121,16 @@ import IdbImport from './idb-import';
 
                             try { // We must manually catch for this promise as we are within an async event function
                                 filters.forEach(function (filter) {
-                                    if (typeof filter[0] === 'function') {
-                                        matchFilter = matchFilter && filter[0](result); // May throw with filter on non-object
+                                    let propObj = filter[0];
+                                    if (typeof propObj === 'function') {
+                                        matchFilter = matchFilter && propObj(result); // May throw with filter on non-object
                                     } else {
-                                        matchFilter = matchFilter && (result[filter[0]] === filter[1]); // May throw with error in filter function
+                                        if (!propObj || typeof propObj !== 'object') {
+                                            propObj = {[propObj]: filter[1]};
+                                        }
+                                        Object.keys(propObj).forEach((prop) => {
+                                            matchFilter = matchFilter && (result[prop] === propObj[prop]); // May throw with error in filter function
+                                        });
                                     }
                                 });
 

@@ -133,7 +133,7 @@
                 });
         });
 
-        it('should query against a single property', function (done) {
+        it('should query against a single property filter', function (done) {
             var spec = this;
             this.server
                 .query('test')
@@ -144,6 +144,22 @@
                     expect(results.length).to.equal(2);
                     expect(results[0].firstName).to.equal(spec.item1.firstName);
                     expect(results[1].firstName).to.equal(spec.item3.firstName);
+
+                    done();
+                });
+        });
+
+        it('should query using an object filter', function (done) {
+            var spec = this;
+            this.server
+                .query('test')
+                .filter({firstName: 'Aaron', lastName: 'Powell'})
+                .execute()
+                .then(function (results) {
+                    expect(results).to.not.be.undefined;
+                    expect(results.length).to.equal(1);
+                    expect(results[0].firstName).to.equal(spec.item1.firstName);
+                    expect(results[0].firstName).to.equal(spec.item1.firstName);
 
                     done();
                 });

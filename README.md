@@ -494,6 +494,17 @@ server.people.query()
     });
 ```
 
+###### Filter with object
+
+```js
+server.people.query()
+    .filter({firstName: 'Aaron', lastName: 'Powell'})
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
+```
+
 ###### Filter with function
 
 ```js

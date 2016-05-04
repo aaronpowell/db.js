@@ -1,5 +1,9 @@
 # CHANGES
 
+## Filter by object version (unreleased)
+
+- API addition: Allow supplying objects to `filter()`
+
 ## Schema version (unreleased)
 
 - API change (breaking): Will delete unused indexes by default; set a new
