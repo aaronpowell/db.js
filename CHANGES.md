@@ -1,5 +1,9 @@
 # CHANGES
 
+## Batch version (unreleased)
+
+- API addition: Add `tableBatch` and `batch` methods
+
 ## Filter by object version (unreleased)
 
 - API addition: Allow supplying objects to `filter()`

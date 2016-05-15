@@ -1,8 +1,8 @@
 import IdbImport from './idb-import';
+import batch, {transactionalBatch} from 'idb-batch';
 
 (function (local) {
     'use strict';
-
     const hasOwn = Object.prototype.hasOwnProperty;
 
     const indexedDB = local.indexedDB || local.webkitIndexedDB ||
@@ -67,7 +67,7 @@ import IdbImport from './idb-import';
         return key;
     }
 
-    const IndexQuery = function (table, db, indexName, preexistingError) {
+    const IndexQuery = function (table, db, indexName, preexistingError, trans) {
         let modifyObj = null;
 
         const runQuery = function (type, args, cursorType, direction, limitRange, filters, mapper) {
@@ -80,10 +80,10 @@ import IdbImport from './idb-import';
                 let counter = 0;
                 const indexArgs = [keyRange];
 
-                const transaction = db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
-                transaction.onerror = e => reject(e);
-                transaction.onabort = e => reject(e);
-                transaction.oncomplete = () => resolve(results);
+                const transaction = trans || db.transaction(table, modifyObj ? transactionModes.readwrite : transactionModes.readonly);
+                transaction.addEventListener('error', e => reject(e));
+                transaction.addEventListener('abort', e => reject(e));
+                transaction.addEventListener('complete', () => resolve(results));
 
                 const store = transaction.objectStore(table); // if bad, db.transaction will reject first
                 const index = typeof indexName === 'string' ? store.index(indexName) : store;
@@ -242,28 +242,48 @@ import IdbImport from './idb-import';
         };
     };
 
-    const setupTransactionAndStore = (db, table, records, resolve, reject, readonly) => {
-        const transaction = db.transaction(table, readonly ? transactionModes.readonly : transactionModes.readwrite);
-        transaction.onerror = e => {
-            // prevent throwing aborting (hard)
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
-            e.preventDefault();
-            reject(e);
-        };
-        transaction.onabort = e => reject(e);
-        transaction.oncomplete = () => resolve(records);
-        return transaction.objectStore(table);
-    };
-
     const Server = function (db, name, version, noServerMethods) {
         let closed = false;
+        let trans;
+        const setupTransactionAndStore = (db, table, records, resolve, reject, readonly) => {
+            const transaction = trans || db.transaction(table, readonly ? transactionModes.readonly : transactionModes.readwrite);
+            transaction.addEventListener('error', e => {
+                // prevent throwing aborting (hard)
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=872873
+                e.preventDefault();
+                reject(e);
+            });
+            transaction.addEventListener('abort', e => reject(e));
+            transaction.addEventListener('complete', () => resolve(records));
+            return transaction.objectStore(table);
+        };
+        const adapterCb = (tr, cb) => {
+            if (!trans) trans = tr;
+            return cb(tr, this);
+        };
 
         this.getIndexedDB = () => db;
         this.isClosed = () => closed;
 
+        this.batch = function (storeOpsArr, opts = {extraStores: [], parallel: false}) {
+            opts = opts || {};
+            var {extraStores, parallel} = opts; // We avoid `resolveEarly`
+            return transactionalBatch(db, storeOpsArr, {adapterCb, extraStores, parallel}).then((res) => {
+                trans = undefined;
+                return res;
+            });
+        };
+        this.tableBatch = function (table, ops, opts = {parallel: false}) {
+            opts = opts || {};
+            return batch(db, table, ops, {adapterCb, parallel: opts.parallel}).then((res) => {
+                trans = undefined;
+                return res;
+            });
+        };
+
         this.query = function (table, index) {
             const error = closed ? new Error('Database has been closed') : null;
-            return new IndexQuery(table, db, index, error); // Does not throw by itself
+            return new IndexQuery(table, db, index, error, trans); // Does not throw by itself
         };
 
         this.add = function (table, ...args) {
@@ -484,7 +504,7 @@ import IdbImport from './idb-import';
             }
             this[storeName] = {};
             const keys = Object.keys(this);
-            keys.filter(key => !(([...serverEvents, 'close', 'addEventListener', 'removeEventListener']).includes(key)))
+            keys.filter(key => !(([...serverEvents, 'close', 'batch', 'addEventListener', 'removeEventListener']).includes(key)))
                 .map(key =>
                     this[storeName][key] = (...args) => this[key](storeName, ...args)
                 );

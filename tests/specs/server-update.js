@@ -265,8 +265,6 @@
                                 .all()
                                 .execute()
                                 .then(function (records) {
-                                    done = true;
-
                                     expect(records.length).to.equal(1);
 
                                     var record = records[0];
@@ -275,8 +273,8 @@
                                     expect(record.firstName).to.equal(item.firstName);
                                     expect(record.lastName).to.equal(item.lastName);
                                     expect(record).not.to.equal(item);
+                                    done();
                                 });
-                            done();
                         });
                 });
         });

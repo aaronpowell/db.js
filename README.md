@@ -335,9 +335,9 @@ schemas: {
 
 ## General server/store methods
 
-Note that by default the methods below (not including `close`,
-`addEventListener`, and `removeEventListener`) can be called either as
-`server.people.xxx( arg1, arg2, ... )` or
+Note that by default the methods below (not including `close`, `batch`,
+`addEventListener`, `removeEventListener`, and the server event methods)
+can be called either as `server.people.xxx( arg1, arg2, ... )` or
 `server.xxx( 'people', arg1, arg2, ... )`.
 
 To reduce some memory requirements or avoid a however unlikely
@@ -412,6 +412,91 @@ This allows removing all items in a table/collection:
 server.people.clear()
     .then(function() {
         // all table data is gone.
+    });
+```
+
+#### Batch operations (in a single transaction)
+
+##### `batch`
+
+This method allows batch operations across multiple stores using the
+formats available to the `transactionalBatch` method of
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish).
+
+The first argument to this method is an array of operations.
+Unlike for the default behavior of `transactionalBatch` in
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish), however,
+any function-based operations will be passed the db.js `Server` as second
+argument, allowing for promises within function-based operations (though
+please note the risk that the transaction of the batch may expire and
+thus its promise resolve before the promises, especially chained promises,
+within the function operation can complete).
+
+The second argument is an optional options object. An option,
+`parallel` can be set to `true` if the order of operations is
+not significant, and another option `extraStores` can be populated
+with an array of additional store names to allow in the transaction
+(for the sake of function-based operations which reuse the transaction).
+
+The options default to `{extraStores: [], parallel: false}`.
+
+The `batch` method is not available on table objects.
+
+```js
+server.batch(
+    [
+        // Multiple stores can be modified
+        {
+            magazines: [
+                { type: 'add', key: 1, value: { name: 'M1', frequency: 12 } },
+                { type: 'add', key: 2, value: { name: 'M2', frequency: 24 } },
+                { type: 'add', key: 3, value: { name: 'M3', frequency: 6 } },
+                { type: 'del', key: 2 }
+            ]
+        },
+        {
+            books: [
+                { type: 'put', key: 1, value: { name: 'M1', frequency: 12 } },
+                { type: 'move', key: 2, value: 1 },
+                { type: 'copy', key: 3, value: 2 }
+            ],
+            storage: 'clear'
+        }
+        function callbackInTransaction (tr, s) {
+            // Transaction doesn't last long enough to chain these promises/add to separate op functions,
+            //  though we can run an extra operation here (before we return a promise) if timing is not critical
+            s.magazines
+                .query()
+                .only(3)
+                .modify({modified: true})
+                .execute();
+            return s.magazines.put({name: 'M4', frequency: 8});
+        }
+    ])
+    .then(function() {
+        // Continue (the `batch` transaction will have now expired)
+    });
+```
+
+##### `tableBatch`
+
+This method allows batch operations on a single store only using the
+formats available to the `batch` method of
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish).
+
+The first argument is the array of operations and the second argument
+is an optional options object. A single option, `parallel` can be set
+to `true` if the order of operations is not significant.
+
+```js
+server.people.tableBatch([
+        {type: 'add', key: 1, value: {name: 'M1', frequency: 12}},
+        {type: 'add', key: 2, value: {name: 'M2', frequency: 24}},
+        {type: 'add', value: {id: 3, name: 'M3', frequency: 6}},
+        {type: 'add', value: {id: 4, name: 'M4', frequency: 52}}
+    ], {parallel: false})
+    .then(function() {
+        // Continue (the `tableBatch` transaction will have now expired)
     });
 ```
 
@@ -797,6 +882,8 @@ and `map`.
 server.close();
 ```
 
+This method is not available on table objects.
+
 ### Retrieving the `indexedDB.open` result object in use
 
 ```js
@@ -832,6 +919,8 @@ server.abort(function (e) {
     // Be notified of version changes (can use e.oldVersion and e.newVersion)
 });
 ```
+
+These methods are not available on table objects.
 
 See the IndexedDB spec for the [possible exceptions](http://www.w3.org/TR/IndexedDB/#exceptions).
 

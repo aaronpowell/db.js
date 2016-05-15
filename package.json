@@ -48,6 +48,7 @@
     "grunt-eslint": "^17.3.1",
     "grunt-karma": "^0.12.1",
     "grunt-saucelabs": "^8.6.0",
+    "idb-batch": "https://github.com/brettz9/idb-batch#tmp-publish",
     "idb-schema": "https://github.com/brettz9/idb-schema#tmp-publish",
     "jade": "^1.11.0",
     "jquery": "^2.2.2",

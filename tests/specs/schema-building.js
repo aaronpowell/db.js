@@ -3,7 +3,7 @@
     'use strict';
     describe('schema-building', function () {
         describe('schemas', function () {
-            this.timeout(5000);
+            this.timeout(8000);
             var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                 window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
@@ -196,7 +196,7 @@
         });
         describe('schemaBuilder', function () {
             // Parallels test for idb-schema
-            this.timeout(5000);
+            this.timeout(8000);
             var indexedDB = window.indexedDB || window.webkitIndexedDB ||
                 window.mozIndexedDB || window.oIndexedDB || window.msIndexedDB;
 
