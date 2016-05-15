@@ -62,22 +62,16 @@
             }
             this.server = undefined;
 
-            var req = indexedDB.deleteDatabase(this.dbName);
-
-            req.onsuccess = function () {
-                done();
-            };
-            req.onerror = function () {
-                console.log('failed to delete db', arguments);
-            };
-            req.onblocked = function () {
-                console.log('db blocked', arguments);
-            };
+            indexedDB.deleteDatabase(this.dbName);
+            done();
         });
         it('should delete a created db', function (done) {
             var spec = this;
             db.delete(spec.dbName).then(function () {
                 var request = indexedDB.open(spec.dbName);
+                request.onerror = function (e) {
+                    e.preventDefault();
+                };
                 request.onupgradeneeded = function (e) {
                     expect(e.oldVersion).to.equal(0); // Confirm deletion had occurred
                     e.target.transaction.onabort = function () {

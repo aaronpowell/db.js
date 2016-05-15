@@ -2,6 +2,7 @@
 (function () {
     'use strict';
     importScripts('/node_modules/babel-polyfill/dist/polyfill.js');
+    self._babelPolyfill = false; // Hack for babel polyfill which checks for there being only one instance per this flag
     importScripts('/dist/db.min.js');
     self.onmessage = function (e) {
         var dbName = e.data.dbName;

@@ -111,6 +111,7 @@
         });
 
         it('should trigger a version change event in another window and be able to resume once unblocked', function (done) {
+            this.timeout(8000);
             this.server.close(); // We don't want a connection yet
             var spec = this;
             schema.changed = schema.test;

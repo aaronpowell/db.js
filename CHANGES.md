@@ -1,5 +1,48 @@
 # CHANGES
 
+## Batch version (unreleased)
+
+- API addition: Add `tableBatch` and `batch` methods
+
+## Filter by object version (unreleased)
+
+- API addition: Allow supplying objects to `filter()`
+
+## Schema version (unreleased)
+
+- API change (breaking): Will delete unused indexes by default; set a new
+    property `clearUnusedIndexes` if not desired (when using `schema` or
+    `whole`-type `schema` objects within `schemas`)
+- API addition: Support a `clearUnusedStores` option property to
+    conditionally avoid deleting old stores (when using `schema` or
+    `whole`-type `schema` objects within `schemas`).
+- API addition: Support a `schemas` object. Its keys are the schema versions
+    and its values are--if `schemaType` is `"mixed"` (the default, unless
+    `schema` is used, in which case, it will be treated as `"whole"`)--arrays
+    containing an object whose single key is the schema type for that version
+    (either `"idb-schema"`, `"merge"`, or `"whole"`) and whose values are
+    `schema` objects whose structure differs depending on the schema type.
+    If `schemaType` is not `"mixed"` (`"whole"`, `"idb-schema"`, or `"merge"`),
+    each `schemas` key will be a schema version and its value a single
+    "schema object" (or, in the case of `"idb-schema"`, the function that
+    will be passed the `IdbSchema` instance). Where an object is expected,
+    one may also use a function which resolves to a valid object.
+- API addition: Support `moveFrom` and `copyFrom` for moving/copying a store
+    wholesale to another new store.
+- API addition: Support a `schemaBuilder` callback which accepts an
+    [idb-schema](http://github.com/treojs/idb-schema) object for incremental,
+    versioned schema building and whose `addCallback` method will be
+    passed an enhanced `upgradeneeded` event object that will be passed a
+    `Server` object as its second argument for making db.js-style queries
+    (e.g., to modify store content). This option differs from `schemas` used
+    with `idb-schema` in that it adds the versions as well as stores and
+    indexes programmatically. Addresses issues #84/#109
+- API addition: If there is an upgrade problem, one can use a `retry` method
+    on the error event object
+- Fix: Add Promise rejection for `update()`.
+- Documentation: Update `version` to take `schemaBuilder` into account
+    (and document `schemaBuilder`).
+
 ## Unreleased
 
 - Breaking change: Change `db.cmp()` to return a `Promise` to deliver
@@ -10,7 +53,8 @@
 - Deprecated: on `schema.indexes`, in place of the index `key` property,
     `keyPath` should be used.
 - API fix: Disallow `map` on itself (only one will be used anyways);
-- API addition: Add Server aliases, `put` and `delete`.
+- API addition: Add Server aliases, `put` and `delete` (or `del`) and `db.del`
+    as a `db.delete` alias.
 - API change: Allow `desc`, `distinct`, `filter`, `keys`, `map`, `modify`
     on `limit`;
 - API change: Allow `limit` on `distinct`, `desc`, `keys`;
@@ -18,7 +62,7 @@
 - API change: Allow `add`/`update` items to be of any value including
     `undefined` or `null`
 - API change: Allow Mongoifying of `add`/`update`/`remove` keys
-- API change: Disallow key in `count()` if null;
+- API change: Disallow key in `count()` if `null`;
 - Cross-browser support: Auto-wrap user-supplied `Server.error()` and
     `Server.addEventListener('error', ...)` handlers with `preventDefault`
     so as to avoid hard `ConstraintError` aborts in Firefox.
@@ -26,7 +70,7 @@
     `onupgradeneeded` errors will not become reported in Firefox (though it
     will occur regardless)
 - Cross-browser support (minor): wrap `delete` `onblocked` event's
-    `newVersion` (=null) with `Proxy` but avoid using using `Proxy`
+    `newVersion` (=`null`) with `Proxy` but avoid using using `Proxy`
     if not present for sake of PhantomJS or older browsers (Firefox);
     could not wrap `oldVersion`, however.
 - Fix: Ensure there is a promise rejection for a bad schema callback,

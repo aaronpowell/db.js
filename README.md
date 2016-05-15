@@ -35,6 +35,7 @@ db.open({
     version: 1,
     schema: {
         people: {
+            // Optionally add parameters for creating the object store
             key: {keyPath: 'id', autoIncrement: true},
             // Optionally add indexes
             indexes: {
@@ -53,25 +54,84 @@ Note that `open()` takes an options object with the following properties:
 - *version* - The current version of the database to open.
 Should be an integer. You can start with `1`. You must increase the `version`
 if updating the schema or otherwise the `schema` property will have no effect.
+If the `schemaBuilder` property is used, `version` (if present) cannot be
+greater than the highest version built by `schemaBuilder`.
 
 - *server* - The name of this server. Any subsequent attempt to open a server
 with this name (and with the current version) will reuse the already opened
 connection (unless it has been closed).
 
 - *schema* - Expects an object, or, if a function is supplied, a schema
-object should be returned). A schema object optionally has store names as
+object should be returned). A `schema` object optionally has store names as
 keys (these stores will be auto-created if not yet added and modified
-otherwise). The values of these schema objects should be objects, optionally
+otherwise). The values of these store objects should be objects, optionally
 with the property "key" and/or "indexes". The "key" property, if present,
 should contain valid [createObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase/createObjectStore)
-parameters (`keyPath` or `autoIncrement`). The "indexes" property should
+parameters (`keyPath` or `autoIncrement`)--or one may express `keyPath` and
+`autoIncrement` directly inside the store object. The "indexes" property should
 contain an object whose keys are the desired index keys and whose values are
 objects which can include the optional parameters and values available to [createIndex](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore/createIndex)
 (`unique`, `multiEntry`, and, for Firefox-only, `locale`). Note that the
 `keyPath` of the index will be set to the supplied index key, or if present,
 a `keyPath` property on the provided parameter object. Note also that when a
 schema is supplied for a new version, any object stores not present on
-the schema object will be deleted.
+the schema object will be deleted unless `clearUnusedStores` is set to `false`
+(the latter may be necessary if you may be sharing the domain with applications
+building their own stores) and any unused indexes will also be removed unless
+`clearUnusedIndexes` is set to `false`. One may also add a `moveFrom` or
+`copyFrom` property to the store object to point to the name of a preexisting
+store which one wishes to rename or copy.
+
+- *schemas* - `schemas` is keyed by schema version and its values are--if
+`schemaType` is `"mixed"` (the default, unless `schema` is used, in which
+case, its default type will be `"whole"`)--arrays containing an object whose
+single key is the schema type for that version (either `"idb-schema"`,
+`"merge"`, or `"whole"`) and whose values are `schema` objects whose structure
+differs depending on the schema type. If `schemaType` is not `"mixed"`
+(`"whole"`, `"idb-schema"`, or `"merge"`), each `schemas` key will be a schema
+version and its value a single "schema object" (or, in the case of
+`"idb-schema"`, the function that will be passed the `IdbSchema` instance),
+with no need to indicate type on an object. Where an object or array is
+expected, one may also use a function which resolves to a valid object or
+array. So, if the user was last on version 2 and now it is version 4, they will
+first be brought to version 3 and then 4, while, if they are already on version
+4, no further upgrading will occur but the connection will open. See the
+section on "schema types" for more details on the behavior of the different
+schema types.
+
+- *schemaType* - Determines how `schemas` will be interpreted. Possible values
+are `"whole"`, `"power"`, `"merge"`, or `"mixed"`. The default is `"mixed"`.
+See the discussion under `schemas`. Note that if `schema` is used, it will
+behave as `"whole"`.
+
+- *schemaBuilder* - While the use of `schema` works more simply by deleting
+whatever stores existed before which no longer exist in `schema` and creating
+those which do not yet exist, `schemaBuilder` is a callback which will be
+passed an [idb-schema](https://github.com/treojs/idb-schema)
+object which allows (as with the plural `schemas` property) for specifying
+an incremental path to upgrading a schema (as could be required if your
+users might have already opened say version 1 of your database and you
+have already made two upgrades to have a version 3 but the changes you have
+for version 2 must first be applied). Besides precise control of versioning
+(via `version()`) and, as with `schema`, the creating or deleting stores
+and indexes (via `addStore`, `delStore`, `getStore` (then `addIndex`, and
+`delIndex`)), `schemaBuilder` also offers `stores` for introspection on the
+existing stores and, more importantly, `addCallback` which is passed the
+`upgradeneeded` event and can be used for making queries such as modifying
+store values. See the [idb-schema](https://github.com/treojs/idb-schema)
+documentation for full details.
+
+Note that the event object which is passed as the first argument to
+`addCallback` is the underlying IndexedDB event, but in `db.js`, we call
+these callbacks with a second argument which is the db.js `Server` object,
+allowing for db.js-style queries during the `upgradeneeded` event as
+desired (e.g.,
+`.addCallback(function (e, server) {server.query(table).all().modify(...)});`)
+with the exception that `close` is disallowed as this should not occur within
+the `upgradeneeded` event. Note, however, that due to limitations with Promises
+and the nature of the IndexedDB specification with regard to this event,
+you may need to avoid use of Promises within these callbacks (though you can
+run `addCallback` multiple times).
 
 A connection is intended to be persisted, and you can perform multiple
 operations while it's kept open.
@@ -90,7 +150,10 @@ db.open({
     // ...
 }).catch(function (err) {
     if (err.type === 'blocked') {
-        oldConnection.close();
+        oldConnection.close(); // `versionchange` handlers set up for earlier
+                               //   versions (e.g., in other tabs) should have
+                               //   ideally anticipated this need already (see
+                               //   comment at end of this sample).
         return err.resume;
     }
     // Handle other errors here
@@ -106,11 +169,175 @@ db.open({
 
 Check out the `/tests/specs` folder for more examples.
 
+## Schema types
+
+Schemas can be expressed as one of the following types: `"whole"`,
+`"idb-schema"`, `"merge"`, or `"mixed"`.
+
+If `schema` is used, the default will be `"whole"`.
+
+If `schemas` is used, the default will be `"mixed"`, but this can
+be overridden with the `schemaType` property.
+
+### "whole" type schemas
+
+The `whole` type merge (the default for `schema`, but not for `schemas`)
+is to delete all unreferenced stores or indexes, creating anew those
+stores or indexes which did not exist previously, recreating those
+stores or indexes with differences). Unless the options `clearUnusedStores`
+or `clearUnusedIndexes` are set to `false`, unused stores and indexes
+will also be deleted.
+
+The advantage of this approach is that each "version" will give a clear
+snapshot of all stores and indexes currently in use at the time. The
+disadvantage is the same--namely, that it may end up being bulkier than
+the other types which only indicate differences from the previous version.
+
+The following will add a version 1 of the schema with a `person` store,
+and add a version 2 of the schema, containing a `people`
+store which begins with the data contained in the `person` store (though
+deleting the `person` store after migrated), but overriding the `keyPath`
+and `autoIncrement` information with its own and adding two indexes.
+The store `addresses` will be preserved since it is re-expressed in version 2,
+but `oldStore` will be removed since it is not re-expressed.
+
+```js
+schemaType: 'whole',
+schemas: {
+    1: {
+        oldStore: {},
+        person: {},
+        addresses: {},
+        phoneNumbers: {}
+    },
+    2: {
+        addresses: {},
+        phoneNumbers: {},
+        people: {
+            moveFrom: 'person',
+            // Optionally add parameters for creating the object store
+            keyPath: 'id',
+            autoIncrement: true,
+            // Optionally add indexes
+            indexes: {
+                firstName: {},
+                answer: {unique: true}
+            }
+        }
+    }
+}
+```
+
+### "merge" type schemas
+
+The `merge` type schema allows one to exclusively indicate changes between
+versions without needing to redundantly indicate stores or indexes added
+from previous versions.
+
+`merge` type schemas behave similarly to [JSON Merge Patch](https://tools.ietf.org/html/rfc7396)
+in allowing one to re-express those parts of the JSON structure that one
+wishes to change, but with the enhancement that instead of overriding `null`
+for deletions (and preventing it from being used as a value), the NUL string
+`"\0"` will indicate deletions (if one wishes to add a value which actually
+begins with NUL, one should supply an extra NUL character at the beginning
+of the string).
+
+One could use the `merge` type to implement the example shown under the `whole`
+type section in the following manner:
+
+```js
+schemaType: 'merge',
+schemas: {
+    1: {
+        oldStore: {},
+        person: {},
+        addresses: {},
+        phoneNumbers: {}
+    },
+    2: {
+        oldStore: '\0',
+        people: {
+            moveFrom: 'person',
+            // Optionally add parameters for creating the object store
+            keyPath: 'id',
+            autoIncrement: true,
+            // Optionally add indexes
+            indexes: {
+                firstName: {},
+                answer: {unique: true}
+            }
+        }
+    }
+}
+```
+
+### "idb-schema" type schemas
+
+This type of schema allows for sophisticated programmatic changes
+by use of `idb-schema`'s '`addEarlyCallback` and `addCallback` and
+other methods. One could use the `idb-schema` type to implement the
+example shown under the `whole` type section in the following manner:
+
+```js
+schemaType: 'idb-schema',
+schemas: {
+    1: function (idbschema) {
+        idbschema.addStore('oldStore').addStore('person').addStore('addresses').addStore('phoneNumbers');
+    },
+    2: function (idbschema) {
+        idbschema.delStore('oldStore').renameStore('person', 'people', {keyPath: 'id', autoIncrement: true})
+            .addIndex('firstName', 'firstName')
+            .addIndex('answer', 'answer', {unique: true});
+    }
+}
+```
+
+(Note that using the `schemaBuilder` function would behave similarly, except
+that the versions would also need to be built programmatically (via calls to
+`version()`).)
+
+### "mixed" type schemas
+
+The `mixed` type is the default type for `schemas` (but not for `schema`). It
+adds a little verbosity but allows you to combine any of the types across and
+even within a version.
+
+One could use the `mixed` type to implement the example shown under
+the `whole` type section in such as the following manner:
+
+```js
+schemas: {
+    1: [
+        {'whole': {
+            addresses: {},
+            phoneNumbers: {}
+        }},
+        {'idb-schema': function (idbschema) {
+            idbschema.addStore('oldStore').addStore('person');
+        }}
+    ],
+    2: [{'merge': {
+        oldStore: '\0',
+        people: {
+            moveFrom: 'person',
+            // Optionally add parameters for creating the object store
+            keyPath: 'id',
+            autoIncrement: true,
+            // Optionally add indexes
+            indexes: {
+                firstName: {},
+                answer: {unique: true}
+            }
+        }
+    }}]
+}
+```
+
 ## General server/store methods
 
-Note that by default the methods below (not including `close`,
-`addEventListener`, and `removeEventListener`) can be called either as
-`server.people.xxx( arg1, arg2, ... )` or
+Note that by default the methods below (not including `close`, `batch`,
+`addEventListener`, `removeEventListener`, and the server event methods)
+can be called either as `server.people.xxx( arg1, arg2, ... )` or
 `server.xxx( 'people', arg1, arg2, ... )`.
 
 To reduce some memory requirements or avoid a however unlikely
@@ -185,6 +412,91 @@ This allows removing all items in a table/collection:
 server.people.clear()
     .then(function() {
         // all table data is gone.
+    });
+```
+
+#### Batch operations (in a single transaction)
+
+##### `batch`
+
+This method allows batch operations across multiple stores using the
+formats available to the `transactionalBatch` method of
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish).
+
+The first argument to this method is an array of operations.
+Unlike for the default behavior of `transactionalBatch` in
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish), however,
+any function-based operations will be passed the db.js `Server` as second
+argument, allowing for promises within function-based operations (though
+please note the risk that the transaction of the batch may expire and
+thus its promise resolve before the promises, especially chained promises,
+within the function operation can complete).
+
+The second argument is an optional options object. An option,
+`parallel` can be set to `true` if the order of operations is
+not significant, and another option `extraStores` can be populated
+with an array of additional store names to allow in the transaction
+(for the sake of function-based operations which reuse the transaction).
+
+The options default to `{extraStores: [], parallel: false}`.
+
+The `batch` method is not available on table objects.
+
+```js
+server.batch(
+    [
+        // Multiple stores can be modified
+        {
+            magazines: [
+                { type: 'add', key: 1, value: { name: 'M1', frequency: 12 } },
+                { type: 'add', key: 2, value: { name: 'M2', frequency: 24 } },
+                { type: 'add', key: 3, value: { name: 'M3', frequency: 6 } },
+                { type: 'del', key: 2 }
+            ]
+        },
+        {
+            books: [
+                { type: 'put', key: 1, value: { name: 'M1', frequency: 12 } },
+                { type: 'move', key: 2, value: 1 },
+                { type: 'copy', key: 3, value: 2 }
+            ],
+            storage: 'clear'
+        }
+        function callbackInTransaction (tr, s) {
+            // Transaction doesn't last long enough to chain these promises/add to separate op functions,
+            //  though we can run an extra operation here (before we return a promise) if timing is not critical
+            s.magazines
+                .query()
+                .only(3)
+                .modify({modified: true})
+                .execute();
+            return s.magazines.put({name: 'M4', frequency: 8});
+        }
+    ])
+    .then(function() {
+        // Continue (the `batch` transaction will have now expired)
+    });
+```
+
+##### `tableBatch`
+
+This method allows batch operations on a single store only using the
+formats available to the `batch` method of
+[`idb-batch`](https://github.com/brettz9/idb-batch/tree/tmp-publish).
+
+The first argument is the array of operations and the second argument
+is an optional options object. A single option, `parallel` can be set
+to `true` if the order of operations is not significant.
+
+```js
+server.people.tableBatch([
+        {type: 'add', key: 1, value: {name: 'M1', frequency: 12}},
+        {type: 'add', key: 2, value: {name: 'M2', frequency: 24}},
+        {type: 'add', value: {id: 3, name: 'M3', frequency: 6}},
+        {type: 'add', value: {id: 4, name: 'M4', frequency: 52}}
+    ], {parallel: false})
+    .then(function() {
+        // Continue (the `tableBatch` transaction will have now expired)
     });
 ```
 
@@ -267,6 +579,17 @@ server.people.query()
     });
 ```
 
+###### Filter with object
+
+```js
+server.people.query()
+    .filter({firstName: 'Aaron', lastName: 'Powell'})
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
+```
+
 ###### Filter with function
 
 ```js
@@ -293,7 +616,7 @@ server.people
     });
 ```
 
-##### Querying with ranges
+##### Querying with ranges/keys
 
 All ranges supported by `IDBKeyRange` can be used (`only`,
 `bound`, `lowerBound`, `upperBound`).
@@ -336,7 +659,6 @@ your store with an array `keyPath` (and optionally with an index
 `keyPath`).
 
 ```js
-
 // The definition:
 schema: {
     people: {
@@ -353,11 +675,42 @@ schema: {
     }
 }
 
-// ...elsewhere...
+// ...elsewhere to add the data...
+s.people.add({lastName: 'Zamir', firstName: 'Brett'});
 
-// The query:
-s.test.query('name')
+// Then later, the query:
+s.people.query('name')
     .only(['Zamir', 'Brett'])
+    .execute()
+    .then(function (results) {
+        // do something with the results
+    });
+```
+
+Nested (dot-separated) key paths (with optional index)
+may also be queried:
+
+```js
+// The definition:
+schema: {
+    people: {
+        key: {
+            keyPath: 'person.name.lastName'
+        },
+        indexes: {
+            personName: {
+                keyPath: 'person.name.lastName'
+            }
+        }
+    }
+}
+
+// ...elsewhere to add the data...
+s.people.add({person: {name: {lastName: 'Zamir', firstName: 'Brett'}}});
+
+// Then later, the query:
+s.people.query('personName')
+    .only('Zamir')
     .execute()
     .then(function (results) {
         // do something with the results
@@ -518,7 +871,8 @@ server.profiles.query('name')
 `modify` changes will be seen by any `map` functions.
 
 `modify` can be used after: `all`, `filter`, ranges (`range`, `only`,
-`bound`, `upperBound`, and `lowerBound`), `desc`, `distinct`, and `map`.
+`bound`, `upperBound`, and `lowerBound`), `desc`, `distinct`, `limit`,
+and `map`.
 
 ## Other server methods
 
@@ -527,6 +881,8 @@ server.profiles.query('name')
 ```js
 server.close();
 ```
+
+This method is not available on table objects.
 
 ### Retrieving the `indexedDB.open` result object in use
 
@@ -563,6 +919,8 @@ server.abort(function (e) {
     // Be notified of version changes (can use e.oldVersion and e.newVersion)
 });
 ```
+
+These methods are not available on table objects.
 
 See the IndexedDB spec for the [possible exceptions](http://www.w3.org/TR/IndexedDB/#exceptions).
 
@@ -601,6 +959,8 @@ db.delete(dbName).catch(function (err) {
 
 See the documentation on `open` for more on such recovery from blocking
 connections.
+
+`del` is also available as an alias of `delete`.
 
 ## Comparing two keys
 
