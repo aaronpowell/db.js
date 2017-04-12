@@ -37,19 +37,18 @@ module.exports = function (grunt) {
                     urls: ['http://127.0.0.1:9999/tests/index.html'],
                     public: !!process.env.TRAVIS_JOB_ID,
                     build: process.env.TRAVIS_JOB_ID,
-                    browsers: [/* {
+                    browsers: [{
                         browserName: 'firefox',
                         platform: 'Windows 2012',
-                        version: '17'
+                        version: '52'
                     }, {
-                        browserName: 'internet explorer',
-                        platform: 'Windows 2012',
-                        version: '10'
-                    }, */
-                        {
-                            browserName: 'chrome',
-                            platform: 'Windows 2008'
-                        }]
+                        browserName: 'microsoftedge',
+                        platform: 'Windows 10',
+                        version: '14'
+                    }, {
+                        browserName: 'chrome',
+                        platform: 'Windows 2008'
+                    }]
                 },
                 onTestComplete: function (result, callback) {
                     console.dir(result);
